@@ -1,0 +1,119 @@
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+
+  label {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  input,
+  textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-bottom: 10px;
+    background-color: #fff;
+  }
+
+  .crud {
+    display: flex;
+    gap: 1em;
+  }
+
+  .list-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      margin-left: 2em;
+
+      & > div {
+        display: flex;
+        gap: 1em;
+        align-items: center;
+      }
+    }
+  }
+
+  .hint {
+    position: relative;
+    display: inline-block;
+
+    label {
+      text-decoration: underline;
+    }
+
+    div {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      border: 1px solid black;
+      z-index: 200;
+      background-color: white;
+      white-space: pre-line;
+      padding: 1em;
+    }
+
+    &:hover > div {
+      display: inline-block;
+    }
+  }
+
+  .controls {
+    display: flex;
+    gap: 0.5em;
+  }
+
+  .required::after {
+    content: "*";
+    vertical-align: top;
+    padding-left: 0.2em;
+    color: red;
+    font-weight: normal;
+  }
+}
+
+.error {
+  color: red;
+}
+
+.labeled {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  position: relative;
+
+  &.horisontal {
+    flex-direction: row;
+    align-items: center;
+    gap: 1em;
+  }
+
+  &.has-error input {
+    border-color: red;
+  }
+
+  .error {
+    position: absolute;
+    left: 101%;
+    top: 50%;
+    white-space: nowrap;
+  }
+}

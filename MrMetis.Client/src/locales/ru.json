@@ -1,0 +1,164 @@
+{
+  "general": {
+    "yes": "Да",
+    "no": "Нет"
+  },
+  "nav": {
+    "login": "Логин",
+    "register": "Регистрация",
+    "logout": "Выйти",
+    "dashboard": "Панель",
+    "planning": "Плинирование",
+    "statements": "Трансакции",
+    "budget": "Бюджет",
+    "accounts": "Счета"
+  },
+  "quickAdd": {
+    "quickAdd": "Быстрая добавка",
+    "nothingFound": "Ничего не найдено",
+    "comment": "Коментарий",
+    "amount": "Сумма",
+    "date": "Дата",
+    "today": "сегодня",
+    "yesterday": "вчера",
+    "budget": "Бюджет",
+    "account": "Счет",
+    "statementAdded": "Транзакция добавлена!"
+  },
+  "login": {
+    "header": "Логин",
+    "login": "Войти",
+    "loggingIn": "Вхожу...",
+    "email": "Имейл",
+    "password": "Пароль"
+  },
+  "register": {
+    "header": "Регистрация",
+    "register": "Зарегистрироваться",
+    "registering": "Регистрация...",
+    "email": "Имейл",
+    "password": "Пароль",
+    "code": "Пригласительный код"
+  },
+  "dashboard": {
+    "header": "Панель",
+    "currentBalance": "Текущий баланс",
+    "total": "Всего",
+    "thisMonthStatements": "Транзакции за этого месяц",
+    "remainingPlannedExpences": "Оставшиеся запланированые затраты"
+  },
+  "planning": {
+    "header": "Планирование",
+    "all": "Все",
+    "perAccount": "Счета",
+    "name": "Имя",
+    "planned": "Запланировано",
+    "actual": "Фактически",
+    "leftFromPrevMonth": "Остаток с прошлого месяца",
+    "sentFrom": "Прислано из",
+    "total": "Всего",
+    "openingBalance": "Начальное сальдо",
+    "closingBalance": "Конец сальдо",
+    "totalSpendings": "Всего затрат",
+    "monthDelta": "Месячный баланс"
+  },
+  "statement": {
+    "header": "Список транзакций",
+    "filter": "Фильтр",
+    "date": "Дата",
+    "amount": "Сумма",
+    "budget": "Бюджет",
+    "account": "Счет",
+    "comment": "Коментарий",
+    "add": "Добавить",
+    "edit": "Править",
+    "cancel": "Отменить",
+    "delete": "Удалить"
+  },
+  "budget": {
+    "header": "Список бюджетов",
+    "filter": "Фильтр",
+    "id": "Ид",
+    "name": "Имя",
+    "type": "Тип",
+    "parent": "Родитель",
+    "account": "Счет",
+    "currentAmount": "Текущая сумма",
+    "isEssential": "Необходимый",
+    "expectOneStatement": "Ожидается одна транзакция",
+    "fromAccount": "Со счета",
+    "toAccount": "На счет",
+
+    "amounts": "Сумма",
+    "startDate": "От даты",
+    "endDate": "До даты",
+    "amount": "Сумма",
+    "frequency": "Каждые х месяцев",
+
+    "overrides": "Правки",
+    "month": "Месяц",
+
+    "add": "Добавить",
+    "edit": "Править",
+    "cancel": "Отменить",
+    "delete": "Удалить",
+
+    "amountHint": {
+      "label": "Продвинутая сумма",
+      "description": "[cur_month | prev_month]: Текущий или предыдущий месяц\n[.account(<accountId>)]: Необязательно уточнение счета по ид\n.[\nleftFromPrevMonth: Остаток от предыдущего месяца\ntotalIncome: Сумма типа 'Прибыль'\ntotalSpending: Сумма типа 'Расход'\ntotalLoanReturn: Сумма типа 'Возврат долга'\ntotalSavings: Сумма типа 'Сбережение'\ntotalToOtherAccount: Сумма типа 'Перевод на счет'\ntotalFromOtherAccount: Сумма типа 'Перевод со счета'\ntotalKeepOnAccount: Сумма типа 'Оставить на счету'\nopeningBalance: = leftFromPrevMonth + totalIncome + totalFromOtherAccount\ntotalSpendings: = totalSpending + totalLoanReturn + totalSavings\nclosingBalance: = openingBalance - totalSpendings - totalToOtherAccount\ngetItem(<budgetId>): Получает сумму определенного бюжета\ngetDaysInMonth(): Получает количество календарных дней в месяце (1 - 31)\ngetWeekdaysInMonth([1..7]): Получает сумму дней недели в месяце (пр. getWeekdaysInMonth(2) = Количество Вторников в месяце)\n]"
+    }
+  },
+  "account": {
+    "header": "Список счетов",
+    "id": "Ид",
+    "name": "Имя",
+
+    "leftFromPrevMonth": "Остаток с прошлого месяца",
+    "month": "Месяц",
+    "amount": "Сумма",
+
+    "add": "Добавить",
+    "edit": "Править",
+    "cancel": "Отменить",
+    "delete": "Удалить"
+  },
+  "demo": {
+    "topBarMessage": "Вы используете тестовые данные! Данные не сохраняются и могут быть потеряны. Можете манипулировать данными и пробовать продукт.",
+    "resetData": "Сбросить данные",
+    "resetSuccessful": "Данные сбросились"
+  },
+  "rawData": {
+    "save": "Сохранить",
+    "discard": "Отменить несохраненные изменения"
+  },
+  "budgetType": {
+    "income": "Доход",
+    "spending": "Расход",
+    "loanReturn": "Возврат долга",
+    "savings": "Сбережение",
+    "transferToAccount": "Перевод на счет",
+    "keepOnAccount": "Оставить на счету"
+  },
+  "errors": {
+    "userNotFound": "Пользователь не найден",
+    "userDataNotFound": "Данные не найдены",
+    "emailEmpty": "Имейл не может быть пусным",
+    "emailInvalid": "Формат имейла неверный",
+    "passwordEmpty": "Пароль не может быть пустым",
+    "passwordInvalid": "Пароль не может быть короче 8ми символов",
+    "codeEmpty": "Код не может быть пустым",
+    "codeInvalid": "Неверный код",
+    "emailExists": "Польхователь с этим имейлом уже существует",
+    "failedUserCreate": "Ошибка в создании пользователя",
+    "failedLogin": "Не удалось войти",
+    "missingTransactionData": "Не достаточно данных для транзакции",
+    "nameEmpty": "Имя не может быть пустым",
+    "monthEmpty": "Месяц не может быть пустым"
+  },
+  "privacy": {
+    "header": "Политика приватности",
+    "text1": "Ваши  данные - Ваши. Мы никому их не будем передавать.",
+    "text2": "Наша база данных в открытом виде хранит только Ваш имэйл. Остальное шифруется еще до того как покидает ваше устройство.",
+    "text3": "Все что мы храним на Вашем устройстве необходимо для работы сайта."
+  }
+}

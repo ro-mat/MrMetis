@@ -1,0 +1,216 @@
+{
+  "general": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  "nav": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "planning": "Planning",
+    "statements": "List",
+    "budget": "Budget",
+    "accounts": "Accounts"
+  },
+  "quickAdd": {
+    "quickAdd": "Quick add",
+    "nothingFound": "Nothing found!",
+    "comment": "Comment",
+    "amount": "Amount",
+    "date": "Date",
+    "today": "today",
+    "yesterday": "yesterday",
+    "budget": "Budget",
+    "account": "Account",
+    "statementAdded": "Statement added!"
+  },
+  "login": {
+    "header": "Login",
+    "login": "Login",
+    "loggingIn": "Logging in...",
+    "email": "Email",
+    "password": "Password"
+  },
+  "register": {
+    "header": "Register",
+    "register": "Register",
+    "registering": "Registering...",
+    "email": "Email",
+    "password": "Password",
+    "code": "Invitation code"
+  },
+  "dashboard": {
+    "header": "Welcome to dashboard",
+    "currentBalance": "Current balance",
+    "total": "Total",
+    "thisMonthStatements": "This month statements",
+    "remainingPlannedExpences": "Remaining planned expences"
+  },
+  "planning": {
+    "header": "Welcome to planning",
+    "all": "All",
+    "perAccount": "Per account",
+    "name": "Name",
+    "planned": "Planned",
+    "actual": "Actual",
+    "leftFromPrevMonth": "Left from prev month",
+    "sentFrom": "Sent from",
+    "total": "Total",
+    "openingBalance": "Opening balance",
+    "closingBalance": "Closing balance",
+    "totalSpendings": "Total spendings",
+    "monthDelta": "Month Delta"
+  },
+  "statement": {
+    "header": "Statement list",
+    "filter": "Filter",
+    "date": "Date",
+    "amount": "Amount",
+    "budget": "Budget",
+    "account": "Account",
+    "comment": "Comment",
+    "add": "Add",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "delete": "Delete"
+  },
+  "budget": {
+    "header": "Budget list",
+    "filter": "Filter",
+    "id": "Id",
+    "name": "Name",
+    "type": "Type",
+    "parent": "Parent",
+    "account": "Account",
+    "currentAmount": "Current amount",
+    "isEssential": "Is essential",
+    "expectOneStatement": "Expect one statement",
+    "fromAccount": "From account",
+    "toAccount": "To account",
+
+    "amounts": "Amounts",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "amount": "Amount",
+    "frequency": "Every x months",
+
+    "overrides": "Overrides",
+    "month": "Month",
+
+    "add": "Add",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "delete": "Delete",
+
+    "amountHint": {
+      "label": "Advanced amount",
+      "description": "[cur_month | prev_month]: Current month or previous month\n[.account(<accountId>)]: Optional account specification using account id\n.[\nleftFromPrevMonth: Left from previous month\ntotalIncome: Total of type 'Income'\ntotalSpending: Total of type 'Spending'\ntotalLoanReturn: Total of type 'Loan return'\ntotalSavings: Total of type 'Savings'\ntotalToOtherAccount: Total of type 'Transfer to other account'\ntotalFromOtherAccount: Total of type 'Transfer from other account'\ntotalKeepOnAccount: Total of type 'Keep on account'\nopeningBalance: = leftFromPrevMonth + totalIncome + totalFromOtherAccount\ntotalSpendings: = totalSpending + totalLoanReturn + totalSavings\nclosingBalance: = openingBalance - totalSpendings - totalToOtherAccount\ngetItem(<budgetId>): Gets amount of a specific budget item\ngetDaysInMonth(): Gets total of calendar days in a month (1 - 31)\ngetWeekdaysInMonth([1..7]): Gets total of a certain weekday in a month (e.g. getWeekdaysInMonth(2) = Tuesdays in a month)\n]"
+    }
+  },
+  "account": {
+    "header": "Account list",
+    "id": "Id",
+    "name": "Name",
+
+    "leftFromPrevMonth": "Left from prev month",
+    "month": "Month",
+    "amount": "Amount",
+
+    "add": "Add",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "delete": "Delete"
+  },
+  "demo": {
+    "topBarMessage": "You are using demo data! The data is not saved and may be lost. Feel free to play around and change anything.",
+    "resetData": "Reset data",
+    "resetSuccessful": "Reset successful"
+  },
+  "rawData": {
+    "save": "Save",
+    "discard": "Discart unsaved changes"
+  },
+  "budgetType": {
+    "income": "Income",
+    "spending": "Spending",
+    "loanReturn": "Loan return",
+    "savings": "Savings",
+    "transferToAccount": "Transfer to Account",
+    "keepOnAccount": "Keep on Account"
+  },
+  "errors": {
+    "userNotFound": "User not found",
+    "userDataNotFound": "Data not found",
+    "emailEmpty": "Email cannot be empty",
+    "emailInvalid": "Email is invalid",
+    "passwordEmpty": "Password cannot be empty",
+    "passwordInvalid": "Password cannot be less than 8 characters long",
+    "codeEmpty": "Code cannot be empty",
+    "codeInvalid": "Invalid code",
+    "emailExists": "User with this email address already exists",
+    "failedUserCreate": "Failed to create user",
+    "failedLogin": "Failed to login",
+    "missingTransactionData": "Not enough data for statement",
+    "nameEmpty": "Name cannot be empty",
+    "monthEmpty": "Month cannot be empty"
+  },
+  "landingPage": {
+    "1": {
+      "header": "WTF is this?",
+      "text1": "It's a personal finances helper tool that I started making for myself and then it kinda got out of hand...",
+      "text2": "Looks similar to this -->",
+      "text3": "Still in beta, but main functionality is there",
+      "buttonText": "Try Demo"
+    },
+    "2": {
+      "header": "My philosophy",
+      "text1": "This is for people, not companies (although I have no way of knowing how you will use it)",
+      "text2": "It's not meant to shame anyone, it's here to show you the truth about your finances and help plan your money like a badass that you are"
+    },
+    "3": {
+      "header": "Some SEO text",
+      "text1": "Open source(coming soon)",
+      "text2": "Your data belongs to you",
+      "text3": "Client-side encryption",
+      "text4": "Simple terminology",
+      "text5": "The most bestest overview of your finances in the universe"
+    },
+    "4": {
+      "header": "Roadmap (not in any particular order)",
+      "section1": {
+        "header": "Done:",
+        "text1": "User stuff (authentication, registration)",
+        "text2": "Encryption",
+        "text3": "Basic data management (accounts, budgets, statements)",
+        "text4": "Advanced formulas for budget calculation",
+        "text5": "Quick add",
+        "text6": "Planning view",
+        "text7": "Simple dashboard",
+        "text8": "Translations",
+        "text9": "Basic landing page"
+      },
+      "section2": {
+        "header": "To do:",
+        "text1": "Better landing page",
+        "text2": "Automatic data retrieval",
+        "text3": "Mobile app",
+        "text4": "Browser extensions",
+        "text5": "Budget sharing"
+      }
+    },
+    "5": {
+      "header": "Join Us Today",
+      "text1": "Here is the \"Try Demo\" button again",
+      "button1Text": "Try Demo",
+      "text2": "Or you can register here",
+      "button2Text": "Register"
+    }
+  },
+  "privacy": {
+    "header": "Privacy policy",
+    "text1": "Your data is yours. We will not share it with anyone.",
+    "text2": "Our database stores in plain text only your e-mail. The rest is encrypted before it leaves your device.",
+    "text3": "Anything we store on your device is related to functionality of the site only."
+  }
+}

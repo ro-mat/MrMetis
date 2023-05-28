@@ -1,0 +1,41 @@
+.loading-wrapper {
+  position: relative;
+  overflow: hidden;
+
+  .loading-bar {
+    position: fixed;
+    display: inline-block;
+    top: 0;
+    left: -100%;
+    width: 30%;
+    height: 5px;
+    background-color: $primary-clr;
+    z-index: 50;
+    visibility: hidden;
+    transition: visibility 250ms fade-in-out;
+    animation-name: loading;
+    animation-duration: 1s;
+    animation-delay: 0.5s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+
+    &.show {
+      visibility: visible;
+    }
+  }
+}
+
+@keyframes loading {
+  0% {
+    left: -50%;
+  }
+  20% {
+    left: 0;
+  }
+  50% {
+    left: 50%;
+  }
+  100% {
+    left: 100%;
+  }
+}

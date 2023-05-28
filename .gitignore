@@ -1,0 +1,12 @@
+.vs/
+.vscode/
+MrMetis.Api/bin/
+MrMetis.Api/obj/
+MrMetis.Core/bin/
+MrMetis.Core/obj/
+MrMetis.Infrastructure/bin/
+MrMetis.Infrastructure/obj/
+packages/
+MrMetis.Client/node_modules/
+app/node_modules/
+logs/

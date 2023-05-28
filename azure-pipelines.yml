@@ -1,0 +1,97 @@
+# ASP.NET
+# Build and test ASP.NET projects.
+# Add steps that publish symbols, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
+
+trigger:
+- develop
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: './MrMetis.Api/MrMetis.Api.csproj'
+  apiProject: './MrMetis.Api'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+steps:
+
+- task: DotNetCoreCLI@2
+  displayName: Restore
+  inputs:
+    command: 'restore'
+    projects: '$(solution)'
+
+- task: Npm@1
+  displayName: 'npm latest'
+  inputs:
+    command: custom
+    workingDir: MrMetis.Client
+    customCommand: 'install -g npm@latest'
+
+- task: Npm@1
+  displayName: 'npm install'
+  inputs:
+    command: install
+    workingDir: MrMetis.Client
+
+# - task: Cache@2
+#   displayName: 'Cache npm install'
+#   inputs:
+#     key: 'npm | "$(Agent.OS)" | MrMetis.Client/package-lock.json'
+#     path: 'MrMetis.Client/node_modules'
+#     cacheHitVar: CacheRestored
+
+- task: Npm@1
+  displayName: 'npm build'
+  inputs:
+    command: custom
+    workingDir: MrMetis.Client
+    customCommand: 'run build'
+
+- task: DotNetCoreCLI@2
+  displayName: Build
+  inputs:
+    command: 'build'
+    projects: '$(solution)'
+    arguments: '--no-restore --configuration Release --no-self-contained'
+
+- task: VSTest@2
+  inputs:
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: Publish
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    arguments: '--no-build --configuration Release --output $(System.DefaultWorkingDirectory)/publish_output --no-self-contained'
+    zipAfterPublish: false
+
+- task: CopyFiles@2
+  displayName: 'Copy FE files'
+  inputs:
+    SourceFolder: 'MrMetis.Client/build'
+    Contents: '**'
+    TargetFolder: '$(System.DefaultWorkingDirectory)/publish_output/MrMetis.Api/front'
+
+- task: FileTransform@1
+  displayName: 'Set appsettings values'
+  inputs:
+    folderPath: '$(System.DefaultWorkingDirectory)/publish_output/MrMetis.Api'
+    fileType: json
+    targetFiles: '**/appsettings.Test.json'
+
+- task: ArchiveFiles@2
+  displayName: 'Archive files'
+  inputs:
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/publish_output/MrMetis.Api'
+    includeRootFolder: false
+    archiveType: zip
+    archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+    replaceExistingArchive: true
+
+- publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+  artifact: mrmetis-test-drop
