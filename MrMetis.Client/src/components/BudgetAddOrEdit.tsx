@@ -17,6 +17,7 @@ import { getById, getNextId } from "helpers/userdata";
 import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
+import Hint from "./Hint";
 
 const BudgetAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -317,12 +318,9 @@ const BudgetAddOrEdit = () => {
                   +
                 </button>
               </Labeled>
-              <div className="hint">
-                <label>{t("budget.amountHint.label")}</label>
-                <div>
-                  <pre>{t("budget.amountHint.description")}</pre>
-                </div>
-              </div>
+              <Hint label={t("budget.amountHint.label")}>
+                <pre>{t("budget.amountHint.description")}</pre>
+              </Hint>
               <div className="list">
                 {values.amounts?.map((amount, index) => (
                   <div key={index}>

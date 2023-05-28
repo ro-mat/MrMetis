@@ -23,7 +23,8 @@
     "yesterday": "yesterday",
     "budget": "Budget",
     "account": "Account",
-    "statementAdded": "Statement added!"
+    "statementAdded": "Statement added!",
+    "hint": "Start typing\nTab to fill field\nEnter to add statement"
   },
   "login": {
     "header": "Login",

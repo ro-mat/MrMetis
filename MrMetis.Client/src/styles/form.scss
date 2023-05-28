@@ -51,31 +51,6 @@ form {
     }
   }
 
-  .hint {
-    position: relative;
-    display: inline-block;
-
-    label {
-      text-decoration: underline;
-    }
-
-    div {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      border: 1px solid black;
-      z-index: 200;
-      background-color: white;
-      white-space: pre-line;
-      padding: 1em;
-    }
-
-    &:hover > div {
-      display: inline-block;
-    }
-  }
-
   .controls {
     display: flex;
     gap: 0.5em;
