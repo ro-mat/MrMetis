@@ -60,7 +60,15 @@ const Index = () => {
           <div className="sitewidth">
             <h3>{t("landingPage.3.header")}</h3>
             <ul>
-              <li>{t("landingPage.3.text1")}</li>
+              <li>
+                <a
+                  href="https://github.com/ro-mat/MrMetis"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {t("landingPage.3.text1")}
+                </a>
+              </li>
               <li>
                 <Link to="/privacy">{t("landingPage.3.text2")}</Link>
               </li>

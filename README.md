@@ -24,4 +24,4 @@ In folder MrMetis.Client run `npm start`
 
 ### Contributing
 
-Feel free to leave a bug report, improvement suggestion or request new functionality here in [issues](issues).
+Feel free to leave a bug report, improvement suggestion or request new functionality here in [issues](https://github.com/ro-mat/MrMetis/issues).
