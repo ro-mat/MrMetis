@@ -16,13 +16,15 @@ import { SET_SELECTED_ACCOUNT } from "store/ui/ui.slice";
 import { DatePickerField } from "./DatePickerField";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
-import { IMonthAmountPair } from "types/IMonthAmountPair";
+import Hint from "./Hint";
 
 const AccountAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
 
-  const { accounts } = useSelector((state: AppState) => state.data.userdata);
+  const { accounts, budgets, statements } = useSelector(
+    (state: AppState) => state.data.userdata
+  );
   const { selectedAccountId } = useSelector((state: AppState) => state.ui.ui);
 
   const defaultFormValues = useMemo(() => {
@@ -35,6 +37,18 @@ const AccountAddOrEdit = () => {
   }, []);
 
   const [formValues, setFormValues] = useState<IAccount>(defaultFormValues);
+
+  const disableDelete = useMemo(
+    () =>
+      selectedAccountId !== undefined &&
+      (budgets.findIndex(
+        (b) =>
+          b.fromAccountId === selectedAccountId ||
+          b.toAccountId === selectedAccountId
+      ) >= 0 ||
+        statements.findIndex((s) => s.accountId === selectedAccountId) >= 0),
+    [selectedAccountId, budgets, statements]
+  );
 
   const onAddPrevMonthClick = () => {
     setFormValues((prev) => {
@@ -64,7 +78,7 @@ const AccountAddOrEdit = () => {
   };
 
   const onDeleteClick = () => {
-    if (selectedAccountId) {
+    if (selectedAccountId && !disableDelete) {
       dispatch(deleteAccount(selectedAccountId));
     }
   };
@@ -209,7 +223,11 @@ const AccountAddOrEdit = () => {
                     className="btn small"
                     value={t("account.delete")}
                     onClick={() => onDeleteClick()}
+                    disabled={disableDelete}
                   />
+                  {disableDelete && (
+                    <Hint label="?">{t("account.hintDeleteDisabled")}</Hint>
+                  )}
                 </>
               )}
               {!values.id && (

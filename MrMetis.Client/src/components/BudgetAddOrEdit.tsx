@@ -23,7 +23,7 @@ const BudgetAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
 
-  const { budgets, accounts } = useSelector(
+  const { budgets, accounts, statements } = useSelector(
     (state: AppState) => state.data.userdata
   );
   const { selectedBudgetId } = useSelector((state: AppState) => state.ui.ui);
@@ -45,6 +45,14 @@ const BudgetAddOrEdit = () => {
   }, []);
 
   const [formValues, setFormValues] = useState<IBudget>(defaultFormValues);
+
+  const disableDelete = useMemo(
+    () =>
+      selectedBudgetId !== undefined &&
+      (budgets.findIndex((b) => b.parentId === selectedBudgetId) >= 0 ||
+        statements.findIndex((s) => s.budgetId === selectedBudgetId) >= 0),
+    [selectedBudgetId, budgets, statements]
+  );
 
   const onAddAmountClick = () => {
     setFormValues((prev) => {
@@ -97,7 +105,7 @@ const BudgetAddOrEdit = () => {
   };
 
   const onDeleteClick = () => {
-    if (selectedBudgetId) {
+    if (selectedBudgetId && !disableDelete) {
       dispatch(deleteBudget(selectedBudgetId));
     }
   };
@@ -417,7 +425,11 @@ const BudgetAddOrEdit = () => {
                     className="btn small"
                     value={t("budget.delete")}
                     onClick={() => onDeleteClick()}
+                    disabled={disableDelete}
                   />
+                  {disableDelete && (
+                    <Hint label="?">{t("budget.hintDeleteDisabled")}</Hint>
+                  )}
                 </>
               )}
               {!values.id && (
