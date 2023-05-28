@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import { SET_PREVIEW_STATEMENTS } from "store/ui/ui.slice";
@@ -30,7 +30,13 @@ const TableCellPair: FC<ITableCellPairProps> = ({
     (state: AppState) => state.ui.ui.previewStatements
   );
 
-  const [showStatementList, setShowStatementList] = useState(false);
+  const showStatementList = useMemo(
+    () =>
+      statements !== undefined &&
+      statements.length > 0 &&
+      selectedPreviewStatements === pairId,
+    [statements, selectedPreviewStatements, pairId]
+  );
 
   const progressClass = getProgressClass(
     valuePlanned,
@@ -45,14 +51,7 @@ const TableCellPair: FC<ITableCellPairProps> = ({
     }
 
     dispatch(SET_PREVIEW_STATEMENTS(pairId));
-    setShowStatementList(true);
   };
-
-  useEffect(() => {
-    if (selectedPreviewStatements !== pairId) {
-      setShowStatementList(false);
-    }
-  }, [pairId, selectedPreviewStatements, setShowStatementList]);
 
   return (
     <>
@@ -74,7 +73,7 @@ const TableCellPair: FC<ITableCellPairProps> = ({
         ) : (
           show && valueActual.toFixed(2)
         )}
-        {statements && statements?.length > 0 && showStatementList && (
+        {showStatementList && (
           <PreviewStatements statements={statements ?? []} />
         )}
       </td>

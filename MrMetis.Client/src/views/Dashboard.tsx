@@ -112,7 +112,6 @@ const Dashboard = () => {
                   <TableCellPair
                     valuePlanned={bi.planned}
                     valueActual={bi.actual}
-                    statements={bi.statements}
                   />
                 </tr>
               ))}
