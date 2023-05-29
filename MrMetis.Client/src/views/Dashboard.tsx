@@ -1,13 +1,14 @@
-import React, { useMemo, useState } from "react";
-import TableCellPair from "components/Planning/TableCellPair";
+import React, { useCallback, useMemo, useState } from "react";
 import StatementTable from "components/StatementTable";
-import useBudget from "hooks/useBudget";
+import useBudget, { IActiveBudget } from "hooks/useBudget";
 import moment from "moment";
 import { useSelector } from "react-redux";
 import { AppState } from "store/store";
 import { useTranslation } from "react-i18next";
 import { getById } from "helpers/userdata";
-import { BudgetTypeExtra } from "store/userdata/userdata.types";
+import { BudgetTypeExtra, BudgetTypeUser } from "store/userdata/userdata.types";
+import TableRow from "components/Planning/TableRow";
+import { BudgetMonth } from "types/BudgetMonth";
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -17,24 +18,50 @@ const Dashboard = () => {
   const { statements, accounts } = useSelector(
     (state: AppState) => state.data.userdata
   );
-  const { budgetMonths } = useBudget(relativeMonth - 1, relativeMonth);
-  const bm = useMemo(() => budgetMonths[1], [budgetMonths]);
-  const bmAccounts = useMemo(() => [...bm.budgetMonthAccounts.values()], [bm]);
-  const remainingBudgetItems = useMemo(
+  const { budgetMonths, activeBudgets } = useBudget(
+    relativeMonth,
+    relativeMonth
+  );
+  const budgetMonth = useMemo(() => {
+    return budgetMonths[0];
+  }, [budgetMonths]);
+  const bmAccounts = useMemo(
+    () => [...(budgetMonth.budgetMonthAccounts.values() ?? [])],
+    [budgetMonth]
+  );
+
+  const isActiveBudgetRemaining = useCallback(
+    (activeBudget: IActiveBudget, budgetMonth: BudgetMonth): boolean => {
+      activeBudget.children = activeBudget.children.filter(
+        (activeBudgetChild) =>
+          isActiveBudgetRemaining(activeBudgetChild, budgetMonth)
+      );
+      const bi = budgetMonth.getItem(activeBudget.budgetId);
+
+      return (
+        bi !== undefined &&
+        !(bi.budget.expectOneStatement && bi.actual > 0) &&
+        !(bi.planned === 0 && activeBudget.children.length === 0) &&
+        activeBudget.type !== BudgetTypeExtra.transferFromAccount
+      );
+    },
+    []
+  );
+
+  const remainingActiveBudgets = useMemo(
     () =>
-      bm.list.filter(
-        (item) =>
-          !(item.budget.expectOneStatement && item.actual > 0) &&
-          (item.planned > 0 || item.children.getTotalPlanned() > 0) &&
-          item.type !== BudgetTypeExtra.transferFromAccount
+      activeBudgets.filter((activeBudget) =>
+        isActiveBudgetRemaining(activeBudget, budgetMonth)
       ),
-    [bm]
+    [activeBudgets, budgetMonth, isActiveBudgetRemaining]
   );
 
   const monthStatements = useMemo(
     () =>
-      statements.filter((s) => moment(s.date).isSame(moment(bm.month), "M")),
-    [statements, bm]
+      statements.filter((s) =>
+        moment(s.date).isSame(moment(budgetMonth.month), "M")
+      ),
+    [statements, budgetMonth]
   );
 
   return (
@@ -50,7 +77,7 @@ const Dashboard = () => {
           </button>
         </div>
         <div className={`month ${relativeMonth === 0 ? "current" : ""}`}>
-          {moment(bm.month).format("YYYY-MM")}
+          {moment(budgetMonth.month).format("YYYY-MM")}
         </div>
         <div>
           <button
@@ -67,7 +94,7 @@ const Dashboard = () => {
           <h3>{t("dashboard.currentBalance")}</h3>
           <table>
             <tbody>
-              {bmAccounts.map((a) => (
+              {bmAccounts?.map((a) => (
                 <tr>
                   <td>{getById(accounts, a.accountId)?.name}</td>
                   <td>{a.closingBalance?.actual.toFixed(2)}</td>
@@ -97,7 +124,7 @@ const Dashboard = () => {
         </div>
         <div>
           <h3>{t("dashboard.remainingPlannedExpences")}</h3>
-          <table>
+          <table className="planning-table">
             <thead>
               <tr>
                 <th>{t("planning.name")}</th>
@@ -106,14 +133,15 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {remainingBudgetItems.map((bi) => (
-                <tr key={bi.id}>
-                  <td>{bi.name}</td>
-                  <TableCellPair
-                    valuePlanned={bi.planned}
-                    valueActual={bi.actual}
-                  />
-                </tr>
+              {remainingActiveBudgets.map((ab) => (
+                <TableRow
+                  key={ab.budgetId}
+                  budgetId={ab.budgetId}
+                  name={ab.name}
+                  budgetItems={budgetMonths}
+                  moreIsGood={ab.type === BudgetTypeUser.income}
+                  children={ab.children}
+                />
               ))}
             </tbody>
           </table>

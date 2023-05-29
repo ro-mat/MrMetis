@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React from "react";
 import { IActiveBudget } from "hooks/useBudget";
 import { BudgetTypeUser } from "store/userdata/userdata.types";
 import TableRowsByType from "./TableRowsByType";
@@ -10,7 +10,7 @@ export interface ITableBodyProps {
   activeBudgets: IActiveBudget[];
 }
 
-const TableBody: FC<ITableBodyProps> = ({ budgetMonths, activeBudgets }) => {
+const TableBody = ({ budgetMonths, activeBudgets }: ITableBodyProps) => {
   return (
     <>
       <TableRowsFromPrevMonth budgetItems={budgetMonths} />
