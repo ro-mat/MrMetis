@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Labeled from "./Labeled";
-import { Formik, FormikErrors } from "formik";
+import { Formik, FormikErrors, FieldArray } from "formik";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { IAccount } from "store/userdata/userdata.types";
@@ -49,29 +49,6 @@ const AccountAddOrEdit = () => {
         statements.findIndex((s) => s.accountId === selectedAccountId) >= 0),
     [selectedAccountId, budgets, statements]
   );
-
-  const onAddPrevMonthClick = () => {
-    setFormValues((prev) => {
-      return {
-        ...prev,
-        leftFromPrevMonth: [
-          ...(prev.leftFromPrevMonth ?? []),
-          { amount: "0", month: new Date() },
-        ],
-      };
-    });
-  };
-
-  const onDeletePrevMonthClick = (index: number) => {
-    setFormValues((prev) => {
-      const newAmounts = [...prev.leftFromPrevMonth];
-      newAmounts.splice(index, 1);
-      return {
-        ...prev,
-        leftFromPrevMonth: newAmounts,
-      };
-    });
-  };
 
   const onCancelEditClick = () => {
     dispatch(SET_SELECTED_ACCOUNT(undefined));
@@ -163,46 +140,55 @@ const AccountAddOrEdit = () => {
                 />
               </Labeled>
             </div>
-            <div className="list-wrapper">
-              <Labeled labelKey="account.leftFromPrevMonth" horisontal={true}>
-                <button
-                  type="button"
-                  className="small secondary"
-                  onClick={() => onAddPrevMonthClick()}
-                >
-                  +
-                </button>
-              </Labeled>
-              <div className="list">
-                {errors.leftFromPrevMonth !== undefined &&
-                  typeof errors.leftFromPrevMonth === "string" && (
-                    <div className="error">{t(errors.leftFromPrevMonth)}</div>
-                  )}
-                {values.leftFromPrevMonth?.map((amount, index) => (
-                  <div key={index}>
-                    <Labeled labelKey="account.month" required>
-                      <DatePickerField
-                        name={`leftFromPrevMonth[${index}].month`}
-                      />
-                    </Labeled>
-                    <Labeled labelKey="account.amount">
-                      <input
-                        type="number"
-                        name={`leftFromPrevMonth[${index}].amount`}
-                        value={amount.amount}
-                        onChange={handleChange}
-                      />
-                    </Labeled>
+            <FieldArray
+              name="leftFromPrevMonth"
+              render={({ unshift, remove }) => (
+                <div className="list-wrapper">
+                  <Labeled
+                    labelKey="account.leftFromPrevMonth"
+                    horisontal={true}
+                  >
                     <button
                       type="button"
-                      onClick={() => onDeletePrevMonthClick(index)}
+                      className="small secondary"
+                      onClick={() =>
+                        unshift({ amount: "0", month: new Date() })
+                      }
                     >
-                      <FontAwesomeIcon icon={faTrashCan} />
+                      +
                     </button>
+                  </Labeled>
+                  <div className="list">
+                    {errors.leftFromPrevMonth !== undefined &&
+                      typeof errors.leftFromPrevMonth === "string" && (
+                        <div className="error">
+                          {t(errors.leftFromPrevMonth)}
+                        </div>
+                      )}
+                    {values.leftFromPrevMonth?.map((amount, index) => (
+                      <div key={index}>
+                        <Labeled labelKey="account.month" required>
+                          <DatePickerField
+                            name={`leftFromPrevMonth[${index}].month`}
+                          />
+                        </Labeled>
+                        <Labeled labelKey="account.amount">
+                          <input
+                            type="number"
+                            name={`leftFromPrevMonth[${index}].amount`}
+                            value={amount.amount}
+                            onChange={handleChange}
+                          />
+                        </Labeled>
+                        <button type="button" onClick={() => remove(index)}>
+                          <FontAwesomeIcon icon={faTrashCan} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              )}
+            />
             <div className="controls">
               {!!values.id && (
                 <>
