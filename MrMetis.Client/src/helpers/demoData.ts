@@ -1,8 +1,10 @@
 import moment from "moment";
+import i18n from "i18next";
 
 export const getData = () => {
   const cur_month = moment();
   const prev_month = cur_month.clone().add(-1, "M");
+  const { t } = i18n;
 
   return {
     statements: [
@@ -136,7 +138,7 @@ export const getData = () => {
         amount: 36,
         budgetName: "Going out",
         accountName: "Credit card",
-        comment: "Local bar",
+        comment: t("demoData.localBar"),
       },
       {
         id: 14,
@@ -147,7 +149,7 @@ export const getData = () => {
         amount: 2.7,
         budgetName: "Going out",
         accountName: "Credit card",
-        comment: "Coffee",
+        comment: t("demoData.coffee"),
       },
       {
         id: 15,
@@ -158,7 +160,7 @@ export const getData = () => {
         amount: 23,
         budgetName: "Going out",
         accountName: "Credit card",
-        comment: "Pool with coworkers",
+        comment: t("demoData.pool"),
       },
       {
         id: 16,
@@ -169,7 +171,7 @@ export const getData = () => {
         amount: 64.9,
         budgetName: "Going out",
         accountName: "Credit card",
-        comment: "Hookah",
+        comment: t("demoData.hookah"),
       },
       {
         id: 17,
@@ -180,7 +182,7 @@ export const getData = () => {
         amount: 37,
         budgetName: "Going out",
         accountName: "Credit card",
-        comment: "Beers",
+        comment: t("demoData.beers"),
       },
       {
         id: 18,
@@ -191,7 +193,7 @@ export const getData = () => {
         amount: 46,
         budgetName: "Going out",
         accountName: "Credit card",
-        comment: "Bowling with family",
+        comment: t("demoData.bowling"),
       },
       {
         id: 19,
@@ -232,7 +234,7 @@ export const getData = () => {
         amount: 16.3,
         budgetName: "Groceries",
         accountName: "Credit card",
-        comment: "Vegetables",
+        comment: t("demoData.vegetables"),
       },
       {
         id: 23,
@@ -243,7 +245,7 @@ export const getData = () => {
         amount: 16.8,
         budgetName: "Groceries",
         accountName: "Credit card",
-        comment: "Steaks",
+        comment: t("demoData.steaks"),
       },
       {
         id: 24,
@@ -274,7 +276,7 @@ export const getData = () => {
         amount: 61.9,
         budgetName: "Groceries",
         accountName: "Credit card",
-        comment: "Whole sale",
+        comment: t("demoData.wholeSale"),
       },
       {
         id: 27,
@@ -285,7 +287,7 @@ export const getData = () => {
         amount: 42,
         budgetName: "Alcohol",
         accountName: "Credit card",
-        comment: "Lagavulin 16",
+        comment: t("demoData.lagavulin"),
       },
       {
         id: 28,
@@ -296,7 +298,7 @@ export const getData = () => {
         amount: 21.4,
         budgetName: "Alcohol",
         accountName: "Credit card",
-        comment: "Jim beam",
+        comment: t("demoData.jimBeam"),
       },
       {
         id: 29,
@@ -307,7 +309,7 @@ export const getData = () => {
         amount: 40.3,
         budgetName: "Groceries",
         accountName: "Credit card",
-        comment: "Party snacks",
+        comment: t("demoData.partySnacks"),
       },
       {
         id: 30,
@@ -328,7 +330,7 @@ export const getData = () => {
         amount: 56.8,
         budgetName: "Going out",
         accountName: "Credit card",
-        comment: "Work party",
+        comment: t("demoData.workParty"),
       },
       {
         id: 32,
@@ -479,7 +481,7 @@ export const getData = () => {
         amount: 40.6,
         budgetName: "Going out",
         accountName: "Credit card",
-        comment: "Beers",
+        comment: t("demoData.beers"),
       },
       {
         id: 47,
@@ -490,7 +492,7 @@ export const getData = () => {
         amount: 3.6,
         budgetName: "Going out",
         accountName: "Credit card",
-        comment: "Coffee",
+        comment: t("demoData.coffee"),
       },
       {
         id: 48,
@@ -501,7 +503,7 @@ export const getData = () => {
         amount: 19.3,
         budgetName: "Going out",
         accountName: "Credit card",
-        comment: "Pizza",
+        comment: t("demoData.pizza"),
       },
       {
         id: 49,
@@ -512,7 +514,7 @@ export const getData = () => {
         amount: 16.4,
         budgetName: "Groceries",
         accountName: "Credit card",
-        comment: "Market",
+        comment: t("demoData.market"),
       },
       {
         id: 50,
@@ -533,7 +535,7 @@ export const getData = () => {
         amount: 18.3,
         budgetName: "Groceries",
         accountName: "Credit card",
-        comment: "Meat",
+        comment: t("demoData.meat"),
       },
     ],
     budgets: [
@@ -543,7 +545,7 @@ export const getData = () => {
         parentId: 0,
         fromAccountId: 1,
         toAccountId: 0,
-        name: "Salary",
+        name: t("demoData.salary"),
         isEssential: true,
         amounts: [
           {
@@ -562,7 +564,7 @@ export const getData = () => {
         parentId: 0,
         fromAccountId: 1,
         toAccountId: 0,
-        name: "Apt loan",
+        name: t("demoData.aptLoan"),
         isEssential: true,
         amounts: [
           {
@@ -581,7 +583,7 @@ export const getData = () => {
         parentId: 0,
         fromAccountId: 2,
         toAccountId: 0,
-        name: "Groceries",
+        name: t("demoData.groceries"),
         isEssential: true,
         amounts: [
           {
@@ -600,7 +602,7 @@ export const getData = () => {
         parentId: 3,
         fromAccountId: 2,
         toAccountId: 0,
-        name: "Alcohol",
+        name: t("demoData.alcohol"),
         isEssential: false,
         amounts: [
           {
@@ -619,7 +621,7 @@ export const getData = () => {
         parentId: 9,
         fromAccountId: 1,
         toAccountId: 0,
-        name: "Internet",
+        name: t("demoData.internet"),
         isEssential: true,
         amounts: [
           {
@@ -638,7 +640,7 @@ export const getData = () => {
         parentId: 9,
         fromAccountId: 1,
         toAccountId: 0,
-        name: "Phone",
+        name: t("demoData.phone"),
         isEssential: true,
         amounts: [
           {
@@ -657,7 +659,7 @@ export const getData = () => {
         parentId: 0,
         fromAccountId: 1,
         toAccountId: 0,
-        name: "Sport",
+        name: t("demoData.sport"),
         isEssential: true,
         amounts: [],
         overrides: [],
@@ -670,7 +672,7 @@ export const getData = () => {
         parentId: 7,
         fromAccountId: 1,
         toAccountId: 0,
-        name: "Gym",
+        name: t("demoData.gym"),
         isEssential: false,
         amounts: [
           {
@@ -689,7 +691,7 @@ export const getData = () => {
         parentId: 0,
         fromAccountId: 1,
         toAccountId: 0,
-        name: "Bills",
+        name: t("demoData.bills"),
         isEssential: true,
         amounts: [],
         overrides: [],
@@ -702,7 +704,7 @@ export const getData = () => {
         parentId: 9,
         fromAccountId: 1,
         toAccountId: 0,
-        name: "Electricity",
+        name: t("demoData.electricity"),
         isEssential: true,
         amounts: [
           {
@@ -721,7 +723,7 @@ export const getData = () => {
         parentId: 9,
         fromAccountId: 1,
         toAccountId: 0,
-        name: "Water",
+        name: t("demoData.water"),
         isEssential: true,
         amounts: [
           {
@@ -740,7 +742,7 @@ export const getData = () => {
         parentId: 9,
         fromAccountId: 1,
         toAccountId: 0,
-        name: "Gas",
+        name: t("demoData.gas"),
         isEssential: true,
         amounts: [
           {
@@ -759,7 +761,7 @@ export const getData = () => {
         parentId: 0,
         fromAccountId: 1,
         toAccountId: 0,
-        name: "Long term saving",
+        name: t("demoData.longTermSaving"),
         isEssential: false,
         amounts: [
           {
@@ -779,7 +781,7 @@ export const getData = () => {
         parentId: 0,
         fromAccountId: 1,
         toAccountId: 0,
-        name: "Short term saving",
+        name: t("demoData.shortTermSaving"),
         isEssential: false,
         amounts: [
           {
@@ -798,7 +800,7 @@ export const getData = () => {
         parentId: 0,
         fromAccountId: 2,
         toAccountId: 0,
-        name: "Going out",
+        name: t("demoData.goingOut"),
         isEssential: false,
         amounts: [
           {
@@ -817,7 +819,7 @@ export const getData = () => {
         parentId: 0,
         fromAccountId: 3,
         toAccountId: 0,
-        name: "Kids allowance",
+        name: t("demoData.kidsAllowance"),
         isEssential: false,
         amounts: [
           {
@@ -836,7 +838,7 @@ export const getData = () => {
         parentId: 0,
         fromAccountId: 1,
         toAccountId: 2,
-        name: "Send to Credit Card",
+        name: t("demoData.sendToCC"),
         isEssential: true,
         amounts: [
           {
@@ -856,7 +858,7 @@ export const getData = () => {
         parentId: 0,
         fromAccountId: 2,
         toAccountId: 3,
-        name: "Cash withdrewal",
+        name: t("demoData.cashWithdrawal"),
         isEssential: true,
         amounts: [
           {
@@ -874,7 +876,7 @@ export const getData = () => {
       {
         id: 1,
         dateCreated: cur_month.toDate().toString(),
-        name: "Main",
+        name: t("demoData.main"),
         leftFromPrevMonth: [
           {
             amount: 43,
@@ -889,7 +891,7 @@ export const getData = () => {
       {
         id: 2,
         dateCreated: cur_month.toDate().toString(),
-        name: "Credit card",
+        name: t("demoData.creditCard"),
         leftFromPrevMonth: [
           {
             amount: 16.8,
@@ -900,7 +902,7 @@ export const getData = () => {
       {
         id: 3,
         dateCreated: cur_month.toDate().toString(),
-        name: "Cash",
+        name: t("demoData.cash"),
         leftFromPrevMonth: [
           {
             amount: 20,
