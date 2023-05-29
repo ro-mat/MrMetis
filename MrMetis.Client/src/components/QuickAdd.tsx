@@ -14,6 +14,7 @@ import { AppState, TAppDispatch } from "store/store";
 import { ADD_ERROR_TOAST, ADD_SUCCESS_TOAST } from "store/ui/ui.slice";
 import { addStatement } from "store/userdata/userdata.actions";
 import { BudgetTypeUser, IStatement } from "store/userdata/userdata.types";
+import Hint from "./Hint";
 
 interface INewStatement extends IStatement {
   budgetName?: string;
@@ -289,20 +290,25 @@ const QuickAdd = () => {
           onKeyDown={handleKeyDown}
         />
         {showDropdown && (
-          <button
-            className="small"
-            disabled={
-              !(
-                statement.budgetId &&
-                statement.accountId &&
-                statement.amount &&
-                statement.date
-              )
-            }
-            onClick={handleSubmitClick}
-          >
-            {">"}
-          </button>
+          <>
+            <button
+              className="small"
+              disabled={
+                !(
+                  statement.budgetId &&
+                  statement.accountId &&
+                  statement.amount &&
+                  statement.date
+                )
+              }
+              onClick={handleSubmitClick}
+            >
+              {">"}
+            </button>
+            <Hint label="?" labelClass="ml-1">
+              {t("quickAdd.hint")}
+            </Hint>
+          </>
         )}
       </div>
       {showDropdown && (

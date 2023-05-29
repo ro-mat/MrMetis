@@ -1,5 +1,5 @@
 import moment, { Moment } from "moment";
-import { IBudget } from "store/userdata/userdata.types";
+import { IAccount, IBudget, IStatement } from "store/userdata/userdata.types";
 import { calculate } from "./evalHelper";
 import { BudgetItems } from "types/BudgetItems";
 import { BudgetMonth } from "types/BudgetMonth";
@@ -104,3 +104,23 @@ export class Calculate {
     return this.accounts?.get(id);
   };
 }
+
+export const getBudgetAggregate = (
+  month: Date,
+  budgets: IBudget[],
+  statements: IStatement[],
+  accounts: IAccount[],
+  startingMonth: Date
+): BudgetMonth | undefined => {
+  const prevMonth = moment(startingMonth).isBefore(month, "M")
+    ? getBudgetAggregate(
+        moment(month).add(-1, "M").toDate(),
+        budgets,
+        statements,
+        accounts,
+        startingMonth
+      )
+    : undefined;
+
+  return new BudgetMonth(month, budgets, statements, accounts, prevMonth);
+};

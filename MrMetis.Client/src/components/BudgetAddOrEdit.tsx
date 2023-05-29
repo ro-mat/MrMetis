@@ -3,7 +3,7 @@ import Labeled from "./Labeled";
 import { DatePickerField } from "./DatePickerField";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
-import { Field, Formik, FormikErrors } from "formik";
+import { Field, Formik, FormikErrors, FieldArray } from "formik";
 import { Select, MenuItem } from "@mui/material";
 import { BudgetTypeUser, IBudget } from "store/userdata/userdata.types";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,12 +17,13 @@ import { getById, getNextId } from "helpers/userdata";
 import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
+import Hint from "./Hint";
 
 const BudgetAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
 
-  const { budgets, accounts } = useSelector(
+  const { budgets, accounts, statements } = useSelector(
     (state: AppState) => state.data.userdata
   );
   const { selectedBudgetId } = useSelector((state: AppState) => state.ui.ui);
@@ -45,58 +46,20 @@ const BudgetAddOrEdit = () => {
 
   const [formValues, setFormValues] = useState<IBudget>(defaultFormValues);
 
-  const onAddAmountClick = () => {
-    setFormValues((prev) => {
-      return {
-        ...prev,
-        amounts: [
-          ...(prev.amounts ?? []),
-          { amount: "0", frequency: 1, startDate: new Date() },
-        ],
-      };
-    });
-  };
-
-  const onDeleteAmountClick = (index: number) => {
-    setFormValues((prev) => {
-      const newAmounts = [...prev.amounts];
-      newAmounts.splice(index, 1);
-      return {
-        ...prev,
-        amounts: newAmounts,
-      };
-    });
-  };
-
-  const onAddOverrideClick = () => {
-    setFormValues((prev) => {
-      return {
-        ...prev,
-        overrides: [
-          ...(prev.overrides ?? []),
-          { month: new Date(), amount: "0" },
-        ],
-      };
-    });
-  };
-
-  const onDeleteOverrideClick = (index: number) => {
-    setFormValues((prev) => {
-      const newOverrides = [...prev.overrides];
-      newOverrides.splice(index, 1);
-      return {
-        ...prev,
-        overrides: newOverrides,
-      };
-    });
-  };
+  const disableDelete = useMemo(
+    () =>
+      selectedBudgetId !== undefined &&
+      (budgets.findIndex((b) => b.parentId === selectedBudgetId) >= 0 ||
+        statements.findIndex((s) => s.budgetId === selectedBudgetId) >= 0),
+    [selectedBudgetId, budgets, statements]
+  );
 
   const onCancelEditClick = () => {
     dispatch(SET_SELECTED_BUDGET(undefined));
   };
 
   const onDeleteClick = () => {
-    if (selectedBudgetId) {
+    if (selectedBudgetId && !disableDelete) {
       dispatch(deleteBudget(selectedBudgetId));
     }
   };
@@ -291,14 +254,6 @@ const BudgetAddOrEdit = () => {
                   </Select>
                 </Labeled>
               )}
-              {/* <Labeled labelKey="budget.isEssential">
-                <Field
-                  type="checkbox"
-                  id="is-essential"
-                  name="isEssential"
-                  checked={values.isEssential}
-                />
-              </Labeled> */}
               <Labeled labelKey="budget.expectOneStatement">
                 <Field
                   type="checkbox"
@@ -307,98 +262,114 @@ const BudgetAddOrEdit = () => {
                 />
               </Labeled>
             </div>
-            <div className="list-wrapper">
-              <Labeled labelKey="budget.amounts" horisontal={true}>
-                <button
-                  type="button"
-                  className="small secondary"
-                  onClick={() => onAddAmountClick()}
-                >
-                  +
-                </button>
-              </Labeled>
-              <div className="hint">
-                <label>{t("budget.amountHint.label")}</label>
-                <div>
-                  <pre>{t("budget.amountHint.description")}</pre>
+            <FieldArray
+              name="amounts"
+              render={({ unshift, remove }) => (
+                <div className="list-wrapper">
+                  <Labeled labelKey="budget.amounts" horisontal={true}>
+                    <button
+                      type="button"
+                      className="small secondary"
+                      onClick={() =>
+                        unshift({
+                          amount: "0",
+                          frequency: 1,
+                          startDate: new Date(),
+                        })
+                      }
+                    >
+                      +
+                    </button>
+                  </Labeled>
+                  <div>
+                    <Hint label={t("budget.amountHint.label")}>
+                      <pre>{t("budget.amountHint.description")}</pre>
+                    </Hint>
+                  </div>
+                  <div className="list">
+                    {values.amounts?.map((amount, index) => (
+                      <div key={index}>
+                        <Labeled labelKey="budget.startDate" required>
+                          <DatePickerField
+                            name={`amounts[${index}].startDate`}
+                          />
+                        </Labeled>
+                        <Labeled labelKey="budget.endDate">
+                          <DatePickerField name={`amounts[${index}].endDate`} />
+                        </Labeled>
+                        <Labeled labelKey="budget.amount">
+                          <input
+                            type="text"
+                            name={`amounts[${index}].amount`}
+                            value={amount.amount}
+                            onChange={handleChange}
+                          />
+                        </Labeled>
+                        <Labeled labelKey="budget.frequency" required>
+                          <input
+                            type="number"
+                            name={`amounts[${index}].frequency`}
+                            value={amount.frequency}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                          />
+                        </Labeled>
+                        <div>
+                          <button
+                            type="button"
+                            className="button"
+                            onClick={() => remove(index)}
+                          >
+                            <FontAwesomeIcon icon={faTrashCan} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="list">
-                {values.amounts?.map((amount, index) => (
-                  <div key={index}>
-                    <Labeled labelKey="budget.startDate" required>
-                      <DatePickerField name={`amounts[${index}].startDate`} />
-                    </Labeled>
-                    <Labeled labelKey="budget.endDate">
-                      <DatePickerField name={`amounts[${index}].endDate`} />
-                    </Labeled>
-                    <Labeled labelKey="budget.amount">
-                      <input
-                        type="text"
-                        name={`amounts[${index}].amount`}
-                        value={amount.amount}
-                        onChange={handleChange}
-                      />
-                    </Labeled>
-                    <Labeled labelKey="budget.frequency" required>
-                      <input
-                        type="number"
-                        name={`amounts[${index}].frequency`}
-                        value={amount.frequency}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                      />
-                    </Labeled>
-                    <div>
-                      <button
-                        type="button"
-                        className="button"
-                        onClick={() => onDeleteAmountClick(index)}
-                      >
-                        <FontAwesomeIcon icon={faTrashCan} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="list-wrapper">
-              <Labeled labelKey="budget.overrides" horisontal={true}>
-                <button
-                  type="button"
-                  className="small secondary"
-                  onClick={() => onAddOverrideClick()}
-                >
-                  +
-                </button>
-              </Labeled>
-              <div className="list">
-                {values.overrides?.map((ovr, index) => (
-                  <div key={index}>
-                    <Labeled labelKey="budget.month" required>
-                      <DatePickerField name={`overrides[${index}].month`} />
-                    </Labeled>
-                    <Labeled labelKey="budget.amount">
-                      <input
-                        type="number"
-                        name={`overrides[${index}].amount`}
-                        value={ovr.amount}
-                        onChange={handleChange}
-                      />
-                    </Labeled>
+              )}
+            />
+            <FieldArray
+              name="overries"
+              render={({ unshift, remove }) => (
+                <div className="list-wrapper">
+                  <Labeled labelKey="budget.overrides" horisontal={true}>
+                    <button
+                      type="button"
+                      className="small secondary"
+                      onClick={() =>
+                        unshift({ month: new Date(), amount: "0" })
+                      }
+                    >
+                      +
+                    </button>
+                  </Labeled>
+                  <div className="list">
+                    {values.overrides?.map((ovr, index) => (
+                      <div key={index}>
+                        <Labeled labelKey="budget.month" required>
+                          <DatePickerField name={`overrides[${index}].month`} />
+                        </Labeled>
+                        <Labeled labelKey="budget.amount">
+                          <input
+                            type="number"
+                            name={`overrides[${index}].amount`}
+                            value={ovr.amount}
+                            onChange={handleChange}
+                          />
+                        </Labeled>
 
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => onDeleteOverrideClick(index)}
-                      >
-                        <FontAwesomeIcon icon={faTrashCan} />
-                      </button>
-                    </div>
+                        <div>
+                          <button type="button" onClick={() => remove(index)}>
+                            <FontAwesomeIcon icon={faTrashCan} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              )}
+            />
             <div className="controls">
               {!!values.id && (
                 <>
@@ -419,7 +390,11 @@ const BudgetAddOrEdit = () => {
                     className="btn small"
                     value={t("budget.delete")}
                     onClick={() => onDeleteClick()}
+                    disabled={disableDelete}
                   />
+                  {disableDelete && (
+                    <Hint label="?">{t("budget.hintDeleteDisabled")}</Hint>
+                  )}
                 </>
               )}
               {!values.id && (

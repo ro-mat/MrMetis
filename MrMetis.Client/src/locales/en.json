@@ -23,7 +23,8 @@
     "yesterday": "yesterday",
     "budget": "Budget",
     "account": "Account",
-    "statementAdded": "Statement added!"
+    "statementAdded": "Statement added!",
+    "hint": "Start typing\nTab to fill field\nEnter to add statement"
   },
   "login": {
     "header": "Login",
@@ -70,6 +71,7 @@
     "budget": "Budget",
     "account": "Account",
     "comment": "Comment",
+
     "add": "Add",
     "edit": "Edit",
     "cancel": "Cancel",
@@ -98,6 +100,8 @@
     "overrides": "Overrides",
     "month": "Month",
 
+    "hintDeleteDisabled": "This budget item is used, therefore cannot be deleted",
+
     "add": "Add",
     "edit": "Edit",
     "cancel": "Cancel",
@@ -116,6 +120,8 @@
     "leftFromPrevMonth": "Left from prev month",
     "month": "Month",
     "amount": "Amount",
+
+    "hintDeleteDisabled": "This account is used, therefore cannot be deleted",
 
     "add": "Add",
     "edit": "Edit",
