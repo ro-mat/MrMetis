@@ -9,6 +9,7 @@ import {
 } from "store/userdata/userdata.types";
 import { IBudgetResolver } from "./BudgetMonth";
 import { roundTo } from "helpers/evalHelper";
+import { IActiveBudget } from "hooks/useBudget";
 
 export class BudgetItems {
   month: Date;
@@ -314,6 +315,33 @@ export class BudgetItems {
     return new Calculate(this);
   };
 }
+
+export const isActive = (budgetItem: IBudgetItem): boolean => {
+  return (
+    budgetItem.actual > 0 ||
+    budgetItem.planned > 0 ||
+    budgetItem.children.list.reduce((prev: boolean, cur) => {
+      return prev || isActive(cur);
+    }, false)
+  );
+};
+
+export const toActiveBudget = (
+  budgetItem: IBudgetItem,
+  type?: BudgetType,
+  accountId?: number,
+  name?: string
+): IActiveBudget => {
+  return {
+    budgetId: budgetItem.id,
+    type: type ?? budgetItem.type,
+    name: name ?? budgetItem.name,
+    accountId: accountId ?? budgetItem.budget.fromAccountId,
+    children: budgetItem.children.list.map((child) =>
+      toActiveBudget(child, type, accountId)
+    ),
+  };
+};
 
 export interface IBudgetItem extends IBudgetPair {
   id: number;

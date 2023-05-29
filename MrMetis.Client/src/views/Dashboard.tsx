@@ -9,6 +9,7 @@ import { getById } from "helpers/userdata";
 import { BudgetTypeExtra, BudgetTypeUser } from "store/userdata/userdata.types";
 import TableRow from "components/Planning/TableRow";
 import { BudgetMonth } from "types/BudgetMonth";
+import useBudgetAggregate from "hooks/useBudgetAggregate";
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -18,13 +19,7 @@ const Dashboard = () => {
   const { statements, accounts } = useSelector(
     (state: AppState) => state.data.userdata
   );
-  const { budgetMonths, activeBudgets } = useBudget(
-    relativeMonth,
-    relativeMonth
-  );
-  const budgetMonth = useMemo(() => {
-    return budgetMonths[0];
-  }, [budgetMonths]);
+  const { budgetMonth, activeBudgets } = useBudgetAggregate(new Date());
   const bmAccounts = useMemo(
     () => [...(budgetMonth.budgetMonthAccounts.values() ?? [])],
     [budgetMonth]
@@ -138,7 +133,7 @@ const Dashboard = () => {
                   key={ab.budgetId}
                   budgetId={ab.budgetId}
                   name={ab.name}
-                  budgetItems={budgetMonths}
+                  budgetItems={[budgetMonth]}
                   moreIsGood={ab.type === BudgetTypeUser.income}
                   children={ab.children}
                 />

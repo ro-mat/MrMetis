@@ -25,7 +25,7 @@ const Budget = () => {
     [selectedBudgetId]
   );
 
-  const budgetMonth = useBudgetAggregate(new Date());
+  const { budgetMonth } = useBudgetAggregate(new Date());
 
   const [filter, setFilter] = useState<string>("");
   const filteredBudgets = useMemo(() => {

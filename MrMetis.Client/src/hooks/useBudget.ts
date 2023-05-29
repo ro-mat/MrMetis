@@ -8,7 +8,7 @@ import {
   BudgetTypeExtra,
   BudgetTypeUser,
 } from "store/userdata/userdata.types";
-import { IBudgetItem } from "types/BudgetItems";
+import { isActive, toActiveBudget } from "types/BudgetItems";
 import { range } from "helpers/arrayHelper";
 import { getById } from "helpers/userdata";
 
@@ -22,7 +22,9 @@ export const useBudget = (start: number, end: number) => {
 
   const beforeFirstMonth = moment().add(start - 1, "M");
 
-  let prevMonth = useBudgetAggregate(beforeFirstMonth.toDate());
+  let { budgetMonth: prevMonth } = useBudgetAggregate(
+    beforeFirstMonth.toDate()
+  );
 
   const activeBudgets: IActiveBudget[] = [];
 
@@ -59,33 +61,6 @@ export const useBudget = (start: number, end: number) => {
   });
 
   return { budgetMonths, activeBudgets };
-};
-
-const isActive = (budgetItem: IBudgetItem): boolean => {
-  return (
-    budgetItem.actual > 0 ||
-    budgetItem.planned > 0 ||
-    budgetItem.children.list.reduce((prev: boolean, cur) => {
-      return prev || isActive(cur);
-    }, false)
-  );
-};
-
-const toActiveBudget = (
-  budgetItem: IBudgetItem,
-  type?: BudgetType,
-  accountId?: number,
-  name?: string
-): IActiveBudget => {
-  return {
-    budgetId: budgetItem.id,
-    type: type ?? budgetItem.type,
-    name: name ?? budgetItem.name,
-    accountId: accountId ?? budgetItem.budget.fromAccountId,
-    children: budgetItem.children.list.map((child) =>
-      toActiveBudget(child, type, accountId)
-    ),
-  };
 };
 
 export default useBudget;
