@@ -3,12 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import { BudgetTypeUser } from "store/userdata/userdata.types";
 import { getById } from "helpers/userdata";
-import { getBudgetAmount } from "helpers/budgetHelper";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
 import BudgetAddOrEdit from "components/BudgetAddOrEdit";
 import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import { useTranslation } from "react-i18next";
+import useBudgetAggregate from "hooks/useBudgetAggregate";
 
 const Budget = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -24,6 +24,8 @@ const Budget = () => {
     () => selectedBudgetId !== undefined,
     [selectedBudgetId]
   );
+
+  const budgetMonth = useBudgetAggregate(new Date());
 
   const [filter, setFilter] = useState<string>("");
   const filteredBudgets = useMemo(() => {
@@ -84,7 +86,6 @@ const Budget = () => {
                   <th>{t("budget.parent")}</th>
                   <th>{t("budget.account")}</th>
                   <th>{t("budget.currentAmount")}</th>
-                  {/* <th>{t("budget.isEssential")}</th> */}
                   <th>{t("budget.expectOneStatement")}</th>
                   <th>&nbsp;</th>
                 </tr>
@@ -101,10 +102,10 @@ const Budget = () => {
                         ? ` - ${getById(accounts, b.toAccountId)?.name ?? ""}`
                         : ""
                     }`}</td>
-                    <td>{getBudgetAmount(new Date(), b)}</td>
-                    {/* <td>
-                      {b.isEssential ? t("general.yes") : t("general.no")}
-                    </td> */}
+                    <td>
+                      {budgetMonth?.getItem(b.id)?.planned.toFixed(2) ??
+                        "Not found"}
+                    </td>
                     <td>
                       {b.expectOneStatement
                         ? t("general.yes")

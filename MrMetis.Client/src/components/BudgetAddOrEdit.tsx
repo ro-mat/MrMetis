@@ -254,14 +254,6 @@ const BudgetAddOrEdit = () => {
                   </Select>
                 </Labeled>
               )}
-              {/* <Labeled labelKey="budget.isEssential">
-                <Field
-                  type="checkbox"
-                  id="is-essential"
-                  name="isEssential"
-                  checked={values.isEssential}
-                />
-              </Labeled> */}
               <Labeled labelKey="budget.expectOneStatement">
                 <Field
                   type="checkbox"

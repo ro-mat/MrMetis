@@ -22,9 +22,7 @@ export const useBudget = (start: number, end: number) => {
 
   const beforeFirstMonth = moment().add(start - 1, "M");
 
-  let { budgetMonth: prevMonth } = useBudgetAggregate(
-    beforeFirstMonth.toDate()
-  );
+  let prevMonth = useBudgetAggregate(beforeFirstMonth.toDate());
 
   const activeBudgets: IActiveBudget[] = [];
 
