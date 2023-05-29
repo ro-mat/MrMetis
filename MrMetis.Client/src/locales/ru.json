@@ -198,11 +198,11 @@
     "longTermSaving": "Долгострчное сбережение",
     "shortTermSaving": "Краткосрочное сбережение",
     "goingOut": "Выход в свет",
-    "kidsAllowance": "Детские карманные деньги",
+    "kidsAllowance": "Карманные деньги ребенку",
     "sendToCC": "Перевод на кредитку",
     "cashWithdrawal": "Снятие наличных",
     "main": "Основной",
-    "creditCard": "Кредитка",
+    "creditCard": "Кредитная карта",
     "cash": "Наличные"
   }
 }
