@@ -19,7 +19,9 @@ const Dashboard = () => {
   const { statements, accounts } = useSelector(
     (state: AppState) => state.data.userdata
   );
-  const { budgetMonth, activeBudgets } = useBudgetAggregate(new Date());
+  const { budgetMonth, activeBudgets } = useBudgetAggregate(
+    moment().add(relativeMonth, "M").toDate()
+  );
   const bmAccounts = useMemo(
     () => [...(budgetMonth.budgetMonthAccounts.values() ?? [])],
     [budgetMonth]
