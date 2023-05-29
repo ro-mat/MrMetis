@@ -66,8 +66,8 @@ const Budget = () => {
         <>
           {showAddOrEdit && <BudgetAddOrEdit />}
           <div>
-            <div>
-              <label htmlFor="filter">{t("budget.filter")}:</label>
+            <div className="filter-text">
+              <label htmlFor="filter">{t("budget.filter")}: </label>
               <input
                 type="text"
                 id="filter"
