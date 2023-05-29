@@ -281,9 +281,11 @@ const BudgetAddOrEdit = () => {
                       +
                     </button>
                   </Labeled>
-                  <Hint label={t("budget.amountHint.label")}>
-                    <pre>{t("budget.amountHint.description")}</pre>
-                  </Hint>
+                  <div>
+                    <Hint label={t("budget.amountHint.label")}>
+                      <pre>{t("budget.amountHint.description")}</pre>
+                    </Hint>
+                  </div>
                   <div className="list">
                     {values.amounts?.map((amount, index) => (
                       <div key={index}>
