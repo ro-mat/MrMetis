@@ -1,0 +1,27 @@
+.quick-add {
+  position: relative;
+
+  .text-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+  }
+
+  .dropdown-wrapper {
+    position: absolute;
+    top: 100%;
+    width: 100%;
+    z-index: 100;
+    background-color: white;
+    border: 1px solid black;
+
+    & > div {
+      cursor: pointer;
+      padding: 0.3em;
+    }
+
+    .selected {
+      background-color: $primary-color-dark;
+    }
+  }
+}
