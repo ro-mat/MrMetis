@@ -28,7 +28,7 @@ const StatementTable = ({
     return [...statements]
       .filter(
         (s) =>
-          s.id.toString().includes(filter.toLowerCase()) ||
+          s.amount.toFixed(2).includes(filter.toLowerCase()) ||
           getById(budgets, s.budgetId)
             ?.name.toLowerCase()
             .includes(filter.toLowerCase()) ||
