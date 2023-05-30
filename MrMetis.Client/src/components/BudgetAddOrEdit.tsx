@@ -330,7 +330,7 @@ const BudgetAddOrEdit = () => {
               )}
             />
             <FieldArray
-              name="overries"
+              name="overrides"
               render={({ unshift, remove }) => (
                 <div className="list-wrapper">
                   <Labeled labelKey="budget.overrides" horisontal={true}>
