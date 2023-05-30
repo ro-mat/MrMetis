@@ -411,6 +411,12 @@ table {
 .quick-add {
   position: relative;
 
+  .text-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+  }
+
   .dropdown-wrapper {
     position: absolute;
     top: 100%;

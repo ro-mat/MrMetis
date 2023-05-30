@@ -279,7 +279,7 @@ const QuickAdd = () => {
 
   return (
     <div className="quick-add">
-      <div>
+      <div className="text-wrapper">
         <input
           type="text"
           placeholder={t("quickAdd.quickAdd")}
@@ -292,7 +292,7 @@ const QuickAdd = () => {
         {showDropdown && (
           <>
             <button
-              className="small"
+              className="small secondary"
               disabled={
                 !(
                   statement.budgetId &&
@@ -314,11 +314,26 @@ const QuickAdd = () => {
       {showDropdown && (
         <>
           <div>
-            {t("quickAdd.budget")}: {statement.budgetName ?? "N/A"},{" "}
-            {t("quickAdd.account")}: {statement.accountName ?? "N/A"},{" "}
-            {t("quickAdd.date")}: {moment(statement.date).format("YYYY-MM-DD")},{" "}
-            {t("quickAdd.amount")}: {statement.amount.toFixed(2)},{" "}
-            {t("quickAdd.comment")}: {statement.comment}
+            <span className={statement.budgetName ? "" : "error"}>
+              {t("quickAdd.budget")}: {statement.budgetName ?? "N/A"}
+            </span>
+            ,{" "}
+            <span className={statement.accountName ? "" : "error"}>
+              {t("quickAdd.account")}: {statement.accountName ?? "N/A"}
+            </span>
+            ,{" "}
+            <span>
+              {t("quickAdd.date")}:{" "}
+              {moment(statement.date).format("YYYY-MM-DD")}
+            </span>
+            ,{" "}
+            <span className={statement.amount === 0 ? "error" : ""}>
+              {t("quickAdd.amount")}: {statement.amount.toFixed(2)}
+            </span>
+            ,{" "}
+            <span>
+              {t("quickAdd.comment")}: {statement.comment}
+            </span>
           </div>
           <div className="dropdown-wrapper">
             {suggestions.length > 0 &&
