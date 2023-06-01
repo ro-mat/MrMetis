@@ -20,6 +20,8 @@ import {
 import { IAccount, IBudget, IStatement, IUserdataDto } from "./userdata.types";
 import { decrypt, encrypt } from "services/encryptor";
 import { saveDemoData } from "helpers/demoHelper";
+import moment from "moment";
+import { DATE_FORMAT } from "helpers/dateHelper";
 
 export const fetchUserdata =
   (): TAppThunk =>
@@ -63,7 +65,7 @@ export const saveUserData =
 export const addStatement =
   (s: IStatement): TAppThunk =>
   async (dispatch): Promise<void> => {
-    s.dateCreated = new Date();
+    s.dateCreated = moment().format(DATE_FORMAT);
     dispatch(FETCHING());
     dispatch(ADD_STATEMENT(s));
   };
@@ -71,7 +73,7 @@ export const addStatement =
 export const updateStatement =
   (s: IStatement): TAppThunk =>
   async (dispatch): Promise<void> => {
-    s.dateModified = new Date();
+    s.dateModified = moment().format(DATE_FORMAT);
     dispatch(FETCHING());
     dispatch(UPDATE_STATEMENT(s));
   };
@@ -85,7 +87,7 @@ export const deleteStatement =
 export const addBudget =
   (b: IBudget): TAppThunk =>
   async (dispatch): Promise<void> => {
-    b.dateCreated = new Date();
+    b.dateCreated = moment().format(DATE_FORMAT);
     dispatch(FETCHING());
     dispatch(ADD_BUDGET(b));
   };
@@ -93,7 +95,7 @@ export const addBudget =
 export const updateBudget =
   (b: IBudget): TAppThunk =>
   async (dispatch): Promise<void> => {
-    b.dateModified = new Date();
+    b.dateModified = moment().format(DATE_FORMAT);
     dispatch(FETCHING());
     dispatch(UPDATE_BUDGET(b));
   };
@@ -108,7 +110,7 @@ export const deleteBudget =
 export const addAccount =
   (a: IAccount): TAppThunk =>
   async (dispatch): Promise<void> => {
-    a.dateCreated = new Date();
+    a.dateCreated = moment().format(DATE_FORMAT);
     dispatch(FETCHING());
     dispatch(ADD_ACCOUNT(a));
   };
@@ -116,7 +118,7 @@ export const addAccount =
 export const updateAccount =
   (a: IAccount): TAppThunk =>
   async (dispatch): Promise<void> => {
-    a.dateModified = new Date();
+    a.dateModified = moment().format(DATE_FORMAT);
     dispatch(FETCHING());
     dispatch(UPDATE_ACCOUNT(a));
   };

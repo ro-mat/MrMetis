@@ -1,5 +1,4 @@
 import React from "react";
-import "styles/index.scss";
 import planning_table from "styles/img/planning_table.png";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -28,6 +27,7 @@ const Index = () => {
 
     navigate("/dashboard");
   };
+
   return (
     <>
       <div className="main">

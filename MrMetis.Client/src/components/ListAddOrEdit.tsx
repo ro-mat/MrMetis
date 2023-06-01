@@ -15,6 +15,8 @@ import { getById, getNextId } from "helpers/userdata";
 import { SET_SELECTED_STATEMENT } from "store/ui/ui.slice";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
+import moment from "moment";
+import { DATE_FORMAT } from "helpers/dateHelper";
 
 const ListAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -28,16 +30,16 @@ const ListAddOrEdit = () => {
   const defaultFormValues = useMemo(() => {
     return {
       id: 0,
-      dateCreated: new Date(),
+      dateCreated: moment().format(DATE_FORMAT),
       amount: 0,
       comment: "",
-      date: new Date(),
+      date: moment().format(DATE_FORMAT),
       budgetId: 0,
       accountId: 0,
     };
   }, []);
 
-  const [date, setDate] = useState<Date>(new Date());
+  const [date, setDate] = useState(defaultFormValues.date);
   const [formValues, setFormValues] = useState<IStatement>(defaultFormValues);
 
   const onCancelEditClick = () => {
@@ -65,6 +67,7 @@ const ListAddOrEdit = () => {
       ...defaultFormValues,
       ...item,
     });
+    setDate(moment(item.date).format(DATE_FORMAT));
   }, [statements, defaultFormValues, selectedStatementId]);
 
   return (
@@ -93,7 +96,7 @@ const ListAddOrEdit = () => {
         onSubmit={(values) => {
           const st: IStatement = {
             ...values,
-            date: date ?? new Date(),
+            date: date ?? moment().toString(),
           };
 
           if (values.id) {
@@ -131,8 +134,12 @@ const ListAddOrEdit = () => {
                 <DatePicker
                   id="date"
                   name="date"
-                  selected={date}
-                  onChange={(date) => setDate(date ?? new Date())}
+                  selected={moment(date).toDate()}
+                  onChange={(date) =>
+                    setDate(
+                      (date ? moment(date) : moment()).format(DATE_FORMAT)
+                    )
+                  }
                 />
               </Labeled>
               <Labeled labelKey="statement.budget" required>

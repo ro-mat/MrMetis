@@ -32,6 +32,7 @@ const Login = () => {
       {err && <div className="error">{t(`errors.${err}`)}</div>}
       <Formik
         validateOnChange={true}
+        validateOnMount={true}
         validateOnBlur={true}
         initialValues={defaultForm()}
         validate={(values) => {

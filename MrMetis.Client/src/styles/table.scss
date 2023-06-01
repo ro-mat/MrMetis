@@ -1,0 +1,146 @@
+table {
+  // width: 100%;
+  border-collapse: collapse;
+  display: block;
+  overflow: auto;
+  max-height: 80vh;
+  max-width: 85vw;
+  padding-right: 17px;
+
+  th,
+  td {
+    border: 1px solid #ccc;
+    padding: 4px 8px;
+    text-align: right;
+    white-space: nowrap;
+
+    &:first-of-type {
+      text-align: left;
+    }
+
+    &.has-children {
+      cursor: pointer;
+      text-decoration: underline;
+      position: relative;
+
+      .arrow {
+        position: absolute;
+        margin-left: 1em;
+        rotate: 90deg;
+      }
+
+      .open {
+        &.arrow {
+          rotate: 0deg;
+        }
+      }
+    }
+
+    &.br {
+      border-right: 1px solid black;
+    }
+
+    &.bl {
+      border-left: 1px solid black;
+    }
+
+    &.r {
+      background-color: #f17665;
+    }
+
+    &.g {
+      background-color: #71c471;
+    }
+
+    $i: 0;
+    @while $i <= 100 {
+      &.gp-#{$i} {
+        background: linear-gradient(
+            to right,
+            #{"#71c471 #{$i}%"},
+            #{"transparent #{$i}%"}
+          )
+          no-repeat;
+      }
+
+      &.rp-#{$i} {
+        background: linear-gradient(
+            to right,
+            #{"#f17665 #{$i}%"},
+            #{"transparent #{$i}%"}
+          )
+          no-repeat;
+      }
+
+      $i: $i + 1;
+    }
+  }
+
+  th {
+    background-color: #f6f6f6;
+    text-align: center;
+
+    &.current-month {
+      background-color: $primary-color-highlight;
+    }
+  }
+
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+}
+
+.filter-text {
+  margin-bottom: 1em;
+}
+
+.statement-cell {
+  position: relative;
+
+  &.selected {
+    box-shadow: 0px 0px 5px 5px $primary-color-highlight;
+  }
+}
+
+.preview-statements {
+  position: absolute;
+  top: 0;
+  left: 105%;
+  z-index: 50;
+
+  background-color: $primary-color;
+
+  box-shadow: 3px 3px 5px 0px;
+
+  & > div {
+    padding: 0.5em 2em;
+
+    min-width: 200px;
+    max-width: 400px;
+    max-height: 100px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    & > div {
+      display: flex;
+      gap: 1em;
+      flex-direction: row;
+      justify-content: space-between;
+      white-space: nowrap;
+    }
+  }
+
+  .close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: 1px solid black;
+    background-color: #f17665;
+    border-radius: 50%;
+    padding: 3px;
+    translate: 50% -50%;
+  }
+}

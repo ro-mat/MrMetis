@@ -1,4 +1,4 @@
 export interface IMonthAmountPair {
-  month: Date;
+  month: string;
   amount: string;
 }

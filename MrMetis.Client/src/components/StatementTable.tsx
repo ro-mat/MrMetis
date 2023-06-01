@@ -7,6 +7,7 @@ import { IStatement } from "store/userdata/userdata.types";
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { DATE_FORMAT } from "helpers/dateHelper";
 
 export interface IStatementTableProps {
   statements: IStatement[];
@@ -28,7 +29,7 @@ const StatementTable = ({
     return [...statements]
       .filter(
         (s) =>
-          s.id.toString().includes(filter.toLowerCase()) ||
+          s.amount.toFixed(2).includes(filter.toLowerCase()) ||
           getById(budgets, s.budgetId)
             ?.name.toLowerCase()
             .includes(filter.toLowerCase()) ||
@@ -82,7 +83,7 @@ const StatementTable = ({
         <tbody>
           {filteredStatements.map((s) => (
             <tr key={s.id}>
-              <td>{moment(s.date).format("yyyy-MM-DD")}</td>
+              <td>{moment(s.date).format(DATE_FORMAT)}</td>
               <td>{s.amount.toFixed(2)}</td>
               <td>{getById(budgets, s.budgetId)?.name}</td>
               <td>{getById(accounts, s.accountId)?.name}</td>

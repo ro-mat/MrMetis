@@ -15,6 +15,7 @@ import { ADD_ERROR_TOAST, ADD_SUCCESS_TOAST } from "store/ui/ui.slice";
 import { addStatement } from "store/userdata/userdata.actions";
 import { BudgetTypeUser, IStatement } from "store/userdata/userdata.types";
 import Hint from "./Hint";
+import { DATE_FORMAT } from "helpers/dateHelper";
 
 interface INewStatement extends IStatement {
   budgetName?: string;
@@ -34,10 +35,10 @@ const QuickAdd = () => {
 
   const defaultStatement = {
     id: 0,
-    dateCreated: new Date(),
+    dateCreated: moment().format(DATE_FORMAT),
     budgetId: 0,
     accountId: 0,
-    date: new Date(),
+    date: moment().format(DATE_FORMAT),
     amount: 0,
   };
   const [statement, setStatement] = useState<INewStatement>(defaultStatement);
@@ -56,7 +57,7 @@ const QuickAdd = () => {
     const list: ISuggestion[] = [
       {
         id: `d1`,
-        text: `${t("quickAdd.today")}(${moment().format("YYYY-MM-DD")})`,
+        text: `${t("quickAdd.today")}(${moment().format(DATE_FORMAT)})`,
         searchText: t("quickAdd.today"),
         obj: {
           date: moment().toDate(),
@@ -66,7 +67,7 @@ const QuickAdd = () => {
         id: `d2`,
         text: `${t("quickAdd.yesterday")}(${moment()
           .add(-1, "d")
-          .format("YYYY-MM-DD")})`,
+          .format(DATE_FORMAT)})`,
         searchText: t("quickAdd.yesterday"),
         obj: {
           date: moment().add(-1, "d").toDate(),
@@ -252,7 +253,7 @@ const QuickAdd = () => {
         ...[
           {
             id: "d",
-            text: `${t("quickAdd.date")}: ${date.format("YYYY-MM-DD")}`,
+            text: `${t("quickAdd.date")}: ${date.format(DATE_FORMAT)}`,
             searchText: "",
             obj: { date: date },
           },
@@ -279,7 +280,7 @@ const QuickAdd = () => {
 
   return (
     <div className="quick-add">
-      <div>
+      <div className="text-wrapper">
         <input
           type="text"
           placeholder={t("quickAdd.quickAdd")}
@@ -292,7 +293,7 @@ const QuickAdd = () => {
         {showDropdown && (
           <>
             <button
-              className="small"
+              className="small secondary"
               disabled={
                 !(
                   statement.budgetId &&
@@ -314,11 +315,25 @@ const QuickAdd = () => {
       {showDropdown && (
         <>
           <div>
-            {t("quickAdd.budget")}: {statement.budgetName ?? "N/A"},{" "}
-            {t("quickAdd.account")}: {statement.accountName ?? "N/A"},{" "}
-            {t("quickAdd.date")}: {moment(statement.date).format("YYYY-MM-DD")},{" "}
-            {t("quickAdd.amount")}: {statement.amount.toFixed(2)},{" "}
-            {t("quickAdd.comment")}: {statement.comment}
+            <span className={statement.budgetName ? "" : "error"}>
+              {t("quickAdd.budget")}: {statement.budgetName ?? "N/A"}
+            </span>
+            ,{" "}
+            <span className={statement.accountName ? "" : "error"}>
+              {t("quickAdd.account")}: {statement.accountName ?? "N/A"}
+            </span>
+            ,{" "}
+            <span>
+              {t("quickAdd.date")}: {moment(statement.date).format(DATE_FORMAT)}
+            </span>
+            ,{" "}
+            <span className={statement.amount === 0 ? "error" : ""}>
+              {t("quickAdd.amount")}: {statement.amount.toFixed(2)}
+            </span>
+            ,{" "}
+            <span>
+              {t("quickAdd.comment")}: {statement.comment}
+            </span>
           </div>
           <div className="dropdown-wrapper">
             {suggestions.length > 0 &&
