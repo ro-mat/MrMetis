@@ -39,7 +39,8 @@ const Dashboard = () => {
         bi !== undefined &&
         !(bi.budget.expectOneStatement && bi.actual > 0) &&
         !(bi.planned === 0 && activeBudget.children.length === 0) &&
-        activeBudget.type !== BudgetTypeExtra.transferFromAccount
+        activeBudget.type !== BudgetTypeExtra.transferFromAccount &&
+        activeBudget.type !== BudgetTypeUser.keepOnAccount
       );
     },
     []
