@@ -18,6 +18,7 @@ import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 import Hint from "./Hint";
+import { DATE_FORMAT } from "helpers/dateHelper";
 
 const BudgetAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -31,7 +32,7 @@ const BudgetAddOrEdit = () => {
   const defaultFormValues = useMemo(() => {
     return {
       id: 0,
-      dateCreated: new Date(),
+      dateCreated: moment().format(DATE_FORMAT),
       parentId: 0,
       fromAccountId: 0,
       toAccountId: 0,

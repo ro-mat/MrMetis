@@ -17,6 +17,8 @@ import { DatePickerField } from "./DatePickerField";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
 import Hint from "./Hint";
+import moment from "moment";
+import { DATE_FORMAT } from "helpers/dateHelper";
 
 const AccountAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -30,7 +32,7 @@ const AccountAddOrEdit = () => {
   const defaultFormValues = useMemo(() => {
     return {
       id: 0,
-      dateCreated: new Date(),
+      dateCreated: moment().format(DATE_FORMAT),
       name: "",
       leftFromPrevMonth: [],
     };

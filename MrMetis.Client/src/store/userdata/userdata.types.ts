@@ -17,7 +17,7 @@ export interface IUserdata {
 export interface IStatement extends IHaveMetadata {
   amount: number;
   comment?: string;
-  date: Date;
+  date: string;
   budgetId: number;
   accountId: number;
 }

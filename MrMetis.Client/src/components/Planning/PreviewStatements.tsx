@@ -1,3 +1,4 @@
+import { DATE_FORMAT } from "helpers/dateHelper";
 import moment from "moment";
 import React from "react";
 import { useDispatch } from "react-redux";
@@ -25,7 +26,7 @@ const PreviewStatements = ({ statements }: IPreviewStatementsProps) => {
               .map((s) => (
                 <div key={s.id}>
                   <div>
-                    {moment(s.date).format("yyyy-MM-DD")} {s.amount.toFixed(2)}
+                    {moment(s.date).format(DATE_FORMAT)} {s.amount.toFixed(2)}
                   </div>
                   <div>{s.comment}</div>
                 </div>
