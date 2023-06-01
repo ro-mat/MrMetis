@@ -15,12 +15,24 @@ export const getBudgetAmount = (month: Date, budget: IBudget) => {
 export const getRelevantAmount = (month: Date, budget: IBudget) => {
   return (
     budget.overrides?.find((o) => moment(o.month).isSame(month, "M"))?.amount ??
-    budget.amounts?.find(
-      (a) =>
-        moment(month).isAfter(a.startDate) &&
-        moment(month).diff(moment(a.startDate), "M") % a.frequency === 0 &&
-        (!a.endDate || moment(month).isBefore(a.endDate))
-    )?.amount ??
+    budget.amounts?.find((a) => {
+      const isWithinTimeframe = a.endDate
+        ? moment(month)
+            .startOf("M")
+            .isBetween(
+              moment(a.startDate).startOf("M"),
+              moment(a.endDate).endOf("M"),
+              "M",
+              "[]"
+            )
+        : moment(month)
+            .startOf("M")
+            .isSameOrAfter(moment(a.startDate).startOf("M"), "M");
+      const diff = moment(month)
+        .startOf("M")
+        .diff(moment(a.startDate).startOf("M"), "M");
+      return isWithinTimeframe && diff % a.frequency === 0;
+    })?.amount ??
     "0"
   );
 };
