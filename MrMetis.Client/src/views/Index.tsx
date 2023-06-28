@@ -1,5 +1,4 @@
 import React from "react";
-import planning_table from "styles/img/planning_table.png";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { TAppDispatch } from "store/store";
@@ -11,6 +10,9 @@ import {
   SET_STATEMENTS,
 } from "store/userdata/userdata.slice";
 import { useTranslation } from "react-i18next";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGithub } from "@fortawesome/free-brands-svg-icons";
+import { faLock } from "@fortawesome/free-solid-svg-icons";
 
 const Index = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -33,92 +35,77 @@ const Index = () => {
       <div className="main">
         <section>
           <div className="sitewidth">
-            <div className="init">
+            <h2>{t("landingPage.welcome.header")}</h2>
+            <p>{t("landingPage.welcome.text1")}</p>
+            <p>{t("landingPage.welcome.text2")}</p>
+            <input
+              type="button"
+              onClick={handleDemoClick}
+              className="btn primary"
+              value={t("landingPage.welcome.buttonText")}
+            />
+          </div>
+        </section>
+        <section>
+          <div className="sitewidth">
+            <h3>{t("landingPage.about.header")}</h3>
+            <p>{t("landingPage.about.text1")}</p>
+            <p>{t("landingPage.about.text2")}</p>
+          </div>
+        </section>
+        <section>
+          <div className="sitewidth">
+            <h3>{t("landingPage.bulletPoints.header")}</h3>
+            <div className="bulletPoints">
               <div>
-                <h3>{t("landingPage.1.header")}</h3>
-                <p>{t("landingPage.1.text1")}</p>
-                <p>{t("landingPage.1.text2")}</p>
-                <p>{t("landingPage.1.text3")}</p>
-                <button onClick={handleDemoClick} className="btn primary">
-                  {t("landingPage.1.buttonText")}
-                </button>
+                <div className="icon">
+                  <FontAwesomeIcon icon={faGithub} />
+                </div>
+                <h4>{t("landingPage.bulletPoints.openSource.header")}</h4>
+                <p>
+                  {t("landingPage.bulletPoints.openSource.text")}{" "}
+                  <a
+                    href="https://github.com/ro-mat/MrMetis"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t("landingPage.bulletPoints.openSource.urlText")}
+                  </a>
+                </p>
               </div>
               <div>
-                <img src={planning_table} alt="personal finances table" />
+                <div className="icon">
+                  <FontAwesomeIcon icon={faLock} />
+                </div>
+                <h4>{t("landingPage.bulletPoints.private.header")}</h4>
+                <p>{t("landingPage.bulletPoints.private.text")}</p>
+                <p>
+                  <Link to="privacy">
+                    {t("landingPage.bulletPoints.private.urlText")}
+                  </Link>
+                </p>
               </div>
             </div>
           </div>
         </section>
         <section>
           <div className="sitewidth">
-            <h3>{t("landingPage.2.header")}</h3>
-            <p>{t("landingPage.2.text1")}</p>
-            <p>{t("landingPage.2.text2")}</p>
-          </div>
-        </section>
-        <section>
-          <div className="sitewidth">
-            <h3>{t("landingPage.3.header")}</h3>
-            <ul>
-              <li>
-                <a
-                  href="https://github.com/ro-mat/MrMetis"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {t("landingPage.3.text1")}
-                </a>
-              </li>
-              <li>
-                <Link to="/privacy">{t("landingPage.3.text2")}</Link>
-              </li>
-              <li>{t("landingPage.3.text3")}</li>
-              <li>{t("landingPage.3.text4")}</li>
-              <li>{t("landingPage.3.text5")}</li>
-            </ul>
-          </div>
-        </section>
-        <section>
-          <div className="sitewidth">
-            <h3>{t("landingPage.4.header")}</h3>
-            <h4>{t("landingPage.4.section1.header")}</h4>
-            <ul>
-              <li>{t("landingPage.4.section1.text1")}</li>
-              <li>{t("landingPage.4.section1.text2")}</li>
-              <li>{t("landingPage.4.section1.text3")}</li>
-              <li>{t("landingPage.4.section1.text4")}</li>
-              <li>{t("landingPage.4.section1.text5")}</li>
-              <li>{t("landingPage.4.section1.text6")}</li>
-              <li>{t("landingPage.4.section1.text7")}</li>
-              <li>{t("landingPage.4.section1.text8")}</li>
-              <li>{t("landingPage.4.section1.text9")}</li>
-            </ul>
-            <h4>{t("landingPage.4.section2.header")}</h4>
-            <ul>
-              <li>{t("landingPage.4.section2.text1")}</li>
-              <li>{t("landingPage.4.section2.text2")}</li>
-              <li>{t("landingPage.4.section2.text3")}</li>
-              <li>{t("landingPage.4.section2.text4")}</li>
-              <li>{t("landingPage.4.section2.text5")}</li>
-            </ul>
-          </div>
-        </section>
-        <section>
-          <div className="sitewidth">
-            <h3>{t("landingPage.5.header")}</h3>
-            <div className="init">
-              <div>
-                <p>{t("landingPage.5.text1")}</p>
-                <button onClick={handleDemoClick} className="btn primary">
-                  {t("landingPage.5.button1Text")}
-                </button>
-              </div>
-              <div>
-                <p>{t("landingPage.5.text2")}</p>
-                <Link to="/register" className="btn primary">
-                  {t("landingPage.5.button2Text")}
-                </Link>
-              </div>
+            <h3>{t("landingPage.newsletter.header")}</h3>
+            <p>{t("landingPage.newsletter.text")}</p>
+            <div>
+              <form action="">
+                <input
+                  type="text"
+                  disabled
+                  placeholder={t("landingPage.newsletter.inputPlaceholder")}
+                />
+                <input
+                  type="submit"
+                  disabled
+                  className="btn primary"
+                  value={t("landingPage.newsletter.buttonText")}
+                />
+              </form>
             </div>
           </div>
         </section>

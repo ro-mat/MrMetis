@@ -4,9 +4,17 @@
 }
 
 section {
-  padding: 30px 0;
+  padding: 10px 0;
+  text-align: center;
 
-  &:nth-child(even) {
+  h3 {
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin: 20px 30px;
+    text-align: center;
+  }
+
+  &:nth-child(odd) {
     background-color: $primary-color-dark;
     color: white;
   }
@@ -14,26 +22,24 @@ section {
   .sitewidth {
     max-width: 1020px;
     margin: 0 auto;
+    padding: 0 10px;
   }
-}
 
-h3 {
-  border-bottom: 1px solid #333;
-  padding-bottom: 10px;
-  margin-top: 30px;
-  text-align: center;
-}
+  .bulletPoints {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1em;
 
-ul {
-  padding-left: 20px;
-}
+    & > div {
+      min-width: 15em;
+      max-width: 20em;
+      display: flex;
+      flex-direction: column;
+    }
+  }
 
-.init {
-  display: flex;
-  gap: 2em;
-  justify-content: space-around;
-
-  img {
-    box-sizing: border-box;
+  .icon {
+    font-size: 4em;
   }
 }
