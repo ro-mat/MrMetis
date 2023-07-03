@@ -117,10 +117,6 @@ const Dashboard = () => {
           </table>
         </div>
         <div>
-          <h3>{t("dashboard.thisMonthStatements")}</h3>
-          <StatementTable statements={monthStatements} />
-        </div>
-        <div>
           <h3>{t("dashboard.remainingPlannedExpences")}</h3>
           <table className="planning-table">
             <thead>
@@ -143,6 +139,10 @@ const Dashboard = () => {
               ))}
             </tbody>
           </table>
+        </div>
+        <div>
+          <h3>{t("dashboard.thisMonthStatements")}</h3>
+          <StatementTable statements={monthStatements} />
         </div>
       </div>
     </>

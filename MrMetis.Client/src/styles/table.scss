@@ -7,16 +7,19 @@ table {
   max-width: 85vw;
   padding-right: 17px;
 
+  tr.sticky {
+    position: sticky;
+    top: 60px;
+    z-index: 51;
+    background-color: white;
+  }
+
   th,
   td {
     border: 1px solid #ccc;
     padding: 4px 8px;
     text-align: right;
     white-space: nowrap;
-
-    &:first-of-type {
-      text-align: left;
-    }
 
     &.has-children {
       cursor: pointer;
@@ -34,6 +37,15 @@ table {
           rotate: 0deg;
         }
       }
+    }
+
+    &:first-of-type {
+      text-align: left;
+
+      position: sticky;
+      left: 0;
+      z-index: 50;
+      background-color: white;
     }
 
     &.br {
@@ -88,7 +100,7 @@ table {
   thead {
     position: sticky;
     top: 0;
-    z-index: 50;
+    z-index: 52;
   }
 }
 

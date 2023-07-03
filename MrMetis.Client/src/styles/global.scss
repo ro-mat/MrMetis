@@ -87,11 +87,6 @@ h5 {
   margin: 1em 1em;
 }
 
-.dashboard-body {
-  display: flex;
-  justify-content: space-evenly;
-  gap: 1em;
-}
-
 // page specific
 @import "index";
+@import "dashboard";

@@ -27,10 +27,11 @@ const PlanningAccounts = () => {
           <tbody>
             {filteredAccounts.map((a) => (
               <React.Fragment key={a.id}>
-                <tr>
-                  <td colSpan={budgetMonths.length * 2 + 1}>
+                <tr className="sticky">
+                  <td>
                     <strong>{a.name}</strong>
                   </td>
+                  <td colSpan={budgetMonths.length * 2}></td>
                 </tr>
                 <AccountsTableBody
                   accountId={a.id}
