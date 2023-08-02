@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import Labeled from "./Labeled";
+import Labeled from "components/Labeled";
 import { Formik, FormikErrors, FieldArray } from "formik";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
@@ -13,10 +13,10 @@ import {
 } from "store/userdata/userdata.actions";
 import { getById, getNextId } from "helpers/userdata";
 import { SET_SELECTED_ACCOUNT } from "store/ui/ui.slice";
-import { DatePickerField } from "./DatePickerField";
+import { DatePickerField } from "components/DatePickerField";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
-import Hint from "./Hint";
+import Hint from "components/Hint";
 import moment from "moment";
 import { DATE_FORMAT } from "helpers/dateHelper";
 

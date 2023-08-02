@@ -3,10 +3,10 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import Index from "views/Index";
-import List from "views/List";
+import Statements from "views/Statements";
 import Login from "views/Login";
-import Budget from "views/Budget";
-import Accounts from "views/Accounts";
+import Budget from "views/Budget/Budget";
+import Accounts from "views/Account/Accounts";
 import { attempt, logout } from "store/auth/auth.actions";
 import Register from "views/Register";
 import { fetchUserdata, saveUserData } from "store/userdata/userdata.actions";
@@ -15,10 +15,10 @@ import SideNavLayout from "components/Layouts/SideNavLayout";
 import FilterLayout from "components/Layouts/FilterLayout";
 import Header from "components/Header";
 import Footer from "components/Footer";
-import Planning from "views/Planning";
+import Planning from "views/Planning/Planning";
 import Dashboard from "views/Dashboard";
-import PlanningAll from "views/PlanningAll";
-import PlanningAccounts from "views/PlanningAccounts";
+import PlanningAll from "views/Planning/PlanningAll";
+import PlanningAccounts from "views/Planning/PlanningAccounts";
 import Authenticated from "components/Authenticated";
 import { useIdleTimer } from "react-idle-timer";
 import UnAuthenticated from "components/UnAuthenticated";
@@ -122,7 +122,7 @@ const App: FunctionComponent = () => {
                   />
                 </Route>
               </Route>
-              <Route path="/list" element={<List />} />
+              <Route path="/list" element={<Statements />} />
               <Route path="/budget" element={<Budget />} />
               <Route path="/accounts" element={<Accounts />} />
             </Route>

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import Labeled from "./Labeled";
-import { DatePickerField } from "./DatePickerField";
+import Labeled from "components/Labeled";
+import { DatePickerField } from "components/DatePickerField";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { Field, Formik, FormikErrors, FieldArray } from "formik";
@@ -17,7 +17,7 @@ import { getById, getNextId } from "helpers/userdata";
 import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
-import Hint from "./Hint";
+import Hint from "components/Hint";
 import { DATE_FORMAT } from "helpers/dateHelper";
 
 const BudgetAddOrEdit = () => {

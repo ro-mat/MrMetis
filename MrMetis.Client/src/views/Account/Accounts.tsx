@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
-import AccountAddOrEdit from "components/AccountAddOrEdit";
+import AccountAddOrEdit from "views/Account/AccountAddOrEdit";
 import { SET_SELECTED_ACCOUNT } from "store/ui/ui.slice";
 import { useTranslation } from "react-i18next";
 
