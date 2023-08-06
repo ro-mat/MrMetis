@@ -336,7 +336,7 @@ export const toActiveBudget = (
     budgetId: budgetItem.id,
     type: type ?? budgetItem.type,
     name: name ?? budgetItem.name,
-    accountId: accountId ?? budgetItem.budget.fromAccountId,
+    accountId: accountId ?? budgetItem.budget.fromAccountId ?? 0,
     children: budgetItem.children.list.map((child) =>
       toActiveBudget(child, type, accountId)
     ),

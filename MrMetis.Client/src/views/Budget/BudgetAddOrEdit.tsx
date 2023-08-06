@@ -108,9 +108,6 @@ const BudgetAddOrEdit = () => {
           if (!values.type) {
             errors.type = "errors.typeEmpty";
           }
-          if (!values.fromAccountId) {
-            errors.fromAccountId = "errors.fromAccountEmpty";
-          }
           if (
             values.type === BudgetTypeUser.transferToAccount &&
             !values.toAccountId
@@ -123,14 +120,22 @@ const BudgetAddOrEdit = () => {
               errors.amounts = "errors.dateEmpty";
               break;
             }
+            if (!amount.fromAccountId) {
+              errors.fromAccountId = "errors.fromAccountEmpty";
+              break;
+            }
             if (!amount.frequency) {
               errors.amounts = "errors.frequencyEmpty";
               break;
             }
           }
-          for (let amount of values.overrides) {
-            if (!amount.month) {
+          for (let override of values.overrides) {
+            if (!override.month) {
               errors.amounts = "errors.monthEmpty";
+              break;
+            }
+            if (!override.accountId) {
+              errors.fromAccountId = "errors.fromAccountEmpty";
               break;
             }
           }
@@ -213,7 +218,7 @@ const BudgetAddOrEdit = () => {
                     ))}
                 </Select>
               </Labeled>
-              <Labeled labelKey="budget.fromAccount" required>
+              <Labeled labelKey="budget.fromAccount">
                 <Select
                   id="fromAccountId"
                   name="fromAccountId"
@@ -274,6 +279,7 @@ const BudgetAddOrEdit = () => {
                       onClick={() =>
                         unshift({
                           amount: "0",
+                          fromAccountId: values.fromAccountId ?? 1,
                           frequency: 1,
                           startDate: new Date(),
                         })
@@ -297,6 +303,34 @@ const BudgetAddOrEdit = () => {
                         </Labeled>
                         <Labeled labelKey="budget.endDate">
                           <DatePickerField name={`amounts[${index}].endDate`} />
+                        </Labeled>
+                        <Labeled labelKey="budget.fromAccount" required>
+                          <Select
+                            name={`amounts[${index}].fromAccountId`}
+                            value={
+                              values.fromAccountId
+                                ? values.fromAccountId
+                                : amount.fromAccountId
+                                ? amount.fromAccountId
+                                : 1
+                            }
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            disabled={
+                              !!(
+                                (values.parentId &&
+                                  getById(budgets, values.parentId)
+                                    ?.fromAccountId) ||
+                                values.fromAccountId
+                              )
+                            }
+                          >
+                            {accounts.map((a) => (
+                              <MenuItem key={a.id} value={a.id}>
+                                {a.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
                         </Labeled>
                         <Labeled labelKey="budget.amount">
                           <input
@@ -339,7 +373,11 @@ const BudgetAddOrEdit = () => {
                       type="button"
                       className="small secondary"
                       onClick={() =>
-                        unshift({ month: new Date(), amount: "0" })
+                        unshift({
+                          month: new Date(),
+                          amount: "0",
+                          accountId: 1,
+                        })
                       }
                     >
                       +
@@ -350,6 +388,34 @@ const BudgetAddOrEdit = () => {
                       <div key={index}>
                         <Labeled labelKey="budget.month" required>
                           <DatePickerField name={`overrides[${index}].month`} />
+                        </Labeled>
+                        <Labeled labelKey="budget.fromAccount" required>
+                          <Select
+                            name={`overrides[${index}].accountId`}
+                            value={
+                              values.fromAccountId
+                                ? values.fromAccountId
+                                : ovr.accountId
+                                ? ovr.accountId
+                                : 1
+                            }
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            disabled={
+                              !!(
+                                (values.parentId &&
+                                  getById(budgets, values.parentId)
+                                    ?.fromAccountId) ||
+                                values.fromAccountId
+                              )
+                            }
+                          >
+                            {accounts.map((a) => (
+                              <MenuItem key={a.id} value={a.id}>
+                                {a.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
                         </Labeled>
                         <Labeled labelKey="budget.amount">
                           <input

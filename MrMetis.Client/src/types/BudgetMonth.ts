@@ -210,11 +210,11 @@ export class BudgetMonth extends BudgetItems {
 
 const getBudgetResolver = (budgets: IBudget[]) => {
   return budgets.reduce((prev, cur) => {
-    if (!prev.has(cur.fromAccountId)) {
-      prev.set(cur.fromAccountId, []);
+    if (!prev.has(cur.fromAccountId ?? 0)) {
+      prev.set(cur.fromAccountId ?? 0, []);
     }
 
-    const mapItem = prev.get(cur.fromAccountId)!;
+    const mapItem = prev.get(cur.fromAccountId ?? 0)!;
     mapItem.push({
       budgetId: cur.id,
       budgetName: cur.name,
