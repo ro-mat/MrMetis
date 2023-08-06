@@ -19,6 +19,8 @@ import moment from "moment";
 import { useTranslation } from "react-i18next";
 import Hint from "components/Hint";
 import { DATE_FORMAT } from "helpers/dateHelper";
+import { AmountType } from "types/IAmount";
+import { getEnumArray } from "helpers/enumHelper";
 
 const BudgetAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -120,7 +122,7 @@ const BudgetAddOrEdit = () => {
               errors.amounts = "errors.dateEmpty";
               break;
             }
-            if (!amount.fromAccountId) {
+            if (!values.fromAccountId && !amount.fromAccountId) {
               errors.fromAccountId = "errors.fromAccountEmpty";
               break;
             }
@@ -134,7 +136,7 @@ const BudgetAddOrEdit = () => {
               errors.amounts = "errors.monthEmpty";
               break;
             }
-            if (!override.accountId) {
+            if (!values.fromAccountId && !override.accountId) {
               errors.fromAccountId = "errors.fromAccountEmpty";
               break;
             }
@@ -146,6 +148,13 @@ const BudgetAddOrEdit = () => {
           const budget = {
             ...values,
           };
+
+          for (let amount of budget.amounts) {
+            amount.fromAccountId = budget.fromAccountId ?? amount.fromAccountId;
+          }
+          for (let override of budget.overrides) {
+            override.accountId = budget.fromAccountId ?? override.accountId;
+          }
 
           if (values.id) {
             dispatch(updateBudget(budget));
@@ -280,6 +289,7 @@ const BudgetAddOrEdit = () => {
                         unshift({
                           amount: "0",
                           fromAccountId: values.fromAccountId ?? 1,
+                          amountType: AmountType.Basic,
                           frequency: 1,
                           startDate: new Date(),
                         })
@@ -328,6 +338,20 @@ const BudgetAddOrEdit = () => {
                             {accounts.map((a) => (
                               <MenuItem key={a.id} value={a.id}>
                                 {a.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </Labeled>
+                        <Labeled labelKey="budget.amountType" required>
+                          <Select
+                            name={`amounts[${index}].amountType`}
+                            value={amount.amountType ?? AmountType.Basic}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                          >
+                            {getEnumArray(AmountType).map((id) => (
+                              <MenuItem key={id} value={id}>
+                                {AmountType[id]}
                               </MenuItem>
                             ))}
                           </Select>
