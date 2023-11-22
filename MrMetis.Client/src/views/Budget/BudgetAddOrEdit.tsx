@@ -147,14 +147,19 @@ const BudgetAddOrEdit = () => {
         onSubmit={(values) => {
           const budget = {
             ...values,
+            amounts: values.amounts.map((a) => {
+              return {
+                ...a,
+                fromAccountId: values.fromAccountId ?? a.fromAccountId,
+              };
+            }),
+            overrides: values.overrides.map((o) => {
+              return {
+                ...o,
+                fromAccountId: values.fromAccountId ?? o.accountId,
+              };
+            }),
           };
-
-          for (let amount of budget.amounts) {
-            amount.fromAccountId = budget.fromAccountId ?? amount.fromAccountId;
-          }
-          for (let override of budget.overrides) {
-            override.accountId = budget.fromAccountId ?? override.accountId;
-          }
 
           if (values.id) {
             dispatch(updateBudget(budget));
