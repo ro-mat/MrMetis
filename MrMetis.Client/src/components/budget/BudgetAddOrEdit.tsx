@@ -1,8 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Labeled from "components/Labeled";
-import { DatePickerField } from "components/DatePickerField";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { Field, Formik, FormikErrors, FieldArray } from "formik";
 import { Select, MenuItem } from "@mui/material";
 import { BudgetTypeUser, IBudget } from "store/userdata/userdata.types";
@@ -20,7 +17,8 @@ import { useTranslation } from "react-i18next";
 import Hint from "components/Hint";
 import { DATE_FORMAT } from "helpers/dateHelper";
 import { AmountType } from "types/IAmount";
-import { getEnumArray } from "helpers/enumHelper";
+import BudgetOverrideItem from "./BudgetOverrideItem";
+import BudgetAmountItem from "./BudgetAmountItem";
 
 const BudgetAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -310,84 +308,15 @@ const BudgetAddOrEdit = () => {
                   </div>
                   <div className="list">
                     {values.amounts?.map((amount, index) => (
-                      <div key={index}>
-                        <Labeled labelKey="budget.startDate" required>
-                          <DatePickerField
-                            name={`amounts[${index}].startDate`}
-                          />
-                        </Labeled>
-                        <Labeled labelKey="budget.endDate">
-                          <DatePickerField name={`amounts[${index}].endDate`} />
-                        </Labeled>
-                        <Labeled labelKey="budget.fromAccount" required>
-                          <Select
-                            name={`amounts[${index}].fromAccountId`}
-                            value={
-                              values.fromAccountId
-                                ? values.fromAccountId
-                                : amount.fromAccountId
-                                ? amount.fromAccountId
-                                : 1
-                            }
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            disabled={
-                              !!(
-                                (values.parentId &&
-                                  getById(budgets, values.parentId)
-                                    ?.fromAccountId) ||
-                                values.fromAccountId
-                              )
-                            }
-                          >
-                            {accounts.map((a) => (
-                              <MenuItem key={a.id} value={a.id}>
-                                {a.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </Labeled>
-                        <Labeled labelKey="budget.amountType" required>
-                          <Select
-                            name={`amounts[${index}].amountType`}
-                            value={amount.amountType ?? AmountType.Basic}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                          >
-                            {getEnumArray(AmountType).map((id) => (
-                              <MenuItem key={id} value={id}>
-                                {AmountType[id]}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </Labeled>
-                        <Labeled labelKey="budget.amount">
-                          <input
-                            type="text"
-                            name={`amounts[${index}].amount`}
-                            value={amount.amount}
-                            onChange={handleChange}
-                          />
-                        </Labeled>
-                        <Labeled labelKey="budget.frequency" required>
-                          <input
-                            type="number"
-                            name={`amounts[${index}].frequency`}
-                            value={amount.frequency}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                          />
-                        </Labeled>
-                        <div>
-                          <button
-                            type="button"
-                            className="button"
-                            onClick={() => remove(index)}
-                          >
-                            <FontAwesomeIcon icon={faTrashCan} />
-                          </button>
-                        </div>
-                      </div>
+                      <BudgetAmountItem
+                        index={index}
+                        item={amount}
+                        budgetAccountId={values.fromAccountId}
+                        accounts={accounts}
+                        handleChange={handleChange}
+                        handleBlur={handleBlur}
+                        handleRemoveItem={remove}
+                      />
                     ))}
                   </div>
                 </div>
@@ -414,53 +343,16 @@ const BudgetAddOrEdit = () => {
                   </Labeled>
                   <div className="list">
                     {values.overrides?.map((ovr, index) => (
-                      <div key={index}>
-                        <Labeled labelKey="budget.month" required>
-                          <DatePickerField name={`overrides[${index}].month`} />
-                        </Labeled>
-                        <Labeled labelKey="budget.fromAccount" required>
-                          <Select
-                            name={`overrides[${index}].accountId`}
-                            value={
-                              values.fromAccountId
-                                ? values.fromAccountId
-                                : ovr.accountId
-                                ? ovr.accountId
-                                : 1
-                            }
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            disabled={
-                              !!(
-                                (values.parentId &&
-                                  getById(budgets, values.parentId)
-                                    ?.fromAccountId) ||
-                                values.fromAccountId
-                              )
-                            }
-                          >
-                            {accounts.map((a) => (
-                              <MenuItem key={a.id} value={a.id}>
-                                {a.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </Labeled>
-                        <Labeled labelKey="budget.amount">
-                          <input
-                            type="number"
-                            name={`overrides[${index}].amount`}
-                            value={ovr.amount}
-                            onChange={handleChange}
-                          />
-                        </Labeled>
-
-                        <div>
-                          <button type="button" onClick={() => remove(index)}>
-                            <FontAwesomeIcon icon={faTrashCan} />
-                          </button>
-                        </div>
-                      </div>
+                      <BudgetOverrideItem
+                        key={index}
+                        index={index}
+                        item={ovr}
+                        budgetAccountId={values.fromAccountId}
+                        accounts={accounts}
+                        handleChange={handleChange}
+                        handleBlur={handleBlur}
+                        handleRemoveItem={remove}
+                      />
                     ))}
                   </div>
                 </div>

@@ -5,7 +5,7 @@ import { BudgetTypeUser } from "store/userdata/userdata.types";
 import { getById } from "helpers/userdata";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
-import BudgetAddOrEdit from "components/BudgetAddOrEdit";
+import BudgetAddOrEdit from "components/budget/BudgetAddOrEdit";
 import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import { useTranslation } from "react-i18next";
 import useBudgetAggregate from "hooks/useBudgetAggregate";
