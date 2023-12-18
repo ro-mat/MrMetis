@@ -8,11 +8,13 @@ import { useTranslation } from "react-i18next";
 export interface ITableRowsFromPrevMonthProps {
   activeBudgets: IActiveBudget[];
   budgetItems: BudgetItems[];
+  highlight?: boolean;
 }
 
 const TableRowsFromOtherAccounts: FC<ITableRowsFromPrevMonthProps> = ({
   activeBudgets,
   budgetItems,
+  highlight = false,
 }) => {
   const { t } = useTranslation();
 
@@ -37,6 +39,7 @@ const TableRowsFromOtherAccounts: FC<ITableRowsFromPrevMonthProps> = ({
           budgetItems={filteredBudgetItems}
           moreIsGood={true}
           children={ab.children}
+          highlight={highlight}
         />
       ))}
     </>

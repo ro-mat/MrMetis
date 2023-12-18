@@ -29,9 +29,8 @@ export const useBudget = (start: number, end: number) => {
   const activeBudgets: IActiveBudget[] = [];
 
   const budgetMonths = relativeMonths.map((rm) => {
-    const mom = moment().add(rm, "M");
     const budget = new BudgetMonth(
-      mom.toDate(),
+      moment().add(rm, "M").toDate(),
       budgetList,
       statementList,
       accountList,

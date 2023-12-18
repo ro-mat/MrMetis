@@ -5,15 +5,17 @@ import { useTranslation } from "react-i18next";
 
 export interface ITableRowsOpeningBalanceProps {
   budgetItems: BudgetItems[];
+  highlight?: boolean;
 }
 
 const TableRowsOpeningBalance = ({
   budgetItems,
+  highlight = false,
 }: ITableRowsOpeningBalanceProps) => {
   const { t } = useTranslation();
 
   return (
-    <tr>
+    <tr className={highlight ? "highlight" : ""}>
       <td>
         <strong>{t("planning.openingBalance")}</strong>
       </td>

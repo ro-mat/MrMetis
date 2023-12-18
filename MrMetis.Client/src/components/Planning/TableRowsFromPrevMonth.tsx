@@ -5,15 +5,17 @@ import { useTranslation } from "react-i18next";
 
 export interface ITableRowsFromPrevMonthProps {
   budgetItems: BudgetItems[];
+  highlight?: boolean;
 }
 
 const TableRowsFromPrevMonth: FC<ITableRowsFromPrevMonthProps> = ({
   budgetItems,
+  highlight = false,
 }) => {
   const { t } = useTranslation();
 
   return (
-    <tr>
+    <tr className={highlight ? "highlight" : ""}>
       <td>{t("planning.leftFromPrevMonth")}</td>
       {budgetItems.map((bm, index) => (
         <TableCellPair
