@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
-import ListAddOrEdit from "components/ListAddOrEdit";
+import StatementAddOrEdit from "components/StatementAddOrEdit";
 import { SET_SELECTED_STATEMENT } from "store/ui/ui.slice";
 import StatementTable from "components/StatementTable";
 import { useTranslation } from "react-i18next";
@@ -38,7 +38,7 @@ const Statements = () => {
       </div>
       {!isFetching && (
         <>
-          {showAddOrEdit && <ListAddOrEdit />}
+          {showAddOrEdit && <StatementAddOrEdit />}
           <div>
             <StatementTable
               statements={statements}
