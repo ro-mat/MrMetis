@@ -68,6 +68,8 @@
   "devDependencies": {
     "@types/crypto-js": "^4.1.1",
     "@types/react-datepicker": "^4.8.0",
-    "concurrently": "^7.1.0"
+    "concurrently": "^7.1.0",
+    "jest": "^27.5.1",
+    "react-test-renderer": "^18.2.0"
   }
 }
