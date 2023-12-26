@@ -1,7 +1,5 @@
 import { decrypt, encrypt, hashPassword } from "services/encryptor";
 
-type EncryptObject = { something: string; other: string; and: number };
-
 const vaultKey =
   "31ba961031e636c42ffa023bde2f79d7b196b8774889832b9055e9fdec6671b83e04fd97363fd699d544ebf19348373753c320f45f2770e8714e579d5a1a746d";
 
