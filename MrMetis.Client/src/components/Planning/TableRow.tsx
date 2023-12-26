@@ -13,6 +13,7 @@ export interface ITableRowProps {
   moreIsGood: boolean;
   children: IActiveBudget[];
   indent?: number;
+  highlight?: boolean;
 }
 
 const TableRow = ({
@@ -22,6 +23,7 @@ const TableRow = ({
   moreIsGood,
   children,
   indent = 0,
+  highlight = false,
 }: ITableRowProps) => {
   const [showChildren, toggleShowChildren] = useToggle(false);
 
@@ -41,7 +43,7 @@ const TableRow = ({
 
   return (
     <>
-      <tr>
+      <tr className={highlight ? "highlight" : ""}>
         {children.length > 0 ? (
           <td className="has-children" onClick={toggleShowChildren}>
             {range(0, indent - 1).map(() => (

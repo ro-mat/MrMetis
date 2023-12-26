@@ -25,7 +25,7 @@ export interface IStatement extends IHaveMetadata {
 export interface IBudget extends IHaveMetadata {
   name: string;
   parentId?: number;
-  fromAccountId: number;
+  fromAccountId?: number;
   toAccountId: number;
   isEssential: boolean;
   amounts: IAmount[];

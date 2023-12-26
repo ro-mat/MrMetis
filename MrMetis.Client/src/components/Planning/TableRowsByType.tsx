@@ -13,6 +13,7 @@ export interface ITableRowsByTypeProps {
   moreIsGood: boolean;
   totalLabel?: string;
   showTotal?: boolean;
+  highlight?: boolean;
 }
 
 const TableRowsByType: FC<ITableRowsByTypeProps> = ({
@@ -22,6 +23,7 @@ const TableRowsByType: FC<ITableRowsByTypeProps> = ({
   moreIsGood,
   totalLabel,
   showTotal = true,
+  highlight = false,
 }) => {
   const { t } = useTranslation();
 
@@ -40,10 +42,11 @@ const TableRowsByType: FC<ITableRowsByTypeProps> = ({
               budgetItems={budgetItems}
               moreIsGood={moreIsGood}
               children={b.children}
+              highlight={highlight}
             />
           ))}
           {showTotal && (
-            <tr>
+            <tr className={highlight ? "highlight" : ""}>
               <td>
                 <strong>
                   {totalLabel ??

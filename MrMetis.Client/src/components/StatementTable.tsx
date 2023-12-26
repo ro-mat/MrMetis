@@ -8,6 +8,7 @@ import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DATE_FORMAT } from "helpers/dateHelper";
+import Labeled from "./Labeled";
 
 export interface IStatementTableProps {
   statements: IStatement[];
@@ -61,13 +62,14 @@ const StatementTable = ({
   return (
     <>
       <div className="filter-text">
-        <label htmlFor="filter">{t("statement.filter")}: </label>
-        <input
-          type="text"
-          id="filter"
-          value={filter}
-          onChange={(e) => setFilter(e.currentTarget.value)}
-        />
+        <Labeled labelKey="statement.filter" horisontal={true}>
+          <input
+            type="text"
+            id="filter"
+            value={filter}
+            onChange={(e) => setFilter(e.currentTarget.value)}
+          />
+        </Labeled>
       </div>
       <table>
         <thead>

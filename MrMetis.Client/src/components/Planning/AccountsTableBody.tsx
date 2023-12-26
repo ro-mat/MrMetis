@@ -11,16 +11,24 @@ import { useTranslation } from "react-i18next";
 
 export interface IAccountsTableBodyProps {
   accountId: number;
+  accountName: string;
   budgetMonths: BudgetMonth[];
   activeBudgets: IActiveBudget[];
+  index?: number;
 }
 
 const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
   accountId,
+  accountName,
   budgetMonths,
   activeBudgets,
+  index,
 }) => {
   const { t } = useTranslation();
+
+  const isEven = useMemo(() => {
+    return index === undefined ? false : index % 2 === 1;
+  }, [index]);
 
   const accountBudgetMonths = budgetMonths.map((bm) => {
     return bm.budgetMonthAccounts.get(accountId)!;
@@ -32,10 +40,19 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
 
   return (
     <>
-      <TableRowsFromPrevMonth budgetItems={accountBudgetMonths} />
+      <tr className={`sticky${isEven ? " highlight" : ""}`}>
+        <td colSpan={budgetMonths.length * 2 + 1}>
+          <strong>{accountName}</strong>
+        </td>
+      </tr>
+      <TableRowsFromPrevMonth
+        budgetItems={accountBudgetMonths}
+        highlight={isEven}
+      />
       <TableRowsFromOtherAccounts
         activeBudgets={activeAccountBudgets}
         budgetItems={accountBudgetMonths}
+        highlight={isEven}
       />
       <TableRowsByType
         types={[BudgetTypeUser.income]}
@@ -43,8 +60,12 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         budgetItems={accountBudgetMonths}
         moreIsGood={true}
         showTotal={false}
+        highlight={isEven}
       />
-      <TableRowsOpeningBalance budgetItems={accountBudgetMonths} />
+      <TableRowsOpeningBalance
+        budgetItems={accountBudgetMonths}
+        highlight={isEven}
+      />
       <TableRowsByType
         types={[
           BudgetTypeUser.savings,
@@ -55,6 +76,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         budgetItems={accountBudgetMonths}
         moreIsGood={false}
         totalLabel={t("planning.totalSpendings")}
+        highlight={isEven}
       />
       <TableRowsByType
         types={[BudgetTypeUser.keepOnAccount]}
@@ -62,6 +84,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         budgetItems={accountBudgetMonths}
         moreIsGood={true}
         showTotal={false}
+        highlight={isEven}
       />
       <TableRowsByType
         types={[BudgetTypeUser.transferToAccount]}
@@ -69,8 +92,12 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         budgetItems={accountBudgetMonths}
         moreIsGood={true}
         showTotal={false}
+        highlight={isEven}
       />
-      <TableRowsClosingBalance budgetItems={accountBudgetMonths} />
+      <TableRowsClosingBalance
+        budgetItems={accountBudgetMonths}
+        highlight={isEven}
+      />
     </>
   );
 };

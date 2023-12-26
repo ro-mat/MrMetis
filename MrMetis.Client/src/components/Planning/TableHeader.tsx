@@ -13,7 +13,7 @@ const TableHeader: FC<ITableHeaderProps> = ({ budgetMonths }) => {
   return (
     <>
       <tr>
-        <th rowSpan={2}></th>
+        <th></th>
         {budgetMonths.map((bm, index) => (
           <th
             key={index}
@@ -27,6 +27,7 @@ const TableHeader: FC<ITableHeaderProps> = ({ budgetMonths }) => {
         ))}
       </tr>
       <tr>
+        <th></th>
         {budgetMonths.map((bm, index) => (
           <React.Fragment key={index}>
             <th

@@ -2,23 +2,23 @@ import React, { FunctionComponent, useEffect, useMemo } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
-import Index from "views/Index";
-import List from "views/List";
-import Login from "views/Login";
-import Budget from "views/Budget";
-import Accounts from "views/Accounts";
+import Index from "pages/Index";
+import Statements from "pages/Statements";
+import Login from "pages/Login";
+import Budget from "pages/Budget";
+import Accounts from "pages/Accounts";
 import { attempt, logout } from "store/auth/auth.actions";
-import Register from "views/Register";
+import Register from "pages/Register";
 import { fetchUserdata, saveUserData } from "store/userdata/userdata.actions";
 import { fetchUi } from "store/ui/ui.actions";
 import SideNavLayout from "components/Layouts/SideNavLayout";
 import FilterLayout from "components/Layouts/FilterLayout";
 import Header from "components/Header";
 import Footer from "components/Footer";
-import Planning from "views/Planning";
-import Dashboard from "views/Dashboard";
-import PlanningAll from "views/PlanningAll";
-import PlanningAccounts from "views/PlanningAccounts";
+import Planning from "pages/planning/Index";
+import Dashboard from "pages/Dashboard";
+import PlanningAll from "pages/planning/PlanningAll";
+import PlanningAccounts from "pages/planning/PlanningAccounts";
 import Authenticated from "components/Authenticated";
 import { useIdleTimer } from "react-idle-timer";
 import UnAuthenticated from "components/UnAuthenticated";
@@ -32,7 +32,7 @@ import { SET_ISDEMO } from "store/auth/auth.slice";
 import "moment/locale/ru";
 import ToastMessages from "components/ToastMessages";
 import RawDataEditor from "components/RawDataEditor";
-import Privacy from "views/Privacy";
+import Privacy from "pages/Privacy";
 
 const App: FunctionComponent = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -122,7 +122,7 @@ const App: FunctionComponent = () => {
                   />
                 </Route>
               </Route>
-              <Route path="/list" element={<List />} />
+              <Route path="/list" element={<Statements />} />
               <Route path="/budget" element={<Budget />} />
               <Route path="/accounts" element={<Accounts />} />
             </Route>

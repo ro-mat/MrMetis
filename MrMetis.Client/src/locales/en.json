@@ -162,55 +162,35 @@
     "monthEmpty": "Month cannot be empty"
   },
   "landingPage": {
-    "1": {
-      "header": "WTF is this?",
-      "text1": "It's a personal finances helper tool that I started making for myself and then it kinda got out of hand...",
-      "text2": "Looks similar to this -->",
-      "text3": "Still in beta, but main functionality is there",
+    "welcome": {
+      "header": "Mr Metis",
+      "text1": "Personal finances helper tool.",
+      "text2": "Keep and track your personal finance records, setup budget rules, plan purchases.",
       "buttonText": "Try Demo"
     },
-    "2": {
-      "header": "My philosophy",
-      "text1": "This is for people, not companies (although I have no way of knowing how you will use it)",
-      "text2": "It's not meant to shame anyone, it's here to show you the truth about your finances and help plan your money like a badass that you are"
+    "about": {
+      "header": "About the tool",
+      "text1": "Keep track of your spending habits. Improve your financial planning. Set budget goals.",
+      "text2": "This tool is meant for personal use and is not aimed at companies."
     },
-    "3": {
-      "header": "Some SEO text",
-      "text1": "Open source",
-      "text2": "Your data belongs to you",
-      "text3": "Client-side encryption",
-      "text4": "Simple terminology",
-      "text5": "The most bestest overview of your finances in the universe"
-    },
-    "4": {
-      "header": "Roadmap (not in any particular order)",
-      "section1": {
-        "header": "Done:",
-        "text1": "User stuff (authentication, registration)",
-        "text2": "Encryption",
-        "text3": "Basic data management (accounts, budgets, statements)",
-        "text4": "Advanced formulas for budget calculation",
-        "text5": "Quick add",
-        "text6": "Planning view",
-        "text7": "Simple dashboard",
-        "text8": "Translations",
-        "text9": "Basic landing page"
+    "bulletPoints": {
+      "header": "What sets this tool apart",
+      "openSource": {
+        "header": "Open source",
+        "text": "Project is open source. Feel free to review the code, submit bug reports and request functionalilty on our",
+        "urlText": "GitHub page"
       },
-      "section2": {
-        "header": "To do:",
-        "text1": "Better landing page",
-        "text2": "Automatic data retrieval",
-        "text3": "Mobile app",
-        "text4": "Browser extensions",
-        "text5": "Budget sharing"
+      "private": {
+        "header": "Private",
+        "text": "Your data is your own. The data is encrypted before it leaves your device. We will not share, sell or even see your data.",
+        "urlText": "Privacy policy"
       }
     },
-    "5": {
-      "header": "Join Us Today",
-      "text1": "Here is the \"Try Demo\" button again",
-      "button1Text": "Try Demo",
-      "text2": "Or you can register here",
-      "button2Text": "Register"
+    "newsletter": {
+      "header": "Newsletter",
+      "text": "If you want to receive news about the tool, you can subscribe to our newsletter (TBA)",
+      "inputPlaceholder": "Email",
+      "buttonText": "Subscribe"
     }
   },
   "privacy": {

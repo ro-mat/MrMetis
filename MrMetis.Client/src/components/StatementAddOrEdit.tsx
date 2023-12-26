@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import moment from "moment";
 import { DATE_FORMAT } from "helpers/dateHelper";
 
-const ListAddOrEdit = () => {
+const StatementAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
 
@@ -219,4 +219,4 @@ const ListAddOrEdit = () => {
   );
 };
 
-export default ListAddOrEdit;
+export default StatementAddOrEdit;

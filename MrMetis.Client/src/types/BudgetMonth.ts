@@ -11,6 +11,7 @@ import {
 import { calculate } from "helpers/evalHelper";
 import { BudgetMonthAccount } from "./BudgetMonthAccount";
 import { BudgetItems, IBudgetPair } from "./BudgetItems";
+import { getEnumArray } from "helpers/enumHelper";
 
 export class BudgetMonth extends BudgetItems {
   budgetMonthAccounts: Map<number, BudgetMonthAccount>;
@@ -67,10 +68,7 @@ export class BudgetMonth extends BudgetItems {
       [...budgetAccountMap.values()].reduce((p, c) => p + c.length, 0) + 1; // increment for the initial loop
 
     const possibleBudgetTypes = [
-      ...Object.keys(BudgetTypeUser)
-        .concat(Object.keys(BudgetTypeExtra))
-        .filter((item) => !isNaN(Number(item)))
-        .map((item) => +item),
+      ...getEnumArray(BudgetTypeUser).concat(getEnumArray(BudgetTypeExtra)),
     ];
 
     const possibleAccountBudgetTypes = new Map<number, BudgetType[]>(
@@ -210,11 +208,11 @@ export class BudgetMonth extends BudgetItems {
 
 const getBudgetResolver = (budgets: IBudget[]) => {
   return budgets.reduce((prev, cur) => {
-    if (!prev.has(cur.fromAccountId)) {
-      prev.set(cur.fromAccountId, []);
+    if (!prev.has(cur.fromAccountId ?? 0)) {
+      prev.set(cur.fromAccountId ?? 0, []);
     }
 
-    const mapItem = prev.get(cur.fromAccountId)!;
+    const mapItem = prev.get(cur.fromAccountId ?? 0)!;
     mapItem.push({
       budgetId: cur.id,
       budgetName: cur.name,

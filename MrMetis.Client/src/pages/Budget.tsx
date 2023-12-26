@@ -5,10 +5,11 @@ import { BudgetTypeUser } from "store/userdata/userdata.types";
 import { getById } from "helpers/userdata";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
-import BudgetAddOrEdit from "components/BudgetAddOrEdit";
+import BudgetAddOrEdit from "components/budget/BudgetAddOrEdit";
 import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import { useTranslation } from "react-i18next";
 import useBudgetAggregate from "hooks/useBudgetAggregate";
+import Labeled from "components/Labeled";
 
 const Budget = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -52,15 +53,15 @@ const Budget = () => {
     dispatch(SET_SELECTED_BUDGET(id));
   };
 
+  const handleAddOrEditButtonClick = () => {
+    dispatch(SET_SELECTED_BUDGET(showAddOrEdit ? undefined : 0));
+  };
+
   return (
     <>
       <div className="head-wrapper">
         <h2>{t("budget.header")}</h2>
-        <button
-          onClick={() =>
-            dispatch(SET_SELECTED_BUDGET(showAddOrEdit ? undefined : 0))
-          }
-        >
+        <button onClick={handleAddOrEditButtonClick}>
           {showAddOrEdit ? "-" : "+"}
         </button>
       </div>
@@ -69,13 +70,14 @@ const Budget = () => {
           {showAddOrEdit && <BudgetAddOrEdit />}
           <div>
             <div className="filter-text">
-              <label htmlFor="filter">{t("budget.filter")}: </label>
-              <input
-                type="text"
-                id="filter"
-                value={filter}
-                onChange={(e) => setFilter(e.currentTarget.value)}
-              />
+              <Labeled labelKey="budget.filter" horisontal={true}>
+                <input
+                  type="text"
+                  id="filter"
+                  value={filter}
+                  onChange={(e) => setFilter(e.currentTarget.value)}
+                />
+              </Labeled>
             </div>
             <table>
               <thead>

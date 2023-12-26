@@ -1,8 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import Labeled from "./Labeled";
-import { DatePickerField } from "./DatePickerField";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
+import Labeled from "components/Labeled";
 import { Field, Formik, FormikErrors, FieldArray } from "formik";
 import { Select, MenuItem } from "@mui/material";
 import { BudgetTypeUser, IBudget } from "store/userdata/userdata.types";
@@ -17,8 +14,11 @@ import { getById, getNextId } from "helpers/userdata";
 import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
-import Hint from "./Hint";
+import Hint from "components/Hint";
 import { DATE_FORMAT } from "helpers/dateHelper";
+import { AmountType } from "types/IAmount";
+import BudgetOverrideItem from "./BudgetOverrideItem";
+import BudgetAmountItem from "./BudgetAmountItem";
 
 const BudgetAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -108,9 +108,6 @@ const BudgetAddOrEdit = () => {
           if (!values.type) {
             errors.type = "errors.typeEmpty";
           }
-          if (!values.fromAccountId) {
-            errors.fromAccountId = "errors.fromAccountEmpty";
-          }
           if (
             values.type === BudgetTypeUser.transferToAccount &&
             !values.toAccountId
@@ -123,14 +120,22 @@ const BudgetAddOrEdit = () => {
               errors.amounts = "errors.dateEmpty";
               break;
             }
+            if (!values.fromAccountId && !amount.fromAccountId) {
+              errors.fromAccountId = "errors.fromAccountEmpty";
+              break;
+            }
             if (!amount.frequency) {
               errors.amounts = "errors.frequencyEmpty";
               break;
             }
           }
-          for (let amount of values.overrides) {
-            if (!amount.month) {
+          for (let override of values.overrides) {
+            if (!override.month) {
               errors.amounts = "errors.monthEmpty";
+              break;
+            }
+            if (!values.fromAccountId && !override.accountId) {
+              errors.fromAccountId = "errors.fromAccountEmpty";
               break;
             }
           }
@@ -140,6 +145,18 @@ const BudgetAddOrEdit = () => {
         onSubmit={(values) => {
           const budget = {
             ...values,
+            amounts: values.amounts.map((a) => {
+              return {
+                ...a,
+                fromAccountId: values.fromAccountId ?? a.fromAccountId,
+              };
+            }),
+            overrides: values.overrides.map((o) => {
+              return {
+                ...o,
+                fromAccountId: values.fromAccountId ?? o.accountId,
+              };
+            }),
           };
 
           if (values.id) {
@@ -213,7 +230,7 @@ const BudgetAddOrEdit = () => {
                     ))}
                 </Select>
               </Labeled>
-              <Labeled labelKey="budget.fromAccount" required>
+              <Labeled labelKey="budget.fromAccount">
                 <Select
                   id="fromAccountId"
                   name="fromAccountId"
@@ -274,6 +291,8 @@ const BudgetAddOrEdit = () => {
                       onClick={() =>
                         unshift({
                           amount: "0",
+                          fromAccountId: values.fromAccountId ?? 1,
+                          amountType: AmountType.Basic,
                           frequency: 1,
                           startDate: new Date(),
                         })
@@ -289,42 +308,15 @@ const BudgetAddOrEdit = () => {
                   </div>
                   <div className="list">
                     {values.amounts?.map((amount, index) => (
-                      <div key={index}>
-                        <Labeled labelKey="budget.startDate" required>
-                          <DatePickerField
-                            name={`amounts[${index}].startDate`}
-                          />
-                        </Labeled>
-                        <Labeled labelKey="budget.endDate">
-                          <DatePickerField name={`amounts[${index}].endDate`} />
-                        </Labeled>
-                        <Labeled labelKey="budget.amount">
-                          <input
-                            type="text"
-                            name={`amounts[${index}].amount`}
-                            value={amount.amount}
-                            onChange={handleChange}
-                          />
-                        </Labeled>
-                        <Labeled labelKey="budget.frequency" required>
-                          <input
-                            type="number"
-                            name={`amounts[${index}].frequency`}
-                            value={amount.frequency}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                          />
-                        </Labeled>
-                        <div>
-                          <button
-                            type="button"
-                            className="button"
-                            onClick={() => remove(index)}
-                          >
-                            <FontAwesomeIcon icon={faTrashCan} />
-                          </button>
-                        </div>
-                      </div>
+                      <BudgetAmountItem
+                        index={index}
+                        item={amount}
+                        budgetAccountId={values.fromAccountId}
+                        accounts={accounts}
+                        handleChange={handleChange}
+                        handleBlur={handleBlur}
+                        handleRemoveItem={remove}
+                      />
                     ))}
                   </div>
                 </div>
@@ -339,7 +331,11 @@ const BudgetAddOrEdit = () => {
                       type="button"
                       className="small secondary"
                       onClick={() =>
-                        unshift({ month: new Date(), amount: "0" })
+                        unshift({
+                          month: new Date(),
+                          amount: "0",
+                          accountId: 1,
+                        })
                       }
                     >
                       +
@@ -347,25 +343,16 @@ const BudgetAddOrEdit = () => {
                   </Labeled>
                   <div className="list">
                     {values.overrides?.map((ovr, index) => (
-                      <div key={index}>
-                        <Labeled labelKey="budget.month" required>
-                          <DatePickerField name={`overrides[${index}].month`} />
-                        </Labeled>
-                        <Labeled labelKey="budget.amount">
-                          <input
-                            type="number"
-                            name={`overrides[${index}].amount`}
-                            value={ovr.amount}
-                            onChange={handleChange}
-                          />
-                        </Labeled>
-
-                        <div>
-                          <button type="button" onClick={() => remove(index)}>
-                            <FontAwesomeIcon icon={faTrashCan} />
-                          </button>
-                        </div>
-                      </div>
+                      <BudgetOverrideItem
+                        key={index}
+                        index={index}
+                        item={ovr}
+                        budgetAccountId={values.fromAccountId}
+                        accounts={accounts}
+                        handleChange={handleChange}
+                        handleBlur={handleBlur}
+                        handleRemoveItem={remove}
+                      />
                     ))}
                   </div>
                 </div>
