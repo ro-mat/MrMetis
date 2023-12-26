@@ -35,13 +35,13 @@ const encryptArray = async (arr: any[]) => {
   return res;
 };
 
-const decrypt = <T>(obj: any): T => {
-  if (!obj.data) {
+const decrypt = <T>(str: string): T => {
+  if (!str) {
     return {} as T;
   }
 
   const key = sessionStorage.getItem("vk");
-  const decipher = CryptoJs.AES.decrypt(obj.data, key || "");
+  const decipher = CryptoJs.AES.decrypt(str, key || "");
   const jsonString = decipher.toString(CryptoJs.enc.Utf8);
   const parsedData = JSON.parse(jsonString);
   return parsedData as T;

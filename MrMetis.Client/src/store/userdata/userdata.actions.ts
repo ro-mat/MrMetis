@@ -30,7 +30,7 @@ export const fetchUserdata =
 
     await api
       .get<{ id: number; data: string }>("/userdata")
-      .then((res) => decrypt<IUserdataDto>(res.data))
+      .then((res) => decrypt<IUserdataDto>(res.data.data))
       .then((res) => {
         dispatch(SET_STATEMENTS(res.statements));
         dispatch(SET_BUDGETS(res.budgets));
