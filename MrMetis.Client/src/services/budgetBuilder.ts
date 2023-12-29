@@ -1,11 +1,26 @@
-import moment from "moment";
-import { BudgetType } from "store/userdata/userdata.types";
+import moment, { Moment } from "moment";
+import {
+  BudgetType,
+  BudgetTypeExtra,
+  IAccount,
+  IBudget,
+  IStatement,
+} from "store/userdata/userdata.types";
+import {
+  BudgetCalculatedList,
+  Calculate,
+  RelevantFormula,
+  calculate,
+  calculateForNextMonth,
+  getRelevantFormulas,
+} from "./budgetCalculator";
+import { mapToBudgetCalculated } from "helpers/budgetMapper";
 
 export type BudgetStatement = {
   accountId: number;
   date: string;
   amount: number;
-  commnet: string;
+  comment?: string;
 };
 
 export class BudgetPairArray {
@@ -14,9 +29,10 @@ export class BudgetPairArray {
   addBudgetPair(budgetPair: BudgetPair, parentBudgetId?: number) {
     if (!parentBudgetId) {
       this.list.push(budgetPair);
+      return;
     }
     for (let item of this.list) {
-      if (item.tryAddChild(budgetPair)) {
+      if (item.tryAddChild(budgetPair, parentBudgetId)) {
         return;
       }
     }
@@ -44,7 +60,7 @@ export class BudgetPairArray {
 export class BudgetPair {
   budgetId: number;
   accountId: number;
-  month: string;
+  month: Moment;
   budgetType: BudgetType;
   planned: number;
   actual: number;
@@ -55,7 +71,7 @@ export class BudgetPair {
   constructor(
     budgetId: number,
     accountId: number,
-    month: string,
+    month: Moment,
     budgetType: BudgetType,
     planned: number,
     actual: number,
@@ -84,13 +100,13 @@ export class BudgetPair {
     );
   }
 
-  tryAddChild(budgetPair: BudgetPair) {
-    if (budgetPair.budgetId === this.budgetId) {
+  tryAddChild(budgetPair: BudgetPair, parentBudgetId: number) {
+    if (parentBudgetId === this.budgetId) {
       this.children.push(budgetPair);
       return true;
     }
-    for (let childPair of this.children) {
-      if (childPair.tryAddChild(budgetPair)) {
+    for (const childPair of this.children) {
+      if (childPair.tryAddChild(budgetPair, parentBudgetId)) {
         return true;
       }
     }
@@ -123,6 +139,98 @@ export class BudgetPair {
   }
 }
 
-export type BudgetPairPerAccount = BudgetPair & {
-  accountId: number;
+export const buildBudgetPairsForMonth = (
+  month: Moment,
+  budgets: IBudget[],
+  statements: IStatement[],
+  accounts: IAccount[],
+  prevMonthBudgetPairs: BudgetPair[]
+) => {
+  const monthStatements = statements.filter((s) =>
+    moment(s.date).isSame(month, "M")
+  );
+  const prevMonthCalculate = new Calculate(
+    month.clone().add(-1, "M"),
+    new BudgetCalculatedList(mapToBudgetCalculated(prevMonthBudgetPairs))
+  );
+
+  const relevantFormulas = budgets.reduce((prev: RelevantFormula[], cur) => {
+    const formulas = getRelevantFormulas(month.toDate(), cur);
+    return [...prev, ...formulas];
+  }, []);
+
+  const result = new BudgetPairArray();
+
+  let lastLenght = relevantFormulas.length + 1; // +1 for initial run
+
+  while (relevantFormulas.length < lastLenght) {
+    lastLenght = relevantFormulas.length;
+
+    for (let i = 0; i < lastLenght; i++) {
+      const f = relevantFormulas.shift();
+      if (!f) {
+        throw Error("something went wrong");
+      }
+
+      const rawAmount = calculate(
+        f.formula,
+        new Calculate(
+          month,
+          new BudgetCalculatedList(mapToBudgetCalculated(result.list))
+        ),
+        prevMonthCalculate
+      );
+      if (
+        rawAmount === undefined ||
+        rawAmount === typeof "string" ||
+        isNaN(rawAmount as number)
+      ) {
+        relevantFormulas.push(f);
+        continue;
+      }
+
+      const planned = rawAmount as number;
+
+      const budgetAccountStatements = monthStatements.filter(
+        (s) => s.budgetId === f.budgetId && s.accountId === f.accountId
+      );
+      const actual = budgetAccountStatements.reduce(
+        (prev, cur) => prev + cur.amount,
+        0
+      );
+
+      const pair = new BudgetPair(
+        f.budgetId,
+        f.accountId,
+        month,
+        f.budgetType,
+        planned,
+        actual,
+        f.expectOneStatement,
+        budgetAccountStatements
+      );
+      result.addBudgetPair(pair, f.parentId);
+    }
+  }
+
+  // add left from prev month
+  for (let account of accounts) {
+    const actual =
+      account.leftFromPrevMonth.find((pm) =>
+        moment(pm.month).isSame(month, "M")
+      )?.amount ?? 0;
+    const pair = new BudgetPair(
+      0,
+      account.id,
+      month,
+      BudgetTypeExtra.leftFromPrevMonth,
+      calculateForNextMonth(mapToBudgetCalculated(prevMonthBudgetPairs)),
+      actual as number,
+      true,
+      []
+    );
+    result.addBudgetPair(pair);
+  }
+
+  return result;
 };

@@ -56,6 +56,7 @@ export enum BudgetTypeUser {
 
 export enum BudgetTypeExtra {
   transferFromAccount = 51,
+  leftFromPrevMonth = 70,
 }
 
 export type BudgetType = BudgetTypeUser | BudgetTypeExtra;

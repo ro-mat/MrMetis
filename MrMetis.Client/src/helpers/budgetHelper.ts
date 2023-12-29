@@ -5,11 +5,7 @@ import { BudgetItems } from "types/BudgetItems";
 import { BudgetMonth } from "types/BudgetMonth";
 
 export const getBudgetAmount = (month: Date, budget: IBudget) => {
-  return calculate(
-    getRelevantAmount(month, budget),
-    new Calculate(),
-    new Calculate()
-  );
+  return calculate(getRelevantAmount(month, budget));
 };
 
 export const getRelevantAmount = (month: Date, budget: IBudget) => {

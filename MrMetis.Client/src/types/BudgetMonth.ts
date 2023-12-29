@@ -59,7 +59,7 @@ export class BudgetMonth extends BudgetItems {
     );
 
     // calculate budgets
-    let cur_month = new Calculate(this);
+    let cur_month = this.getCalc();
     const last_month = prevMonth?.getCalc() ?? new Calculate();
 
     const budgetAccountMap = getBudgetResolver(budgets);
