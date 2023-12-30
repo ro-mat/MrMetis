@@ -57,29 +57,31 @@ export class BudgetCalculatedList {
     this.list = list;
   }
 
-  filterByAccountId = (accountId: number) => {
-    return new BudgetCalculatedList(
-      this.list.filter((l) => l.accountId === accountId)
-    );
+  getByBudgetId = (budgetId: number, accountId?: number) => {
+    if (accountId) {
+      return this.list.find(
+        (i) => i.budgetId === budgetId && i.accountId === accountId
+      )?.planned;
+    }
+    return this.list
+      .filter((i) => i.budgetId === budgetId)
+      .reduce((prev, cur) => prev + cur.planned, 0);
   };
 
-  getByBudgetId = (budgetId: number) => {
-    return this.list.find((l) => l.budgetId === budgetId)?.planned ?? 0;
-  };
-
-  getTotalByType = (type: BudgetType) => {
-    return this.list.reduce((prev, cur) => {
-      if (cur.budgetType === type) {
-        return prev + cur.planned;
-      }
-      return prev;
-    }, 0);
+  getTotalByType = (type: BudgetType, accountId?: number) => {
+    return this.list.find(
+      (i) =>
+        i.budgetId === 0 &&
+        i.budgetType === type &&
+        i.accountId === (accountId === undefined ? 0 : accountId)
+    )?.planned;
   };
 }
 
 export type RelevantFormula = {
   budgetId: number;
   accountId: number;
+  toAccountId?: number;
   parentId?: number;
   budgetType: BudgetType;
   expectOneStatement: boolean;
@@ -133,6 +135,7 @@ export const getRelevantFormulas = (
       return {
         budgetId: budget.id,
         accountId: o.accountId,
+        toAccountId: budget.toAccountId,
         parentId: budget.parentId,
         budgetType: budget.type,
         expectOneStatement: budget.expectOneStatement,
@@ -165,6 +168,7 @@ export const getRelevantFormulas = (
       return {
         budgetId: budget.id,
         accountId: a.fromAccountId ?? budget.fromAccountId,
+        toAccountId: budget.toAccountId,
         parentId: budget.parentId,
         budgetType: budget.type,
         expectOneStatement: budget.expectOneStatement,
@@ -209,27 +213,6 @@ export class Calculate {
   constructor(month: Moment, list: BudgetCalculatedList) {
     this.month = month;
     this.list = list;
-
-    this.leftFromPrevMonth = list.getByBudgetId(0);
-
-    this.totalIncome = list.getTotalByType(BudgetTypeUser.income);
-    this.totalSpending = list.getTotalByType(BudgetTypeUser.spending);
-    this.totalLoanReturn = list.getTotalByType(BudgetTypeUser.loanReturn);
-    this.totalSavings = list.getTotalByType(BudgetTypeUser.savings);
-    this.totalToOtherAccount = list.getTotalByType(
-      BudgetTypeUser.transferToAccount
-    );
-    this.totalFromOtherAccount = list.getTotalByType(
-      BudgetTypeExtra.transferFromAccount
-    );
-    this.totalKeepOnAccount = list.getTotalByType(BudgetTypeUser.keepOnAccount);
-
-    this.openingBalance =
-      this.leftFromPrevMonth + this.totalIncome + this.totalFromOtherAccount;
-    this.totalSpendings =
-      this.totalSpending + this.totalLoanReturn + this.totalSavings;
-    this.closingBalance =
-      this.openingBalance - this.totalSpendings - this.totalToOtherAccount;
   }
 
   getDaysInMonth = () => this.month.daysInMonth();
@@ -252,11 +235,60 @@ export class Calculate {
     return res;
   };
 
-  getItem = (id: number) => {
-    return this.list.getByBudgetId(id);
+  getItem = (id: number, accountId?: number) => {
+    return this.list.getByBudgetId(id, accountId);
   };
 
-  account = (id: number) => {
-    return new Calculate(this.month, this.list.filterByAccountId(id));
+  getTotalIncome = (accountId?: number) => {
+    return this.list.getTotalByType(BudgetTypeUser.income, accountId);
+  };
+
+  getTotalSaving = (accountId?: number) => {
+    return this.list.getTotalByType(BudgetTypeUser.savings, accountId);
+  };
+
+  getTotalLoanReturn = (accountId?: number) => {
+    return this.list.getTotalByType(BudgetTypeUser.loanReturn, accountId);
+  };
+
+  getTotalSpending = (accountId?: number) => {
+    return this.list.getTotalByType(BudgetTypeUser.spending, accountId);
+  };
+
+  getTotalKeepOnAccount = (accountId?: number) => {
+    return this.list.getTotalByType(BudgetTypeUser.keepOnAccount, accountId);
+  };
+
+  getTotalToOtherAccount = (accountId?: number) => {
+    return this.list.getTotalByType(
+      BudgetTypeUser.transferToAccount,
+      accountId
+    );
+  };
+
+  getTotalFromOtherAccount = (accountId?: number) => {
+    return this.list.getTotalByType(
+      BudgetTypeExtra.transferFromAccount,
+      accountId
+    );
+  };
+
+  getLeftFromPrevMonth = (accountId?: number) => {
+    return this.list.getTotalByType(
+      BudgetTypeExtra.leftFromPrevMonth,
+      accountId
+    );
+  };
+
+  getOpeningBalance = (accountId?: number) => {
+    return this.list.getTotalByType(BudgetTypeExtra.openingBalance, accountId);
+  };
+
+  getClosingBalance = (accountId?: number) => {
+    return this.list.getTotalByType(BudgetTypeExtra.closingBalance, accountId);
+  };
+
+  getMonthDelta = (accountId?: number) => {
+    return this.list.getTotalByType(BudgetTypeExtra.monthDelta, accountId);
   };
 }

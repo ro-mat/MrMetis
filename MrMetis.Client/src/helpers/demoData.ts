@@ -767,7 +767,7 @@ export const getData = () => {
         amounts: [
           {
             amount:
-              "cur_month.account(1).openingBalance - cur_month.account(1).totalSpending - cur_month.account(1).totalToOtherAccount - cur_month.getItem(14)",
+              "cur_month.getOpeningBalance(1) - cur_month.getTotalSpending(1) - cur_month.getTotalToOtherAccount(1) - cur_month.getItem(14)",
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -844,7 +844,7 @@ export const getData = () => {
         amounts: [
           {
             amount:
-              "cur_month.account(2).totalSpendings + cur_month.account(2).totalToOtherAccount",
+              "cur_month.getTotalSpending(2) + cur_month.getTotalLoanReturn(2) + cur_month.getTotalSaving(2) + cur_month.getTotalToOtherAccount(2)",
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -863,7 +863,8 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount: "cur_month.account(3).totalSpendings",
+            amount:
+              "cur_month.getTotalSpending(3) + cur_month.getTotalLoanReturn(3) + cur_month.getTotalSaving(3)",
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
