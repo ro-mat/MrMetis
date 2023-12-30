@@ -13,6 +13,7 @@ import {
   calculate,
   calculateForNextMonth,
   getRelevantFormulas,
+  roundTo,
 } from "./budgetCalculator";
 import { mapToBudgetCalculated } from "helpers/budgetMapper";
 
@@ -26,16 +27,21 @@ export type BudgetStatement = {
 export class BudgetPairArray {
   list: BudgetPair[] = [];
 
-  addBudgetPair(budgetPair: BudgetPair, parentBudgetId?: number) {
+  constructor(list?: BudgetPair[]) {
+    if (list) this.list = list;
+  }
+
+  tryAddBudgetPair(budgetPair: BudgetPair, parentBudgetId?: number) {
     if (!parentBudgetId) {
       this.list.push(budgetPair);
-      return;
+      return true;
     }
     for (let item of this.list) {
       if (item.tryAddChild(budgetPair, parentBudgetId)) {
-        return;
+        return true;
       }
     }
+    return false;
   }
 
   isBudgetActive(budgetId: number, accountId?: number) {
@@ -47,13 +53,28 @@ export class BudgetPairArray {
     return false;
   }
 
-  getBudgetPair(budgetId: number, month?: string, accountId?: number) {
-    return this.list.find(
+  getBudgetPair(
+    budgetId: number,
+    month?: string,
+    accountId?: number
+  ): BudgetPair | undefined {
+    let pair = this.list.find(
       (l) =>
         l.budgetId === budgetId &&
         (month === undefined || moment(l.month).isSame(month, "M")) &&
         (accountId === undefined || l.accountId === accountId)
     );
+    if (pair) return pair;
+
+    for (const item of this.list) {
+      pair = new BudgetPairArray(item.children).getBudgetPair(
+        budgetId,
+        month,
+        accountId
+      );
+      if (pair) return pair;
+    }
+    return undefined;
   }
 }
 
@@ -114,17 +135,19 @@ export class BudgetPair {
   }
 
   getChildrenPlanned(): number {
-    return this.children.reduce(
+    const planned = this.children.reduce(
       (prev, cur) => prev + cur.planned + cur.getChildrenPlanned(),
       0
     );
+    return roundTo(planned, 2);
   }
 
   getChildrenActual(): number {
-    return this.children.reduce(
+    const actual = this.children.reduce(
       (prev, cur) => prev + cur.actual + cur.getChildrenActual(),
       0
     );
+    return roundTo(actual, 2);
   }
 
   getChildrenStatements(): BudgetStatement[] {
@@ -154,16 +177,21 @@ export const buildBudgetPairsForMonth = (
     new BudgetCalculatedList(mapToBudgetCalculated(prevMonthBudgetPairs))
   );
 
-  const relevantFormulas = budgets.reduce((prev: RelevantFormula[], cur) => {
-    const formulas = getRelevantFormulas(month.toDate(), cur);
-    return [...prev, ...formulas];
-  }, []);
+  const relevantFormulas = budgets
+    .reduce((prev: RelevantFormula[], cur) => {
+      const formulas = getRelevantFormulas(month.toDate(), cur);
+      return [...prev, ...formulas];
+    }, [])
+    .sort((a, b) => (a.parentId ?? 0) - (b.parentId ?? 0)); // calculate all root parents first
 
   const result = new BudgetPairArray();
 
   let lastLenght = relevantFormulas.length + 1; // +1 for initial run
 
-  while (relevantFormulas.length < lastLenght) {
+  while (relevantFormulas.length > 0) {
+    if (relevantFormulas.length === lastLenght) {
+      throw Error("Circular reference detected!");
+    }
     lastLenght = relevantFormulas.length;
 
     for (let i = 0; i < lastLenght; i++) {
@@ -205,11 +233,13 @@ export const buildBudgetPairsForMonth = (
         month,
         f.budgetType,
         planned,
-        actual,
+        roundTo(actual, 2),
         f.expectOneStatement,
         budgetAccountStatements
       );
-      result.addBudgetPair(pair, f.parentId);
+      if (!result.tryAddBudgetPair(pair, f.parentId)) {
+        relevantFormulas.push(f);
+      }
     }
   }
 
@@ -229,7 +259,7 @@ export const buildBudgetPairsForMonth = (
       true,
       []
     );
-    result.addBudgetPair(pair);
+    result.tryAddBudgetPair(pair);
   }
 
   return result;

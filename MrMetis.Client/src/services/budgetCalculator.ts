@@ -134,9 +134,9 @@ export const getRelevantFormulas = (
         budgetId: budget.id,
         accountId: o.accountId,
         parentId: budget.parentId,
-        formula: o.amount,
         budgetType: budget.type,
         expectOneStatement: budget.expectOneStatement,
+        formula: o.amount,
       };
     });
 
@@ -161,18 +161,31 @@ export const getRelevantFormulas = (
         .diff(moment(a.startDate).startOf("M"), "M");
       return isWithinTimeframe && diff % a.frequency === 0;
     })
-    .map((o) => {
+    .map((a) => {
       return {
         budgetId: budget.id,
-        accountId: o.fromAccountId ?? budget.fromAccountId,
+        accountId: a.fromAccountId ?? budget.fromAccountId,
         parentId: budget.parentId,
         budgetType: budget.type,
         expectOneStatement: budget.expectOneStatement,
-        formula: o.amount,
+        formula: a.amount,
       };
     });
 
-  return [...allRelativeOverrides, ...allRelativeAmounts];
+  const formulas = [...allRelativeOverrides, ...allRelativeAmounts];
+
+  return formulas.length > 0
+    ? formulas
+    : [
+        {
+          budgetId: budget.id,
+          accountId: budget.fromAccountId ?? 0,
+          parentId: budget.parentId,
+          budgetType: budget.type,
+          expectOneStatement: budget.expectOneStatement,
+          formula: "0",
+        },
+      ];
 };
 
 export class Calculate {
