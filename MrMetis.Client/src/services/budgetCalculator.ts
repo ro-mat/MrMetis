@@ -3,8 +3,10 @@ import {
   BudgetType,
   BudgetTypeExtra,
   BudgetTypeUser,
+  IAccount,
   IBudget,
 } from "store/userdata/userdata.types";
+import { BudgetPair } from "./budgetBuilder";
 
 export type BudgetCalculated = {
   budgetId: number;
@@ -89,39 +91,62 @@ export type RelevantFormula = {
 };
 
 export const getEstimation = (
+  month: Moment,
   planned: number,
   actual: number,
   expectOneStatement: boolean = true
 ) => {
-  return (actual > 0 && actual > planned) || (expectOneStatement && actual > 0)
+  return month.isBefore(moment(), "M") ||
+    (actual > 0 && actual > planned) ||
+    (expectOneStatement && actual > 0)
     ? actual
     : planned;
 };
 
 export const calculateForNextMonth = (
-  budgetCalculatedArray: BudgetCalculated[]
+  budgetPairArray: BudgetPair[],
+  accountId?: number
 ) => {
-  return budgetCalculatedArray.reduce((prev, cur) => {
-    switch (cur.budgetType) {
-      case BudgetTypeExtra.leftFromPrevMonth:
-      case BudgetTypeExtra.transferFromAccount:
-      case BudgetTypeUser.income: {
-        return (
-          prev + getEstimation(cur.planned, cur.actual, cur.expectOneStatement)
-        );
-      }
-      case BudgetTypeUser.transferToAccount:
-      case BudgetTypeUser.loanReturn:
-      case BudgetTypeUser.savings:
-      case BudgetTypeUser.spending: {
-        return (
-          prev - getEstimation(cur.planned, cur.actual, cur.expectOneStatement)
-        );
-      }
-      default: {
-        return prev;
+  return budgetPairArray.reduce((prev, cur) => {
+    if (
+      (accountId ? cur.accountId === accountId : cur.accountId > 0) &&
+      (cur.budgetId > 0 || cur.budgetType === BudgetTypeExtra.leftFromPrevMonth)
+    ) {
+      switch (cur.budgetType) {
+        case BudgetTypeExtra.leftFromPrevMonth:
+        case BudgetTypeExtra.transferFromAccount:
+        case BudgetTypeUser.income: {
+          return (
+            prev +
+            getEstimation(
+              cur.month,
+              cur.planned,
+              cur.actual,
+              cur.expectOneStatement
+            )
+          );
+        }
+        case BudgetTypeUser.transferToAccount:
+        case BudgetTypeUser.loanReturn:
+        case BudgetTypeUser.savings:
+        case BudgetTypeUser.spending: {
+          return (
+            prev -
+            getEstimation(
+              cur.month,
+              cur.planned,
+              cur.actual,
+              cur.expectOneStatement
+            )
+          );
+        }
+        default: {
+          return prev;
+        }
       }
     }
+
+    return prev;
   }, 0);
 };
 
@@ -190,6 +215,357 @@ export const getRelevantFormulas = (
           formula: "0",
         },
       ];
+};
+
+export const userTypes = [
+  BudgetTypeUser.income,
+  BudgetTypeUser.savings,
+  BudgetTypeUser.loanReturn,
+  BudgetTypeUser.spending,
+  BudgetTypeUser.transferToAccount,
+  BudgetTypeUser.keepOnAccount,
+  BudgetTypeExtra.transferFromAccount,
+];
+
+export const getUserTotals = (
+  month: Moment,
+  accounts: IAccount[],
+  calculatedPairs: BudgetPair[],
+  formulasLeft: RelevantFormula[]
+) => {
+  // try calculate totals
+  const result: BudgetPair[] = [];
+
+  for (const budgetType of userTypes) {
+    if (
+      calculatedPairs.find(
+        (cp) =>
+          cp.budgetId === 0 &&
+          cp.accountId === 0 &&
+          cp.budgetType === budgetType
+      )
+    ) {
+      // all totals for this budget type is done
+      continue;
+    }
+
+    let hasAllTypeTotals = true;
+    for (const account of accounts) {
+      if (
+        calculatedPairs.find(
+          (cp) =>
+            cp.budgetId === 0 &&
+            cp.budgetType === budgetType &&
+            cp.accountId === account.id
+        )
+      ) {
+        // total for this type and account is already done
+        continue;
+      }
+
+      if (
+        formulasLeft.filter(
+          (rf) => rf.budgetType === budgetType && rf.accountId === account.id
+        ).length > 0 ||
+        (budgetType === BudgetTypeExtra.transferFromAccount &&
+          formulasLeft.filter(
+            (rf) =>
+              rf.budgetType === BudgetTypeUser.transferToAccount &&
+              rf.toAccountId === account.id
+          ).length > 0)
+      ) {
+        hasAllTypeTotals = false;
+        continue;
+      }
+
+      const listOfType = calculatedPairs.filter(
+        (i) => i.budgetType === budgetType && i.accountId === account.id
+      );
+      const planned = listOfType.reduce((prev, cur) => prev + cur.planned, 0);
+      const actual = listOfType.reduce((prev, cur) => prev + cur.actual, 0);
+      let totalsPair = new BudgetPair(
+        0,
+        account.id,
+        month,
+        budgetType,
+        planned,
+        roundTo(actual, 2),
+        true,
+        []
+      );
+      result.push(totalsPair);
+    }
+
+    if (hasAllTypeTotals) {
+      const listOfType = [...calculatedPairs, ...result].filter(
+        (i) => i.budgetId === 0 && i.budgetType === budgetType
+      );
+      const planned = listOfType.reduce((prev, cur) => prev + cur.planned, 0);
+      const actual = listOfType.reduce((prev, cur) => prev + cur.actual, 0);
+
+      let totalsPair = new BudgetPair(
+        0,
+        0,
+        month,
+        budgetType,
+        planned,
+        roundTo(actual, 2),
+        true,
+        []
+      );
+      result.push(totalsPair);
+    }
+  }
+
+  return result;
+};
+
+export const getExtraTotals = (
+  month: Moment,
+  accounts: IAccount[],
+  calculatedPairs: BudgetPair[]
+) => {
+  const calculatedPairTotals = calculatedPairs.filter(
+    (cp) => cp.budgetId === 0
+  );
+
+  const result: BudgetPair[] = [];
+  for (const pair of getBudgetTypeExtraTotals(
+    month,
+    accounts,
+    [...calculatedPairTotals, ...result],
+    BudgetTypeExtra.openingBalance,
+    getOpeningBalancePair
+  )) {
+    result.push(pair);
+  }
+
+  const closingBalanceTotals = getBudgetTypeExtraTotals(
+    month,
+    accounts,
+    [...calculatedPairTotals, ...result],
+    BudgetTypeExtra.closingBalance,
+    getClosingBalancePair
+  );
+  for (const pair of closingBalanceTotals) {
+    result.push(pair);
+  }
+
+  for (const pair of getBudgetTypeExtraTotals(
+    month,
+    accounts,
+    [...calculatedPairTotals, ...result],
+    BudgetTypeExtra.monthDelta,
+    getMonthDeltaPair
+  )) {
+    result.push(pair);
+  }
+
+  return result;
+};
+
+const getBudgetTypeExtraTotals = (
+  month: Moment,
+  accounts: IAccount[],
+  calculatedPairTotals: BudgetPair[],
+  budgetType: BudgetTypeExtra,
+  getBudgetPair: (
+    month: Moment,
+    accountId: number,
+    calculatedPairAccountTotals: BudgetPair[]
+  ) => BudgetPair | undefined
+) => {
+  const result: BudgetPair[] = [];
+  if (
+    calculatedPairTotals.find(
+      (cp) => cp.accountId === 0 && cp.budgetType === budgetType
+    )
+  ) {
+    return result;
+  }
+
+  let hasAllTotals = true;
+  let totalPlanned = 0;
+  let totalActual = 0;
+
+  for (const account of accounts) {
+    const totalCurrent = calculatedPairTotals.find(
+      (cp) => cp.accountId === account.id && cp.budgetType === budgetType
+    );
+    if (totalCurrent) {
+      totalPlanned += totalCurrent.planned;
+      totalActual += totalCurrent.actual;
+      continue;
+    }
+
+    const calculatedPairAccountTotals = calculatedPairTotals.filter(
+      (cp) => cp.accountId === account.id
+    );
+
+    const pair = getBudgetPair(month, account.id, calculatedPairAccountTotals);
+    if (!pair) {
+      hasAllTotals = false;
+      continue;
+    }
+
+    result.push(pair);
+
+    totalPlanned += pair.planned;
+    totalActual += pair.actual;
+  }
+
+  if (hasAllTotals) {
+    const pair = new BudgetPair(
+      0,
+      0,
+      month,
+      budgetType,
+      totalPlanned,
+      totalActual,
+      true,
+      []
+    );
+    result.push(pair);
+  }
+  return result;
+};
+
+const getOpeningBalancePair = (
+  month: Moment,
+  accountId: number,
+  calculatedPairAccountTotals: BudgetPair[]
+) => {
+  const leftFromPrevMonthTotal = calculatedPairAccountTotals.find(
+    (cp) => cp.budgetType === BudgetTypeExtra.leftFromPrevMonth
+  );
+  const incomeTotal = calculatedPairAccountTotals.find(
+    (cp) => cp.budgetType === BudgetTypeUser.income
+  );
+  const transferFromTotal = calculatedPairAccountTotals.find(
+    (cp) => cp.budgetType === BudgetTypeExtra.transferFromAccount
+  );
+
+  if (
+    leftFromPrevMonthTotal === undefined ||
+    incomeTotal === undefined ||
+    transferFromTotal === undefined
+  ) {
+    return;
+  }
+
+  const planned =
+    leftFromPrevMonthTotal.planned +
+    incomeTotal.planned +
+    transferFromTotal.planned;
+  const actual =
+    leftFromPrevMonthTotal.actual +
+    incomeTotal.actual +
+    transferFromTotal.actual;
+  const pair = new BudgetPair(
+    0,
+    accountId,
+    month,
+    BudgetTypeExtra.openingBalance,
+    planned,
+    actual,
+    true,
+    []
+  );
+  return pair;
+};
+
+const getClosingBalancePair = (
+  month: Moment,
+  accountId: number,
+  calculatedPairAccountTotals: BudgetPair[]
+) => {
+  const openingBalanceTotal = calculatedPairAccountTotals.find(
+    (cp) => cp.budgetType === BudgetTypeExtra.openingBalance
+  );
+  const spendingTotal = calculatedPairAccountTotals.find(
+    (cp) => cp.budgetType === BudgetTypeUser.spending
+  );
+  const transferToAccountTotal = calculatedPairAccountTotals.find(
+    (cp) => cp.budgetType === BudgetTypeUser.transferToAccount
+  );
+
+  if (
+    openingBalanceTotal === undefined ||
+    spendingTotal === undefined ||
+    transferToAccountTotal === undefined
+  ) {
+    return;
+  }
+
+  const planned =
+    openingBalanceTotal.planned -
+    spendingTotal.planned -
+    transferToAccountTotal.planned;
+  const actual =
+    openingBalanceTotal.actual -
+    spendingTotal.actual -
+    transferToAccountTotal.actual;
+  const pair = new BudgetPair(
+    0,
+    accountId,
+    month,
+    BudgetTypeExtra.closingBalance,
+    planned,
+    actual,
+    true,
+    []
+  );
+  return pair;
+};
+
+const getMonthDeltaPair = (
+  month: Moment,
+  accountId: number,
+  calculatedPairAccountTotals: BudgetPair[]
+) => {
+  const incomeTotal = calculatedPairAccountTotals.find(
+    (cp) => cp.budgetType === BudgetTypeUser.income
+  );
+  const spendingTotal = calculatedPairAccountTotals.find(
+    (cp) => cp.budgetType === BudgetTypeUser.spending
+  );
+  const loanReturnTotal = calculatedPairAccountTotals.find(
+    (cp) => cp.budgetType === BudgetTypeUser.loanReturn
+  );
+  const savingTotal = calculatedPairAccountTotals.find(
+    (cp) => cp.budgetType === BudgetTypeUser.savings
+  );
+
+  if (
+    incomeTotal === undefined ||
+    spendingTotal === undefined ||
+    loanReturnTotal === undefined ||
+    savingTotal === undefined
+  ) {
+    return;
+  }
+
+  const planned =
+    incomeTotal.planned -
+    spendingTotal.planned -
+    loanReturnTotal.planned -
+    savingTotal.planned;
+  const actual =
+    incomeTotal.actual -
+    spendingTotal.actual -
+    loanReturnTotal.actual -
+    savingTotal.actual;
+  const pair = new BudgetPair(
+    0,
+    accountId,
+    month,
+    BudgetTypeExtra.monthDelta,
+    planned,
+    actual,
+    true,
+    []
+  );
+  return pair;
 };
 
 export class Calculate {
