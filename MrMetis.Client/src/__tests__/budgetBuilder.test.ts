@@ -9,8 +9,9 @@ describe("budgetBuilder", () => {
 
   it("buildBudgetPairsForMonth for last month should return correct budget pair tree", () => {
     const { budgets, statements, accounts } = getDemoData();
+    const prevMontMoment = moment().add(-1, "M");
     const prevMonthBudgetPairs = buildBudgetPairsForMonth(
-      moment().add(-1, "M"),
+      prevMontMoment,
       budgets,
       statements,
       accounts,
@@ -160,19 +161,21 @@ describe("budgetBuilder", () => {
 
   it("buildBudgetPairsForMonth for current month should return correct budget pair tree", () => {
     const { budgets, statements, accounts } = getDemoData();
-    const prevMonthBudgetPairs = buildBudgetPairsForMonth(
-      moment().add(-1, "M"),
+    const prevMontMoment = moment().add(-1, "M");
+    const budgetPairsFromPrevMonth = buildBudgetPairsForMonth(
+      prevMontMoment,
       budgets,
       statements,
       accounts,
       []
     );
+    const curMonthMoment = moment();
     const curMonthBudgetPairs = buildBudgetPairsForMonth(
-      moment(),
+      curMonthMoment,
       budgets,
       statements,
       accounts,
-      prevMonthBudgetPairs.list
+      budgetPairsFromPrevMonth.list
     );
 
     expect(curMonthBudgetPairs.list.length).toBe(57);

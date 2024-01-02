@@ -575,7 +575,7 @@ export const getData = () => {
           },
         ],
         overrides: [],
-        type: 20,
+        type: 30,
         expectOneStatement: true,
       },
       {
@@ -767,7 +767,7 @@ export const getData = () => {
         amounts: [
           {
             amount:
-              "cur_month.getOpeningBalance(1) - cur_month.getTotalSpending(1) - cur_month.getTotalToOtherAccount(1) - cur_month.getItem(14)",
+              "cur_month.getOpeningBalance(1) - cur_month.getTotalSpending(1) - cur_month.getTotalLoanReturn(1) - cur_month.getTotalToOtherAccount(1) - cur_month.getItem(14)",
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },

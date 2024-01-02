@@ -197,10 +197,7 @@ export const buildBudgetPairsForMonth = (
   let totalPlanned = 0;
   let totalActual = 0;
   for (let account of accounts) {
-    const planned = roundTo(
-      calculateForNextMonth(flatPrevMonthBudgetPairs, account.id),
-      2
-    );
+    const planned = calculateForNextMonth(flatPrevMonthBudgetPairs, account.id);
     const actual = (account.leftFromPrevMonth.find((pm) =>
       moment(pm.month).isSame(month, "M")
     )?.amount ?? 0) as number;

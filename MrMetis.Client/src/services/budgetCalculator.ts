@@ -19,8 +19,8 @@ export type BudgetCalculated = {
 
 export const calculate = (
   str: string,
-  cur_month?: Calculate,
-  prev_month?: Calculate
+  cur_month: Calculate,
+  prev_month: Calculate
 ): number | string => {
   try {
     return roundTo(
@@ -146,7 +146,7 @@ export const calculateForNextMonth = (
       }
     }
 
-    return prev;
+    return roundTo(prev, 2);
   }, 0);
 };
 
@@ -485,6 +485,12 @@ const getClosingBalancePair = (
   const spendingTotal = calculatedPairAccountTotals.find(
     (cp) => cp.budgetType === BudgetTypeUser.spending
   );
+  const loanReturnTotal = calculatedPairAccountTotals.find(
+    (cp) => cp.budgetType === BudgetTypeUser.loanReturn
+  );
+  const savingsTotal = calculatedPairAccountTotals.find(
+    (cp) => cp.budgetType === BudgetTypeUser.savings
+  );
   const transferToAccountTotal = calculatedPairAccountTotals.find(
     (cp) => cp.budgetType === BudgetTypeUser.transferToAccount
   );
@@ -492,6 +498,8 @@ const getClosingBalancePair = (
   if (
     openingBalanceTotal === undefined ||
     spendingTotal === undefined ||
+    loanReturnTotal === undefined ||
+    savingsTotal === undefined ||
     transferToAccountTotal === undefined
   ) {
     return;
@@ -500,10 +508,14 @@ const getClosingBalancePair = (
   const planned =
     openingBalanceTotal.planned -
     spendingTotal.planned -
+    loanReturnTotal.planned -
+    savingsTotal.planned -
     transferToAccountTotal.planned;
   const actual =
     openingBalanceTotal.actual -
     spendingTotal.actual -
+    loanReturnTotal.actual -
+    savingsTotal.actual -
     transferToAccountTotal.actual;
   const pair = new BudgetPair(
     0,
@@ -598,11 +610,12 @@ export class Calculate {
       throw Error("Day can only be from 1 to 7!");
     }
 
-    const curMonth = this.month.clone().set("D", 1);
+    const curMonth = this.month.clone().startOf("M");
+    const countedDay = this.month.clone().day(day);
     let res = 0;
 
     while (curMonth.isSame(this.month, "M")) {
-      if (curMonth.day() === day) {
+      if (curMonth.weekday() === countedDay.weekday()) {
         res++;
       }
 
