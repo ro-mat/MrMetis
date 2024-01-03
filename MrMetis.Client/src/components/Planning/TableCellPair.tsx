@@ -2,26 +2,24 @@ import { FC, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import { SET_PREVIEW_STATEMENTS } from "store/ui/ui.slice";
-import { IStatement } from "store/userdata/userdata.types";
 import PreviewStatements from "./PreviewStatements";
 import useId from "@mui/material/utils/useId";
+import { BudgetPair } from "services/budgetBuilder";
 
 export interface ITableCellPairProps {
-  valuePlanned: number;
-  valueActual: number;
+  pair: BudgetPair;
+  includeChildren?: boolean;
   show?: boolean;
   isStrong?: boolean;
   moreIsGood?: boolean;
-  statements?: IStatement[];
 }
 
 const TableCellPair: FC<ITableCellPairProps> = ({
-  valuePlanned,
-  valueActual,
+  pair,
+  includeChildren = false,
   show = true,
   isStrong = false,
   moreIsGood,
-  statements,
 }) => {
   const dispatch = useDispatch<TAppDispatch>();
   const pairId = useId();
@@ -32,15 +30,15 @@ const TableCellPair: FC<ITableCellPairProps> = ({
 
   const showStatementList = useMemo(
     () =>
-      statements !== undefined &&
-      statements.length > 0 &&
+      pair.statements !== undefined &&
+      pair.statements.length > 0 &&
       selectedPreviewStatements === pairId,
-    [statements, selectedPreviewStatements, pairId]
+    [pair, selectedPreviewStatements, pairId]
   );
 
   const progressClass = getProgressClass(
-    valuePlanned,
-    valueActual,
+    pair.planned,
+    pair.actual,
     show,
     moreIsGood
   );
@@ -57,9 +55,13 @@ const TableCellPair: FC<ITableCellPairProps> = ({
     <>
       <td className="bl">
         {isStrong ? (
-          <strong>{show && valuePlanned.toFixed(2)}</strong>
+          <strong>
+            {show &&
+              pair.planned + (includeChildren ? pair.getChildrenPlanned() : 0)}
+          </strong>
         ) : (
-          show && valuePlanned.toFixed(2)
+          show &&
+          pair.planned + (includeChildren ? pair.getChildrenPlanned() : 0)
         )}
       </td>
       <td
@@ -69,12 +71,15 @@ const TableCellPair: FC<ITableCellPairProps> = ({
         onClick={handleClick}
       >
         {isStrong ? (
-          <strong>{show && valueActual.toFixed(2)}</strong>
+          <strong>
+            {show &&
+              pair.actual + (includeChildren ? pair.getChildrenActual() : 0)}
+          </strong>
         ) : (
-          show && valueActual.toFixed(2)
+          show && pair.actual + (includeChildren ? pair.getChildrenActual() : 0)
         )}
         {showStatementList && (
-          <PreviewStatements statements={statements ?? []} />
+          <PreviewStatements statements={pair.statements ?? []} />
         )}
       </td>
     </>

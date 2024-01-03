@@ -1,77 +1,77 @@
-import React, { FC } from "react";
+import React, { FC, useMemo } from "react";
 import { BudgetType, BudgetTypeUser } from "store/userdata/userdata.types";
 import TableRow from "./TableRow";
 import TableCellPair from "./TableCellPair";
-import { BudgetItems } from "types/BudgetItems";
-import { IActiveBudget } from "hooks/useBudget";
 import { useTranslation } from "react-i18next";
+import { BudgetPairArray } from "services/budgetBuilder";
+import { useSelector } from "react-redux";
+import { AppState } from "store/store";
 
 export interface ITableRowsByTypeProps {
   types: BudgetType[];
-  activeBudgets: IActiveBudget[];
-  budgetItems: BudgetItems[];
+  budgetPairArray: BudgetPairArray;
   moreIsGood: boolean;
   totalLabel?: string;
   showTotal?: boolean;
   highlight?: boolean;
+  accountId?: number;
 }
 
 const TableRowsByType: FC<ITableRowsByTypeProps> = ({
   types,
-  activeBudgets,
-  budgetItems,
+  budgetPairArray,
   moreIsGood,
   totalLabel,
   showTotal = true,
   highlight = false,
+  accountId,
 }) => {
   const { t } = useTranslation();
 
-  const filteredActiveBudgets = activeBudgets.filter((b) =>
-    types.includes(b.type)
+  const { budgets } = useSelector((state: AppState) => state.data.userdata);
+
+  const filteredBudgets = budgets.filter(
+    (b) => types.includes(b.type) && !b.parentId
   );
+  const months = useMemo(
+    () => budgetPairArray.getActiveMonths(),
+    [budgetPairArray]
+  );
+
   return (
     <>
-      {filteredActiveBudgets.length > 0 && (
-        <>
-          {filteredActiveBudgets.map((b) => (
-            <TableRow
-              key={b.budgetId}
-              budgetId={b.budgetId}
-              name={b.name}
-              budgetItems={budgetItems}
-              moreIsGood={moreIsGood}
-              children={b.children}
-              highlight={highlight}
-            />
-          ))}
-          {showTotal && (
-            <tr className={highlight ? "highlight" : ""}>
-              <td>
-                <strong>
-                  {totalLabel ??
-                    `${t("planning.total")} ${t(
-                      `budgetType.${BudgetTypeUser[types[0]]}`
-                    )}`}
-                </strong>
-              </td>
-              {budgetItems.map((bm, index) => {
-                const typeTotal = bm.filterByTypes(types);
-                const hasIncome = types.includes(BudgetTypeUser.income);
-                return (
-                  <React.Fragment key={index}>
-                    <TableCellPair
-                      valuePlanned={typeTotal.getTotalPlanned()}
-                      valueActual={typeTotal.getTotalActual()}
-                      isStrong={true}
-                      moreIsGood={hasIncome}
-                    />
-                  </React.Fragment>
-                );
-              })}
-            </tr>
-          )}
-        </>
+      {filteredBudgets.map((b) => (
+        <TableRow
+          key={b.id}
+          budget={b}
+          budgetPairArray={budgetPairArray}
+          moreIsGood={moreIsGood}
+          highlight={highlight}
+        />
+      ))}
+      {showTotal && (
+        <tr className={highlight ? "highlight" : ""}>
+          <td>
+            <strong>
+              {totalLabel ??
+                `${t("planning.total")} ${t(
+                  `budgetType.${BudgetTypeUser[types[0]]}`
+                )}`}
+            </strong>
+          </td>
+          {months.map((month, index) => {
+            const hasIncome = types.includes(BudgetTypeUser.income);
+            return (
+              <React.Fragment key={index}>
+                <TableCellPair
+                  pair={budgetPairArray.getTotalPair(types, month, accountId)}
+                  isStrong={true}
+                  moreIsGood={hasIncome}
+                />
+              </React.Fragment>
+            );
+          })}
+        </tr>
       )}
     </>
   );

@@ -1,29 +1,38 @@
-import React, { FC } from "react";
-import { BudgetMonth } from "types/BudgetMonth";
+import React, { FC, useMemo } from "react";
 import TableCellPair from "./TableCellPair";
 import { useTranslation } from "react-i18next";
+import { BudgetPairArray } from "services/budgetBuilder";
+import { BudgetTypeExtra } from "store/userdata/userdata.types";
 
 interface ITableRowMonthDeltaProps {
-  budgetMonths: BudgetMonth[];
+  budgetPairArray: BudgetPairArray;
 }
 
-const TableRowMonthDelta: FC<ITableRowMonthDeltaProps> = ({ budgetMonths }) => {
+const TableRowMonthDelta: FC<ITableRowMonthDeltaProps> = ({
+  budgetPairArray,
+}) => {
   const { t } = useTranslation();
+  const months = useMemo(
+    () => budgetPairArray.getActiveMonths(),
+    [budgetPairArray]
+  );
 
   return (
     <>
       <tr>
-        <td colSpan={budgetMonths.length * 2 + 1}>&nbsp;</td>
+        <td colSpan={months.length * 2 + 1}>&nbsp;</td>
       </tr>
       <tr>
         <td>
           <strong>{t("planning.monthDelta")}</strong>
         </td>
-        {budgetMonths.map((bm, index) => (
+        {months.map((month, index) => (
           <React.Fragment key={index}>
             <TableCellPair
-              valuePlanned={bm.monthDelta?.planned ?? 0}
-              valueActual={bm.monthDelta?.actual ?? 0}
+              pair={budgetPairArray.getTotalPair(
+                [BudgetTypeExtra.monthDelta],
+                month
+              )}
               isStrong={true}
               moreIsGood={true}
             />

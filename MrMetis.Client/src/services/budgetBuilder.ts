@@ -21,6 +21,7 @@ import {
 import { flattenBudgetPairs } from "helpers/budgetMapper";
 
 export type BudgetStatement = {
+  id: number;
   accountId: number;
   date: string;
   amount: number;
@@ -56,15 +57,26 @@ export class BudgetPairArray {
     return false;
   }
 
+  getActiveMonths() {
+    return this.list
+      .reduce((prev: Moment[], cur) => {
+        if (!prev.find((p) => p.isSame(cur.month, "M"))) {
+          prev.push(cur.month);
+        }
+        return prev;
+      }, [])
+      .sort((a, b) => a.diff(b));
+  }
+
   getBudgetPair(
     budgetId: number,
-    month?: string,
+    month: Moment,
     accountId?: number
   ): BudgetPair | undefined {
     let pair = this.list.find(
       (l) =>
         l.budgetId === budgetId &&
-        (month === undefined || moment(l.month).isSame(month, "M")) &&
+        moment(l.month).isSame(month, "M") &&
         (accountId === undefined || l.accountId === accountId)
     );
     if (pair) return pair;
@@ -78,6 +90,18 @@ export class BudgetPairArray {
       if (pair) return pair;
     }
     return undefined;
+  }
+
+  getTotalPair(budgetTypes: BudgetType[], month: Moment, accountId?: number) {
+    return this.list.find(
+      (i) =>
+        i.budgetId === 0 &&
+        budgetTypes.find((bt) => bt === i.budgetType) &&
+        i.month.isSame(month, "M") &&
+        (accountId === undefined
+          ? i.accountId === 0
+          : i.accountId === accountId)
+    )!;
   }
 }
 
@@ -164,6 +188,14 @@ export class BudgetPair {
         ...cur.getChildrenStatements(),
       ],
       []
+    );
+  }
+
+  isRemaining(): boolean {
+    return (
+      (this.planned > 0 &&
+        (this.expectOneStatement || this.actual >= this.planned)) ||
+      !!this.children.find((c) => c.isRemaining())
     );
   }
 }

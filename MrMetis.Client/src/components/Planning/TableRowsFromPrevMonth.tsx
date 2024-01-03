@@ -1,27 +1,37 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import TableCellPair from "./TableCellPair";
-import { BudgetItems } from "types/BudgetItems";
 import { useTranslation } from "react-i18next";
+import { BudgetPairArray } from "services/budgetBuilder";
+import { BudgetTypeExtra } from "store/userdata/userdata.types";
 
 export interface ITableRowsFromPrevMonthProps {
-  budgetItems: BudgetItems[];
+  budgetPairArray: BudgetPairArray;
   highlight?: boolean;
+  accountId?: number;
 }
 
 const TableRowsFromPrevMonth: FC<ITableRowsFromPrevMonthProps> = ({
-  budgetItems,
+  budgetPairArray,
   highlight = false,
+  accountId,
 }) => {
   const { t } = useTranslation();
+  const months = useMemo(
+    () => budgetPairArray.getActiveMonths(),
+    [budgetPairArray]
+  );
 
   return (
     <tr className={highlight ? "highlight" : ""}>
       <td>{t("planning.leftFromPrevMonth")}</td>
-      {budgetItems.map((bm, index) => (
+      {months.map((month, index) => (
         <TableCellPair
           key={index}
-          valuePlanned={bm.leftFromPrevMonth.planned}
-          valueActual={bm.leftFromPrevMonth.actual}
+          pair={budgetPairArray.getTotalPair(
+            [BudgetTypeExtra.leftFromPrevMonth],
+            month,
+            accountId
+          )}
           moreIsGood={true}
         />
       ))}

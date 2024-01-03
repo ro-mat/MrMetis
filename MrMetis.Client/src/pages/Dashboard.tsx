@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import StatementTable from "components/StatementTable";
-import useBudget, { IActiveBudget } from "hooks/useBudget";
+import useBudgetCalculate, { IActiveBudget } from "hooks/useBudgetCalculate";
 import moment from "moment";
 import { useSelector } from "react-redux";
 import { AppState } from "store/store";
@@ -16,9 +16,11 @@ const Dashboard = () => {
 
   const [relativeMonth, setRelativeMonth] = useState(0);
 
-  const { statements, accounts } = useSelector(
+  const { budgets, statements, accounts } = useSelector(
     (state: AppState) => state.data.userdata
   );
+
+  const { budgetPairArray } = useBudgetCalculate(0, 0);
   const { budgetMonth, activeBudgets } = useBudgetAggregate(
     moment().add(relativeMonth, "M").toDate()
   );
@@ -48,10 +50,10 @@ const Dashboard = () => {
 
   const remainingActiveBudgets = useMemo(
     () =>
-      activeBudgets.filter((activeBudget) =>
-        isActiveBudgetRemaining(activeBudget, budgetMonth)
+      budgets.filter((b) =>
+        budgetPairArray.getBudgetPair(b.id, moment())?.isRemaining()
       ),
-    [activeBudgets, budgetMonth, isActiveBudgetRemaining]
+    [budgets, budgetPairArray]
   );
 
   const monthStatements = useMemo(
@@ -129,12 +131,10 @@ const Dashboard = () => {
             <tbody>
               {remainingActiveBudgets.map((ab) => (
                 <TableRow
-                  key={ab.budgetId}
-                  budgetId={ab.budgetId}
-                  name={ab.name}
-                  budgetItems={[budgetMonth]}
+                  key={ab.id}
+                  budget={ab}
+                  budgetPairArray={budgetPairArray}
                   moreIsGood={ab.type === BudgetTypeUser.income}
-                  children={ab.children}
                 />
               ))}
             </tbody>

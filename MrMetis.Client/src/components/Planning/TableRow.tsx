@@ -1,31 +1,35 @@
-import React from "react";
+import React, { useMemo } from "react";
 import TableCellPair from "./TableCellPair";
-import { BudgetItems, IBudgetItem } from "types/BudgetItems";
-import { IActiveBudget } from "hooks/useBudget";
+import { IBudgetItem } from "types/BudgetItems";
 import { range } from "helpers/arrayHelper";
 import useToggle from "hooks/useToggle";
-import { IStatement } from "store/userdata/userdata.types";
+import { IBudget, IStatement } from "store/userdata/userdata.types";
+import { BudgetPairArray } from "services/budgetBuilder";
+import useBudget from "hooks/useBudget";
 
 export interface ITableRowProps {
-  budgetId: number;
-  name: string;
-  budgetItems: BudgetItems[];
+  budget: IBudget;
+  budgetPairArray: BudgetPairArray;
   moreIsGood: boolean;
-  children: IActiveBudget[];
   indent?: number;
   highlight?: boolean;
+  accountId?: number;
 }
 
 const TableRow = ({
-  name,
-  budgetId,
-  budgetItems,
+  budget,
+  budgetPairArray,
   moreIsGood,
-  children,
   indent = 0,
   highlight = false,
+  accountId,
 }: ITableRowProps) => {
   const [showChildren, toggleShowChildren] = useToggle(false);
+  const { getBudgetChildren } = useBudget();
+  const months = useMemo(
+    () => budgetPairArray.getActiveMonths(),
+    [budgetPairArray]
+  );
 
   const getItemStatements = (item?: IBudgetItem): IStatement[] => {
     if (!item) {
@@ -41,6 +45,8 @@ const TableRow = ({
     return [...item.statements, ...childStatements];
   };
 
+  const children = getBudgetChildren(budget.id);
+
   return (
     <>
       <tr className={highlight ? "highlight" : ""}>
@@ -49,7 +55,7 @@ const TableRow = ({
             {range(0, indent - 1).map(() => (
               <>&nbsp;&nbsp;&nbsp;&nbsp;</>
             ))}
-            <span>{name}</span>
+            <span>{budget.name}</span>
             <span className={`arrow ${showChildren ? "open" : ""}`}>{">"}</span>
           </td>
         ) : (
@@ -57,33 +63,18 @@ const TableRow = ({
             {range(0, indent - 1).map(() => (
               <>&nbsp;&nbsp;&nbsp;&nbsp;</>
             ))}
-            {name}
+            {budget.name}
           </td>
         )}
-        {budgetItems.map((budgetItem, index) => {
-          const item = budgetItem.getItem(budgetId);
-          const childrenPlanned = item ? item.children.getTotalPlanned() : 0;
-          const childrenActual = item ? item.children.getTotalActual() : 0;
-          const show =
-            item &&
-            (item.planned !== 0 ||
-              item.actual !== 0 ||
-              childrenPlanned !== 0 ||
-              childrenActual !== 0);
+        {months.map((month, index) => {
           return (
             <React.Fragment key={index}>
               <TableCellPair
-                valuePlanned={
-                  item
-                    ? item.planned + (!showChildren ? childrenPlanned : 0)
-                    : 0
+                pair={
+                  budgetPairArray.getBudgetPair(budget.id, month, accountId)!
                 }
-                valueActual={
-                  item ? item.actual + (!showChildren ? childrenActual : 0) : 0
-                }
-                show={show}
                 moreIsGood={moreIsGood}
-                statements={getItemStatements(item)}
+                includeChildren={!showChildren}
               />
             </React.Fragment>
           );
@@ -92,13 +83,12 @@ const TableRow = ({
       {showChildren &&
         children.map((child) => (
           <TableRow
-            key={child.budgetId}
-            budgetId={child.budgetId}
-            name={child.name}
-            budgetItems={budgetItems}
+            key={child.id}
+            budget={child}
+            budgetPairArray={budgetPairArray}
             moreIsGood={moreIsGood}
-            children={child.children}
             indent={indent + 1}
+            accountId={accountId}
           />
         ))}
     </>

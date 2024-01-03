@@ -9,7 +9,7 @@ import {
 } from "store/userdata/userdata.types";
 import { IBudgetResolver } from "./BudgetMonth";
 import { roundTo } from "helpers/evalHelper";
-import { IActiveBudget } from "hooks/useBudget";
+import { IActiveBudget } from "hooks/useBudgetCalculate";
 
 export class BudgetItems {
   month: Date;

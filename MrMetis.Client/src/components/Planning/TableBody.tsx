@@ -1,41 +1,35 @@
 import React from "react";
-import { IActiveBudget } from "hooks/useBudget";
 import { BudgetTypeUser } from "store/userdata/userdata.types";
 import TableRowsByType from "./TableRowsByType";
 import TableRowsFromPrevMonth from "./TableRowsFromPrevMonth";
-import { BudgetMonth } from "types/BudgetMonth";
+import { BudgetPairArray } from "services/budgetBuilder";
 
 export interface ITableBodyProps {
-  budgetMonths: BudgetMonth[];
-  activeBudgets: IActiveBudget[];
+  budgetPairArray: BudgetPairArray;
 }
 
-const TableBody = ({ budgetMonths, activeBudgets }: ITableBodyProps) => {
+const TableBody = ({ budgetPairArray }: ITableBodyProps) => {
   return (
     <>
-      <TableRowsFromPrevMonth budgetItems={budgetMonths} />
+      <TableRowsFromPrevMonth budgetPairArray={budgetPairArray} />
       <TableRowsByType
         types={[BudgetTypeUser.income]}
-        activeBudgets={activeBudgets}
-        budgetItems={budgetMonths}
+        budgetPairArray={budgetPairArray}
         moreIsGood={true}
       />
       <TableRowsByType
         types={[BudgetTypeUser.savings]}
-        activeBudgets={activeBudgets}
-        budgetItems={budgetMonths}
+        budgetPairArray={budgetPairArray}
         moreIsGood={true}
       />
       <TableRowsByType
         types={[BudgetTypeUser.loanReturn]}
-        activeBudgets={activeBudgets}
-        budgetItems={budgetMonths}
+        budgetPairArray={budgetPairArray}
         moreIsGood={false}
       />
       <TableRowsByType
         types={[BudgetTypeUser.spending]}
-        activeBudgets={activeBudgets}
-        budgetItems={budgetMonths}
+        budgetPairArray={budgetPairArray}
         moreIsGood={false}
       />
     </>

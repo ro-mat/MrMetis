@@ -1,8 +1,8 @@
 import AccountsTableBody from "components/Planning/AccountsTableBody";
 import TableHeader from "components/Planning/TableHeader";
 import TableRowMonthDelta from "components/Planning/TableRowMonthDelta";
-import useBudget from "hooks/useBudget";
-import React from "react";
+import useBudgetCalculate from "hooks/useBudgetCalculate";
+import React, { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { AppState } from "store/store";
 
@@ -10,9 +10,13 @@ const PlanningAccounts = () => {
   const { accounts } = useSelector((state: AppState) => state.data.userdata);
   const { filter } = useSelector((state: AppState) => state.ui.ui);
 
-  const { budgetMonths, activeBudgets } = useBudget(
+  const { budgetPairArray } = useBudgetCalculate(
     filter.fromRelativeMonth,
     filter.toRelativeMonth
+  );
+  const months = useMemo(
+    () => budgetPairArray.getActiveMonths(),
+    [budgetPairArray]
   );
 
   const filteredAccounts = accounts.filter((a) => [1, 2, 3].includes(a.id));
@@ -22,7 +26,7 @@ const PlanningAccounts = () => {
       <div className="planning-table">
         <table>
           <thead>
-            <TableHeader budgetMonths={budgetMonths} />
+            <TableHeader months={months} />
           </thead>
           <tbody>
             {filteredAccounts.map((a, index) => (
@@ -30,13 +34,12 @@ const PlanningAccounts = () => {
                 <AccountsTableBody
                   accountId={a.id}
                   accountName={a.name}
-                  budgetMonths={budgetMonths}
-                  activeBudgets={activeBudgets}
+                  budgetPairArray={budgetPairArray}
                   index={index}
                 />
               </React.Fragment>
             ))}
-            <TableRowMonthDelta budgetMonths={budgetMonths} />
+            <TableRowMonthDelta budgetPairArray={budgetPairArray} />
           </tbody>
         </table>
       </div>

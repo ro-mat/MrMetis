@@ -1,27 +1,21 @@
 import React, { FC, useMemo } from "react";
-import { BudgetTypeUser } from "store/userdata/userdata.types";
+import { BudgetTypeExtra, BudgetTypeUser } from "store/userdata/userdata.types";
 import TableRowsByType from "./TableRowsByType";
 import TableRowsFromPrevMonth from "./TableRowsFromPrevMonth";
-import TableRowsOpeningBalance from "./TableRowsOpeningBalance";
-import TableRowsClosingBalance from "./TableRowsClosingBalance";
-import { BudgetMonth } from "types/BudgetMonth";
-import TableRowsFromOtherAccounts from "./TableRowsFromOtherAccounts";
-import { IActiveBudget } from "hooks/useBudget";
 import { useTranslation } from "react-i18next";
+import { BudgetPairArray } from "services/budgetBuilder";
 
 export interface IAccountsTableBodyProps {
   accountId: number;
   accountName: string;
-  budgetMonths: BudgetMonth[];
-  activeBudgets: IActiveBudget[];
+  budgetPairArray: BudgetPairArray;
   index?: number;
 }
 
 const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
   accountId,
   accountName,
-  budgetMonths,
-  activeBudgets,
+  budgetPairArray,
   index,
 }) => {
   const { t } = useTranslation();
@@ -30,41 +24,46 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
     return index === undefined ? false : index % 2 === 1;
   }, [index]);
 
-  const accountBudgetMonths = budgetMonths.map((bm) => {
-    return bm.budgetMonthAccounts.get(accountId)!;
-  });
-
-  const activeAccountBudgets = useMemo(() => {
-    return activeBudgets.filter((b) => b.accountId === accountId);
-  }, [activeBudgets, accountId]);
+  const months = useMemo(
+    () => budgetPairArray.getActiveMonths(),
+    [budgetPairArray]
+  );
 
   return (
     <>
       <tr className={`sticky${isEven ? " highlight" : ""}`}>
-        <td colSpan={budgetMonths.length * 2 + 1}>
+        <td colSpan={months.length * 2 + 1}>
           <strong>{accountName}</strong>
         </td>
       </tr>
       <TableRowsFromPrevMonth
-        budgetItems={accountBudgetMonths}
+        budgetPairArray={budgetPairArray}
         highlight={isEven}
-      />
-      <TableRowsFromOtherAccounts
-        activeBudgets={activeAccountBudgets}
-        budgetItems={accountBudgetMonths}
-        highlight={isEven}
+        accountId={accountId}
       />
       <TableRowsByType
-        types={[BudgetTypeUser.income]}
-        activeBudgets={activeAccountBudgets}
-        budgetItems={accountBudgetMonths}
+        types={[BudgetTypeExtra.transferFromAccount]}
+        budgetPairArray={budgetPairArray}
         moreIsGood={true}
         showTotal={false}
         highlight={isEven}
+        accountId={accountId}
       />
-      <TableRowsOpeningBalance
-        budgetItems={accountBudgetMonths}
+      <TableRowsByType
+        types={[BudgetTypeUser.income]}
+        budgetPairArray={budgetPairArray}
+        moreIsGood={true}
+        showTotal={false}
         highlight={isEven}
+        accountId={accountId}
+      />
+      <TableRowsByType
+        types={[BudgetTypeExtra.openingBalance]}
+        budgetPairArray={budgetPairArray}
+        moreIsGood={true}
+        showTotal={false}
+        highlight={isEven}
+        accountId={accountId}
       />
       <TableRowsByType
         types={[
@@ -72,31 +71,35 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
           BudgetTypeUser.loanReturn,
           BudgetTypeUser.spending,
         ]}
-        activeBudgets={activeAccountBudgets}
-        budgetItems={accountBudgetMonths}
+        budgetPairArray={budgetPairArray}
         moreIsGood={false}
         totalLabel={t("planning.totalSpendings")}
         highlight={isEven}
+        accountId={accountId}
       />
       <TableRowsByType
         types={[BudgetTypeUser.keepOnAccount]}
-        activeBudgets={activeAccountBudgets}
-        budgetItems={accountBudgetMonths}
+        budgetPairArray={budgetPairArray}
         moreIsGood={true}
         showTotal={false}
         highlight={isEven}
+        accountId={accountId}
       />
       <TableRowsByType
         types={[BudgetTypeUser.transferToAccount]}
-        activeBudgets={activeAccountBudgets}
-        budgetItems={accountBudgetMonths}
+        budgetPairArray={budgetPairArray}
         moreIsGood={true}
         showTotal={false}
         highlight={isEven}
+        accountId={accountId}
       />
-      <TableRowsClosingBalance
-        budgetItems={accountBudgetMonths}
+      <TableRowsByType
+        types={[BudgetTypeExtra.closingBalance]}
+        budgetPairArray={budgetPairArray}
+        moreIsGood={true}
+        showTotal={false}
         highlight={isEven}
+        accountId={accountId}
       />
     </>
   );
