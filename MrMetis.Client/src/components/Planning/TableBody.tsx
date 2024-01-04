@@ -21,24 +21,28 @@ const TableBody = ({ budgetPairArray, months }: ITableBodyProps) => {
       />
       <TableRowsByType
         types={[BudgetTypeUser.income]}
+        months={months}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
         showTotal={true}
       />
       <TableRowsByType
         types={[BudgetTypeUser.savings]}
+        months={months}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
         showTotal={true}
       />
       <TableRowsByType
         types={[BudgetTypeUser.loanReturn]}
+        months={months}
         budgetPairArray={budgetPairArray}
         moreIsGood={false}
         showTotal={true}
       />
       <TableRowsByType
         types={[BudgetTypeUser.spending]}
+        months={months}
         budgetPairArray={budgetPairArray}
         moreIsGood={false}
         showTotal={true}

@@ -57,6 +57,17 @@ export class BudgetPairArray {
     return false;
   }
 
+  isBudgetRemaining(budgetId: number, accountId?: number) {
+    for (let item of flattenBudgetPairs(this.list).filter(
+      (l) => l.budgetId === budgetId
+    )) {
+      if (item.isRemaining(accountId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   getActiveMonths() {
     return this.list
       .reduce((prev: Moment[], cur) => {
@@ -195,11 +206,13 @@ export class BudgetPair {
     );
   }
 
-  isRemaining(): boolean {
+  isRemaining(accountId?: number): boolean {
     return (
-      (this.planned > 0 &&
-        (this.expectOneStatement || this.actual >= this.planned)) ||
-      !!this.children.find((c) => c.isRemaining())
+      (accountId === undefined || this.accountId === accountId) &&
+      ((this.planned > 0 &&
+        ((this.expectOneStatement && this.actual === 0) ||
+          (!this.expectOneStatement && this.actual < this.planned))) ||
+        this.children.filter((c) => c.isRemaining()).length > 0)
     );
   }
 }

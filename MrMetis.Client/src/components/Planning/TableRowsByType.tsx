@@ -4,11 +4,12 @@ import TableRow from "./TableRow";
 import TableCellPair from "./TableCellPair";
 import { useTranslation } from "react-i18next";
 import { BudgetPairArray } from "services/budgetBuilder";
-import { useSelector } from "react-redux";
-import { AppState } from "store/store";
+import { Moment } from "moment";
+import useBudget from "hooks/useBudget";
 
 export interface ITableRowsByTypeProps {
   types: BudgetType[];
+  months: Moment[];
   budgetPairArray: BudgetPairArray;
   moreIsGood: boolean;
   totalLabel?: string;
@@ -19,6 +20,7 @@ export interface ITableRowsByTypeProps {
 
 const TableRowsByType: FC<ITableRowsByTypeProps> = ({
   types,
+  months,
   budgetPairArray,
   moreIsGood,
   totalLabel,
@@ -27,18 +29,17 @@ const TableRowsByType: FC<ITableRowsByTypeProps> = ({
   accountId,
 }) => {
   const { t } = useTranslation();
+  const { budgets } = useBudget();
 
-  const { budgets } = useSelector((state: AppState) => state.data.userdata);
-
-  const filteredBudgets = budgets.filter(
-    (b) =>
-      types.includes(b.type) &&
-      !b.parentId &&
-      budgetPairArray.isBudgetActive(b.id, accountId)
-  );
-  const months = useMemo(
-    () => budgetPairArray.getActiveMonths(),
-    [budgetPairArray]
+  const filteredBudgets = useMemo(
+    () =>
+      budgets.filter(
+        (b) =>
+          types.includes(b.type) &&
+          !b.parentId &&
+          budgetPairArray.isBudgetActive(b.id, accountId)
+      ),
+    [budgets, types, budgetPairArray, accountId]
   );
 
   return (
@@ -47,6 +48,7 @@ const TableRowsByType: FC<ITableRowsByTypeProps> = ({
         <TableRow
           key={b.id}
           budget={b}
+          months={months}
           budgetPairArray={budgetPairArray}
           moreIsGood={moreIsGood}
           highlight={highlight}

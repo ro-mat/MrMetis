@@ -44,6 +44,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
       />
       <TableRowsByType
         types={[BudgetTypeExtra.transferFromAccount]}
+        months={months}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
         highlight={isEven}
@@ -51,6 +52,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
       />
       <TableRowsByType
         types={[BudgetTypeUser.income]}
+        months={months}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
         highlight={isEven}
@@ -69,6 +71,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
           BudgetTypeUser.loanReturn,
           BudgetTypeUser.spending,
         ]}
+        months={months}
         budgetPairArray={budgetPairArray}
         moreIsGood={false}
         showTotal={true}
@@ -78,6 +81,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
       />
       <TableRowsByType
         types={[BudgetTypeUser.keepOnAccount]}
+        months={months}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
         highlight={isEven}
@@ -85,6 +89,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
       />
       <TableRowsByType
         types={[BudgetTypeUser.transferToAccount]}
+        months={months}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
         highlight={isEven}

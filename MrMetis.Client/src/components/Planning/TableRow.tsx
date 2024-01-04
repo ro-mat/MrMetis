@@ -1,56 +1,48 @@
-import React, { useMemo } from "react";
+import React from "react";
 import TableCellPair from "./TableCellPair";
-import { IBudgetItem } from "types/BudgetItems";
 import { range } from "helpers/arrayHelper";
 import useToggle from "hooks/useToggle";
-import { IBudget, IStatement } from "store/userdata/userdata.types";
+import { IBudget } from "store/userdata/userdata.types";
 import { BudgetPairArray } from "services/budgetBuilder";
 import useBudget from "hooks/useBudget";
+import { Moment } from "moment";
 
 export interface ITableRowProps {
   budget: IBudget;
+  months: Moment[];
   budgetPairArray: BudgetPairArray;
   moreIsGood: boolean;
   indent?: number;
   highlight?: boolean;
+  onlyRemaining?: boolean;
   accountId?: number;
 }
 
 const TableRow = ({
   budget,
   budgetPairArray,
+  months,
   moreIsGood,
   indent = 0,
   highlight = false,
+  onlyRemaining = false,
   accountId,
 }: ITableRowProps) => {
   const [showChildren, toggleShowChildren] = useToggle(false);
   const { getBudgetChildren } = useBudget();
-  const months = useMemo(
-    () => budgetPairArray.getActiveMonths(),
-    [budgetPairArray]
-  );
 
-  const getItemStatements = (item?: IBudgetItem): IStatement[] => {
-    if (!item) {
-      return [];
-    }
-    const childStatements = !showChildren
-      ? item.children.list.reduce(
-          (prev: IStatement[], cur) => prev.concat(getItemStatements(cur)),
-          []
-        )
-      : [];
-
-    return [...item.statements, ...childStatements];
-  };
+  if (onlyRemaining && !budgetPairArray.isBudgetRemaining(budget.id))
+    return <></>;
 
   const children = getBudgetChildren(budget.id);
+  const filteredChildren = children.filter(
+    (c) => onlyRemaining === false || budgetPairArray.isBudgetRemaining(c.id)
+  );
 
   return (
     <>
       <tr className={highlight ? "highlight" : ""}>
-        {children.length > 0 ? (
+        {filteredChildren.length > 0 ? (
           <td className="has-children" onClick={toggleShowChildren}>
             {range(0, indent - 1).map(() => (
               <>&nbsp;&nbsp;&nbsp;&nbsp;</>
@@ -74,21 +66,23 @@ const TableRow = ({
                   budgetPairArray.getBudgetPair(budget.id, month, accountId)!
                 }
                 moreIsGood={moreIsGood}
-                includeChildren={!showChildren}
+                includeChildren={filteredChildren.length > 0 && !showChildren}
               />
             </React.Fragment>
           );
         })}
       </tr>
       {showChildren &&
-        children.map((child) => (
+        filteredChildren.map((child) => (
           <TableRow
             key={child.id}
             budget={child}
+            months={months}
             budgetPairArray={budgetPairArray}
             moreIsGood={moreIsGood}
             indent={indent + 1}
             accountId={accountId}
+            onlyRemaining={onlyRemaining}
           />
         ))}
     </>

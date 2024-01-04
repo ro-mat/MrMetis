@@ -18,27 +18,39 @@ export const useBudgetCalculate = (start: number, end: number) => {
   const isReady = useMemo(() => budgets.length > 0, [budgets]);
 
   const beforeFirstMonth = moment().add(start - 1, "M");
-  let prevMonthBudgetPairs = buildBudgetPairsForMonth(
+
+  const budgetPairArray = useMemo(() => {
+    if (!isReady) return new BudgetPairArray([]);
+
+    let prevMonthBudgetPairs = buildBudgetPairsForMonth(
+      beforeFirstMonth,
+      budgets,
+      statements,
+      accounts,
+      []
+    );
+
+    const budgetPairs = relativeMonths.reduce((prev: BudgetPair[], rm) => {
+      prevMonthBudgetPairs = buildBudgetPairsForMonth(
+        moment().add(rm, "M"),
+        budgets,
+        statements,
+        accounts,
+        prevMonthBudgetPairs.list
+      );
+
+      return [...prev, ...prevMonthBudgetPairs.list];
+    }, []);
+
+    return new BudgetPairArray(budgetPairs);
+  }, [
+    isReady,
+    relativeMonths,
     beforeFirstMonth,
     budgets,
     statements,
     accounts,
-    []
-  );
-
-  const budgetPairs = relativeMonths.reduce((prev: BudgetPair[], rm) => {
-    prevMonthBudgetPairs = buildBudgetPairsForMonth(
-      moment().add(rm, "M"),
-      budgets,
-      statements,
-      accounts,
-      prevMonthBudgetPairs.list
-    );
-
-    return [...prev, ...prevMonthBudgetPairs.list];
-  }, []);
-
-  const budgetPairArray = new BudgetPairArray(budgetPairs);
+  ]);
 
   return { budgetPairArray, isReady };
 };

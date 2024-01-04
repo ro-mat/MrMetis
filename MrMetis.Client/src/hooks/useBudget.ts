@@ -12,7 +12,7 @@ const useBudget = () => {
     return budgets.filter((b) => b.parentId === budgetId);
   };
 
-  return { getBudgetById, getBudgetChildren };
+  return { budgets, getBudgetById, getBudgetChildren };
 };
 
 export default useBudget;
