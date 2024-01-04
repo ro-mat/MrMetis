@@ -4,6 +4,7 @@ import TableRowsByType from "./TableRowsByType";
 import TableRowsFromPrevMonth from "./TableRowsFromPrevMonth";
 import { useTranslation } from "react-i18next";
 import { BudgetPairArray } from "services/budgetBuilder";
+import TableRowsExtra from "./TableRowsExtra";
 
 export interface IAccountsTableBodyProps {
   accountId: number;
@@ -45,7 +46,6 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         types={[BudgetTypeExtra.transferFromAccount]}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
-        showTotal={false}
         highlight={isEven}
         accountId={accountId}
       />
@@ -53,15 +53,12 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         types={[BudgetTypeUser.income]}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
-        showTotal={false}
         highlight={isEven}
         accountId={accountId}
       />
-      <TableRowsByType
-        types={[BudgetTypeExtra.openingBalance]}
+      <TableRowsExtra
+        type={BudgetTypeExtra.openingBalance}
         budgetPairArray={budgetPairArray}
-        moreIsGood={true}
-        showTotal={false}
         highlight={isEven}
         accountId={accountId}
       />
@@ -73,6 +70,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         ]}
         budgetPairArray={budgetPairArray}
         moreIsGood={false}
+        showTotal={true}
         totalLabel={t("planning.totalSpendings")}
         highlight={isEven}
         accountId={accountId}
@@ -81,7 +79,6 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         types={[BudgetTypeUser.keepOnAccount]}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
-        showTotal={false}
         highlight={isEven}
         accountId={accountId}
       />
@@ -89,15 +86,12 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         types={[BudgetTypeUser.transferToAccount]}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
-        showTotal={false}
         highlight={isEven}
         accountId={accountId}
       />
-      <TableRowsByType
-        types={[BudgetTypeExtra.closingBalance]}
+      <TableRowsExtra
+        type={BudgetTypeExtra.closingBalance}
         budgetPairArray={budgetPairArray}
-        moreIsGood={true}
-        showTotal={false}
         highlight={isEven}
         accountId={accountId}
       />

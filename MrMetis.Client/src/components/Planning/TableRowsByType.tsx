@@ -22,7 +22,7 @@ const TableRowsByType: FC<ITableRowsByTypeProps> = ({
   budgetPairArray,
   moreIsGood,
   totalLabel,
-  showTotal = true,
+  showTotal = false,
   highlight = false,
   accountId,
 }) => {
