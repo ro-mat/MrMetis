@@ -16,21 +16,25 @@ const TableBody = ({ budgetPairArray }: ITableBodyProps) => {
         types={[BudgetTypeUser.income]}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
+        showTotal={true}
       />
       <TableRowsByType
         types={[BudgetTypeUser.savings]}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
+        showTotal={true}
       />
       <TableRowsByType
         types={[BudgetTypeUser.loanReturn]}
         budgetPairArray={budgetPairArray}
         moreIsGood={false}
+        showTotal={true}
       />
       <TableRowsByType
         types={[BudgetTypeUser.spending]}
         budgetPairArray={budgetPairArray}
         moreIsGood={false}
+        showTotal={true}
       />
     </>
   );
