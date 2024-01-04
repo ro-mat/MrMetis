@@ -18,28 +18,30 @@ const TableRowMonthDelta: FC<ITableRowMonthDeltaProps> = ({
   );
 
   return (
-    <>
-      <tr>
-        <td colSpan={months.length * 2 + 1}>&nbsp;</td>
-      </tr>
-      <tr>
-        <td>
-          <strong>{t("planning.monthDelta")}</strong>
-        </td>
-        {months.map((month, index) => (
-          <React.Fragment key={index}>
-            <TableCellPair
-              pair={budgetPairArray.getTotalPair(
-                [BudgetTypeExtra.monthDelta],
-                month
-              )}
-              isStrong={true}
-              moreIsGood={true}
-            />
-          </React.Fragment>
-        ))}
-      </tr>
-    </>
+    budgetPairArray.list && (
+      <>
+        <tr>
+          <td colSpan={months.length * 2 + 1}>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>
+            <strong>{t("planning.monthDelta")}</strong>
+          </td>
+          {months.map((month, index) => (
+            <React.Fragment key={index}>
+              <TableCellPair
+                pair={budgetPairArray.getTotalPair(
+                  [BudgetTypeExtra.monthDelta],
+                  month
+                )}
+                isStrong={true}
+                moreIsGood={true}
+              />
+            </React.Fragment>
+          ))}
+        </tr>
+      </>
+    )
   );
 };
 

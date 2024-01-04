@@ -73,35 +73,39 @@ export class BudgetPairArray {
     month: Moment,
     accountId?: number
   ): BudgetPair | undefined {
-    let pair = this.list.find(
-      (l) =>
-        l.budgetId === budgetId &&
-        moment(l.month).isSame(month, "M") &&
-        (accountId === undefined || l.accountId === accountId)
+    return flattenBudgetPairs(this.list).find(
+      (i) =>
+        i.budgetId === budgetId &&
+        i.month.isSame(month, "M") &&
+        (accountId === undefined || i.accountId === accountId)
     );
-    if (pair) return pair;
-
-    for (const item of this.list) {
-      pair = new BudgetPairArray(item.children).getBudgetPair(
-        budgetId,
-        month,
-        accountId
-      );
-      if (pair) return pair;
-    }
-    return undefined;
   }
 
   getTotalPair(budgetTypes: BudgetType[], month: Moment, accountId?: number) {
-    return this.list.find(
-      (i) =>
-        i.budgetId === 0 &&
-        budgetTypes.find((bt) => bt === i.budgetType) &&
-        i.month.isSame(month, "M") &&
-        (accountId === undefined
-          ? i.accountId === 0
-          : i.accountId === accountId)
-    )!;
+    const resultPair = new BudgetPair(
+      0,
+      accountId ?? 0,
+      month,
+      budgetTypes[0],
+      0,
+      0,
+      true,
+      []
+    );
+    budgetTypes.forEach((bt) => {
+      const item = this.list.find(
+        (i) =>
+          i.budgetId === 0 &&
+          i.budgetType === bt &&
+          i.month.isSame(month, "M") &&
+          (accountId === undefined
+            ? i.accountId === 0
+            : i.accountId === accountId)
+      );
+      resultPair.planned += item?.planned ?? 0;
+      resultPair.actual += item?.actual ?? 0;
+    });
+    return resultPair;
   }
 }
 

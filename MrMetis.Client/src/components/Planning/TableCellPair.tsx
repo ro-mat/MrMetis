@@ -5,19 +5,25 @@ import { SET_PREVIEW_STATEMENTS } from "store/ui/ui.slice";
 import PreviewStatements from "./PreviewStatements";
 import useId from "@mui/material/utils/useId";
 import { BudgetPair } from "services/budgetBuilder";
+import { BudgetType, BudgetTypeExtra } from "store/userdata/userdata.types";
 
 export interface ITableCellPairProps {
-  pair: BudgetPair;
+  pair?: BudgetPair;
   includeChildren?: boolean;
-  show?: boolean;
   isStrong?: boolean;
   moreIsGood?: boolean;
 }
 
+const alwaysShowBudgetTypes = [
+  BudgetTypeExtra.leftFromPrevMonth,
+  BudgetTypeExtra.openingBalance,
+  BudgetTypeExtra.closingBalance,
+  BudgetTypeExtra.monthDelta,
+];
+
 const TableCellPair: FC<ITableCellPairProps> = ({
   pair,
   includeChildren = false,
-  show = true,
   isStrong = false,
   moreIsGood,
 }) => {
@@ -28,21 +34,6 @@ const TableCellPair: FC<ITableCellPairProps> = ({
     (state: AppState) => state.ui.ui.previewStatements
   );
 
-  const showStatementList = useMemo(
-    () =>
-      pair.statements !== undefined &&
-      pair.statements.length > 0 &&
-      selectedPreviewStatements === pairId,
-    [pair, selectedPreviewStatements, pairId]
-  );
-
-  const progressClass = getProgressClass(
-    pair.planned,
-    pair.actual,
-    show,
-    moreIsGood
-  );
-
   const handleClick = () => {
     if (selectedPreviewStatements === pairId) {
       return;
@@ -51,17 +42,56 @@ const TableCellPair: FC<ITableCellPairProps> = ({
     dispatch(SET_PREVIEW_STATEMENTS(pairId));
   };
 
+  const show = useMemo<boolean>(
+    () =>
+      !!pair &&
+      (forceShow(pair.budgetType) ||
+        !!pair.planned ||
+        !!pair.actual ||
+        !!pair.getChildrenPlanned() ||
+        !!pair.getChildrenActual()),
+    [pair]
+  );
+
+  const planned = useMemo(
+    () =>
+      show
+        ? pair!.planned + (includeChildren ? pair!.getChildrenPlanned() : 0)
+        : undefined,
+    [show, pair, includeChildren]
+  );
+
+  const actual = useMemo(
+    () =>
+      show
+        ? pair!.actual + (includeChildren ? pair!.getChildrenActual() : 0)
+        : undefined,
+    [show, pair, includeChildren]
+  );
+
+  const progressClass = useMemo(
+    () => getProgressClass(planned ?? 0, actual ?? 0, show, moreIsGood),
+    [planned, actual, show, moreIsGood]
+  );
+
+  const statements = useMemo(() => {
+    if (!pair) return [];
+    const childStatements = includeChildren ? pair.getChildrenStatements() : [];
+    return [...pair.statements, ...childStatements];
+  }, [pair, includeChildren]);
+
+  const showStatementList = useMemo(
+    () => statements.length > 0 && selectedPreviewStatements === pairId,
+    [statements, selectedPreviewStatements, pairId]
+  );
+
   return (
     <>
       <td className="bl">
         {isStrong ? (
-          <strong>
-            {show &&
-              pair.planned + (includeChildren ? pair.getChildrenPlanned() : 0)}
-          </strong>
+          <strong>{planned?.toFixed(2)}</strong>
         ) : (
-          show &&
-          pair.planned + (includeChildren ? pair.getChildrenPlanned() : 0)
+          planned?.toFixed(2)
         )}
       </td>
       <td
@@ -70,17 +100,8 @@ const TableCellPair: FC<ITableCellPairProps> = ({
         } br ${progressClass}`}
         onClick={handleClick}
       >
-        {isStrong ? (
-          <strong>
-            {show &&
-              pair.actual + (includeChildren ? pair.getChildrenActual() : 0)}
-          </strong>
-        ) : (
-          show && pair.actual + (includeChildren ? pair.getChildrenActual() : 0)
-        )}
-        {showStatementList && (
-          <PreviewStatements statements={pair.statements ?? []} />
-        )}
+        {isStrong ? <strong>{actual?.toFixed(2)}</strong> : actual?.toFixed(2)}
+        {showStatementList && <PreviewStatements statements={statements} />}
       </td>
     </>
   );
@@ -109,6 +130,10 @@ const getProgressClass = (
   }
 
   return diff <= 0 ? `gp-${perc}` : "r";
+};
+
+const forceShow = (budgetType: BudgetType) => {
+  return !!alwaysShowBudgetTypes.find((a) => a === budgetType);
 };
 
 export default TableCellPair;

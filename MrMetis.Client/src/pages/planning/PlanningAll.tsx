@@ -9,7 +9,7 @@ import { AppState } from "store/store";
 const PlanningAll = () => {
   const { filter } = useSelector((state: AppState) => state.ui.ui);
 
-  const { budgetPairArray } = useBudgetCalculate(
+  const { budgetPairArray, isReady } = useBudgetCalculate(
     filter.fromRelativeMonth,
     filter.toRelativeMonth
   );
@@ -20,17 +20,21 @@ const PlanningAll = () => {
 
   return (
     <>
-      <div>
-        <table className="planning-table">
-          <thead>
-            <TableHeader months={months} />
-          </thead>
-          <tbody>
-            <TableBody budgetPairArray={budgetPairArray} />
-            <TableRowMonthDelta budgetPairArray={budgetPairArray} />
-          </tbody>
-        </table>
-      </div>
+      {isReady ? (
+        <div>
+          <table className="planning-table">
+            <thead>
+              <TableHeader months={months} />
+            </thead>
+            <tbody>
+              <TableBody budgetPairArray={budgetPairArray} />
+              <TableRowMonthDelta budgetPairArray={budgetPairArray} />
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div>Loading...</div>
+      )}
     </>
   );
 };

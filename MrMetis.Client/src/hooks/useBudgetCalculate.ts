@@ -8,12 +8,14 @@ import {
   BudgetPairArray,
   buildBudgetPairsForMonth,
 } from "services/budgetBuilder";
+import { useMemo } from "react";
 
 export const useBudgetCalculate = (start: number, end: number) => {
   const relativeMonths = range(start, end);
   const { budgets, statements, accounts } = useSelector(
     (state: AppState) => state.data.userdata
   );
+  const isReady = useMemo(() => budgets.length > 0, [budgets]);
 
   const beforeFirstMonth = moment().add(start - 1, "M");
   let prevMonthBudgetPairs = buildBudgetPairsForMonth(
@@ -25,7 +27,7 @@ export const useBudgetCalculate = (start: number, end: number) => {
   );
 
   const budgetPairs = relativeMonths.reduce((prev: BudgetPair[], rm) => {
-    const budgetPairs = buildBudgetPairsForMonth(
+    prevMonthBudgetPairs = buildBudgetPairsForMonth(
       moment().add(rm, "M"),
       budgets,
       statements,
@@ -33,13 +35,12 @@ export const useBudgetCalculate = (start: number, end: number) => {
       prevMonthBudgetPairs.list
     );
 
-    prevMonthBudgetPairs = budgetPairs;
-    return [...prev, ...budgetPairs.list];
+    return [...prev, ...prevMonthBudgetPairs.list];
   }, []);
 
   const budgetPairArray = new BudgetPairArray(budgetPairs);
 
-  return { budgetPairArray };
+  return { budgetPairArray, isReady };
 };
 
 export default useBudgetCalculate;

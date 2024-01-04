@@ -288,7 +288,7 @@ export const getUserTotals = (
         account.id,
         month,
         budgetType,
-        planned,
+        roundTo(planned, 2),
         roundTo(actual, 2),
         true,
         []
@@ -308,7 +308,7 @@ export const getUserTotals = (
         0,
         month,
         budgetType,
-        planned,
+        roundTo(planned, 2),
         roundTo(actual, 2),
         true,
         []
@@ -420,8 +420,8 @@ const getBudgetTypeExtraTotals = (
       0,
       month,
       budgetType,
-      totalPlanned,
-      totalActual,
+      roundTo(totalPlanned, 2),
+      roundTo(totalActual, 2),
       true,
       []
     );
@@ -466,8 +466,8 @@ const getOpeningBalancePair = (
     accountId,
     month,
     BudgetTypeExtra.openingBalance,
-    planned,
-    actual,
+    roundTo(planned, 2),
+    roundTo(actual, 2),
     true,
     []
   );
@@ -522,8 +522,8 @@ const getClosingBalancePair = (
     accountId,
     month,
     BudgetTypeExtra.closingBalance,
-    planned,
-    actual,
+    roundTo(planned, 2),
+    roundTo(actual, 2),
     true,
     []
   );
@@ -572,8 +572,8 @@ const getMonthDeltaPair = (
     accountId,
     month,
     BudgetTypeExtra.monthDelta,
-    planned,
-    actual,
+    roundTo(planned, 2),
+    roundTo(actual, 2),
     true,
     []
   );

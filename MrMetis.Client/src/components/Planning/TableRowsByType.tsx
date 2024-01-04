@@ -31,7 +31,10 @@ const TableRowsByType: FC<ITableRowsByTypeProps> = ({
   const { budgets } = useSelector((state: AppState) => state.data.userdata);
 
   const filteredBudgets = budgets.filter(
-    (b) => types.includes(b.type) && !b.parentId
+    (b) =>
+      types.includes(b.type) &&
+      !b.parentId &&
+      budgetPairArray.isBudgetActive(b.id, accountId)
   );
   const months = useMemo(
     () => budgetPairArray.getActiveMonths(),
@@ -47,6 +50,7 @@ const TableRowsByType: FC<ITableRowsByTypeProps> = ({
           budgetPairArray={budgetPairArray}
           moreIsGood={moreIsGood}
           highlight={highlight}
+          accountId={accountId}
         />
       ))}
       {showTotal && (
