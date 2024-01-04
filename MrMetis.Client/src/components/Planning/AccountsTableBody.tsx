@@ -1,15 +1,16 @@
 import React, { FC, useMemo } from "react";
 import { BudgetTypeExtra, BudgetTypeUser } from "store/userdata/userdata.types";
 import TableRowsByType from "./TableRowsByType";
-import TableRowsFromPrevMonth from "./TableRowsFromPrevMonth";
 import { useTranslation } from "react-i18next";
 import { BudgetPairArray } from "services/budgetBuilder";
 import TableRowsExtra from "./TableRowsExtra";
+import { Moment } from "moment";
 
 export interface IAccountsTableBodyProps {
   accountId: number;
   accountName: string;
   budgetPairArray: BudgetPairArray;
+  months: Moment[];
   index?: number;
 }
 
@@ -17,6 +18,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
   accountId,
   accountName,
   budgetPairArray,
+  months,
   index,
 }) => {
   const { t } = useTranslation();
@@ -25,11 +27,6 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
     return index === undefined ? false : index % 2 === 1;
   }, [index]);
 
-  const months = useMemo(
-    () => budgetPairArray.getActiveMonths(),
-    [budgetPairArray]
-  );
-
   return (
     <>
       <tr className={`sticky${isEven ? " highlight" : ""}`}>
@@ -37,10 +34,13 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
           <strong>{accountName}</strong>
         </td>
       </tr>
-      <TableRowsFromPrevMonth
+      <TableRowsExtra
+        type={BudgetTypeExtra.leftFromPrevMonth}
         budgetPairArray={budgetPairArray}
+        months={months}
         highlight={isEven}
         accountId={accountId}
+        isStrong={false}
       />
       <TableRowsByType
         types={[BudgetTypeExtra.transferFromAccount]}
@@ -59,6 +59,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
       <TableRowsExtra
         type={BudgetTypeExtra.openingBalance}
         budgetPairArray={budgetPairArray}
+        months={months}
         highlight={isEven}
         accountId={accountId}
       />
@@ -92,6 +93,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
       <TableRowsExtra
         type={BudgetTypeExtra.closingBalance}
         budgetPairArray={budgetPairArray}
+        months={months}
         highlight={isEven}
         accountId={accountId}
       />

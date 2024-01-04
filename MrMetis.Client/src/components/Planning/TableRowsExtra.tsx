@@ -3,10 +3,12 @@ import TableCellPair from "./TableCellPair";
 import { useTranslation } from "react-i18next";
 import { BudgetPairArray } from "services/budgetBuilder";
 import { BudgetTypeExtra } from "store/userdata/userdata.types";
+import { Moment } from "moment";
 
 export interface ITableRowsExtraProps {
   type: BudgetTypeExtra;
   budgetPairArray: BudgetPairArray;
+  months: Moment[];
   isStrong?: boolean;
   highlight?: boolean;
   accountId?: number;
@@ -15,15 +17,12 @@ export interface ITableRowsExtraProps {
 const TableRowsExtra: FC<ITableRowsExtraProps> = ({
   type,
   budgetPairArray,
+  months,
   isStrong = true,
   highlight = false,
   accountId,
 }) => {
   const { t } = useTranslation();
-  const months = useMemo(
-    () => budgetPairArray.getActiveMonths(),
-    [budgetPairArray]
-  );
 
   return (
     <tr className={highlight ? "highlight" : ""}>
