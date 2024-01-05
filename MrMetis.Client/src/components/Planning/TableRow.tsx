@@ -29,7 +29,7 @@ const TableRow = ({
   accountId,
 }: ITableRowProps) => {
   const [showChildren, toggleShowChildren] = useToggle(false);
-  const { getBudgetChildren } = useBudget();
+  const { getChildren: getBudgetChildren } = useBudget();
 
   if (onlyRemaining && !budgetPairArray.isBudgetRemaining(budget.id))
     return <></>;

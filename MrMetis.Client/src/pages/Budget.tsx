@@ -2,23 +2,25 @@ import React, { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import { BudgetTypeUser } from "store/userdata/userdata.types";
-import { getById } from "helpers/userdata";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
 import BudgetAddOrEdit from "components/budget/BudgetAddOrEdit";
 import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import { useTranslation } from "react-i18next";
-import useBudgetAggregate from "hooks/useBudgetAggregate";
 import Labeled from "components/Labeled";
+import useBudgetCalculate from "hooks/useBudgetCalculate";
+import moment from "moment";
+import useBudget from "hooks/useBudget";
+import useAccount from "hooks/useAccount";
 
 const Budget = () => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
 
   const { isFetching } = useSelector((state: AppState) => state.data);
-  const { budgets, accounts } = useSelector(
-    (state: AppState) => state.data.userdata
-  );
+  const { getById: getBudgetById, filtered } = useBudget();
+  const { getById: getAccountById } = useAccount();
+
   const { selectedBudgetId } = useSelector((state: AppState) => state.ui.ui);
 
   const showAddOrEdit = useMemo(
@@ -26,28 +28,12 @@ const Budget = () => {
     [selectedBudgetId]
   );
 
-  const { budgetMonth } = useBudgetAggregate(new Date());
+  const { budgetPairArray } = useBudgetCalculate(0, 0);
 
   const [filter, setFilter] = useState<string>("");
   const filteredBudgets = useMemo(() => {
-    return [...budgets]
-      .filter(
-        (b) =>
-          b.id.toString().includes(filter.toLowerCase()) ||
-          b.name.toLowerCase().includes(filter.toLowerCase()) ||
-          BudgetTypeUser[b.type].toLowerCase().includes(filter.toLowerCase()) ||
-          getById(budgets, b.parentId)
-            ?.name.toLowerCase()
-            .includes(filter.toLowerCase()) ||
-          getById(accounts, b.fromAccountId)
-            ?.name.toLowerCase()
-            .includes(filter.toLowerCase()) ||
-          getById(accounts, b.toAccountId)
-            ?.name.toLowerCase()
-            .includes(filter.toLowerCase())
-      )
-      .sort((a, b) => b.id - a.id);
-  }, [budgets, filter, accounts]);
+    return [...filtered(filter)].sort((a, b) => b.id - a.id);
+  }, [filtered, filter]);
 
   const onEditBudgetClick = (id: number) => {
     dispatch(SET_SELECTED_BUDGET(id));
@@ -98,15 +84,16 @@ const Budget = () => {
                     <td>{b.id}</td>
                     <td>{b.name}</td>
                     <td>{t(`budgetType.${BudgetTypeUser[b.type]}`)}</td>
-                    <td>{getById(budgets, b.parentId)?.name ?? ""}</td>
-                    <td>{`${getById(accounts, b.fromAccountId)?.name ?? ""}${
+                    <td>{getBudgetById(b.parentId)?.name ?? ""}</td>
+                    <td>{`${getAccountById(b.fromAccountId)?.name ?? ""}${
                       b.type === BudgetTypeUser.transferToAccount
-                        ? ` - ${getById(accounts, b.toAccountId)?.name ?? ""}`
+                        ? ` - ${getAccountById(b.toAccountId)?.name ?? ""}`
                         : ""
                     }`}</td>
                     <td>
-                      {budgetMonth?.getItem(b.id)?.planned.toFixed(2) ??
-                        "Not found"}
+                      {budgetPairArray
+                        .getBudgetPair(b.id, moment())
+                        ?.planned.toFixed(2) ?? "Not found"}
                     </td>
                     <td>
                       {b.expectOneStatement
