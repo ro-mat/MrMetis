@@ -11,7 +11,6 @@ import {
   deleteAccount,
   updateAccount,
 } from "store/userdata/userdata.actions";
-import { getById, getNextId } from "helpers/userdata";
 import { SET_SELECTED_ACCOUNT } from "store/ui/ui.slice";
 import { DatePickerField } from "components/DatePickerField";
 import "react-datepicker/dist/react-datepicker.css";
@@ -19,15 +18,18 @@ import { useTranslation } from "react-i18next";
 import Hint from "components/Hint";
 import moment from "moment";
 import { DATE_FORMAT } from "helpers/dateHelper";
+import useAccount from "hooks/useAccount";
 
 const AccountAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
 
-  const { accounts, budgets, statements } = useSelector(
+  const { budgets, statements } = useSelector(
     (state: AppState) => state.data.userdata
   );
   const { selectedAccountId } = useSelector((state: AppState) => state.ui.ui);
+
+  const { getById: getAccountById, getNextId: getNextAccountId } = useAccount();
 
   const defaultFormValues = useMemo(() => {
     return {
@@ -68,7 +70,7 @@ const AccountAddOrEdit = () => {
       return;
     }
 
-    let item = getById(accounts, selectedAccountId);
+    let item = getAccountById(selectedAccountId);
     if (!item) {
       return;
     }
@@ -77,7 +79,7 @@ const AccountAddOrEdit = () => {
       ...defaultFormValues,
       ...item,
     });
-  }, [accounts, defaultFormValues, selectedAccountId]);
+  }, [getAccountById, defaultFormValues, selectedAccountId]);
 
   return (
     <div>
@@ -109,7 +111,7 @@ const AccountAddOrEdit = () => {
           if (values.id) {
             dispatch(updateAccount(account));
           } else {
-            account.id = getNextId(accounts);
+            account.id = getNextAccountId();
             dispatch(addAccount(account));
           }
 

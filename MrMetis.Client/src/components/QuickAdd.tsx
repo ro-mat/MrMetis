@@ -1,4 +1,3 @@
-import { getNextId } from "helpers/userdata";
 import moment from "moment";
 import React, {
   ChangeEvent,
@@ -9,13 +8,16 @@ import React, {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useDispatch, useSelector } from "react-redux";
-import { AppState, TAppDispatch } from "store/store";
+import { useDispatch } from "react-redux";
+import { TAppDispatch } from "store/store";
 import { ADD_ERROR_TOAST, ADD_SUCCESS_TOAST } from "store/ui/ui.slice";
 import { addStatement } from "store/userdata/userdata.actions";
 import { BudgetTypeUser, IStatement } from "store/userdata/userdata.types";
 import Hint from "./Hint";
 import { DATE_FORMAT } from "helpers/dateHelper";
+import useStatement from "hooks/useStatement";
+import useAccount from "hooks/useAccount";
+import useBudget from "hooks/useBudget";
 
 interface INewStatement extends IStatement {
   budgetName?: string;
@@ -49,9 +51,9 @@ const QuickAdd = () => {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { budgets, accounts, statements } = useSelector(
-    (state: AppState) => state.data.userdata
-  );
+  const { budgets } = useBudget();
+  const { getById: getAccountById } = useAccount();
+  const { getNextId: getNextStatementId } = useStatement();
 
   const suggestionList = useMemo(() => {
     const list: ISuggestion[] = [
@@ -76,7 +78,7 @@ const QuickAdd = () => {
     ];
     list.push(
       ...budgets.map((b) => {
-        const account = accounts.find((a) => a.id === b.fromAccountId);
+        const account = getAccountById(b.fromAccountId);
         return {
           id: `b${b.id}`,
           text: `${t("quickAdd.budget")}(${account?.name}-${
@@ -93,7 +95,7 @@ const QuickAdd = () => {
       })
     );
     return list;
-  }, [budgets, accounts, t]);
+  }, [budgets, getAccountById, t]);
 
   const handleOnFocus = () => {
     setShowDropdown(true);
@@ -203,7 +205,7 @@ const QuickAdd = () => {
       addStatement({
         ...statement,
         ...newData,
-        id: getNextId(statements),
+        id: getNextStatementId(),
       })
     );
 

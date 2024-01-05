@@ -1,15 +1,11 @@
 import { IHaveId } from "types/IHaveId";
 
+// Obsolete
 export const getById = <T extends IHaveId>(
   arr: T[],
   id: number | undefined
 ) => {
   return id ? arr.find((i) => i.id === id) : undefined;
-};
-
-export const getNextId = <T extends IHaveId>(arr: T[]) => {
-  const maxExistingId = arr.length > 0 ? Math.max(...arr.map((i) => i.id)) : 0;
-  return maxExistingId + 1;
 };
 
 export const add = <T extends IHaveId>(arr: T[], obj: T) => {

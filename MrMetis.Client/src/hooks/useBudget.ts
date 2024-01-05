@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import { AppState } from "store/store";
 import useAccount from "./useAccount";
-import { BudgetTypeUser } from "store/userdata/userdata.types";
+import { BudgetTypeUser, IBudget } from "store/userdata/userdata.types";
 
 const useBudget = () => {
   const { budgets } = useSelector((state: AppState) => state.data.userdata);
@@ -11,13 +11,19 @@ const useBudget = () => {
     return budgets.find((b) => b.id === budgetId);
   };
 
+  const getNextId = () => {
+    const maxExistingId =
+      budgets.length > 0 ? Math.max(...budgets.map((i) => i.id)) : 0;
+    return maxExistingId + 1;
+  };
+
   const getChildren = (budgetId: number) => {
     return budgets.filter((b) => b.parentId === budgetId);
   };
 
-  const filtered = (str: string) => {
+  const filter = (list: IBudget[], str: string) => {
     const normalizedStr = str.toLocaleLowerCase();
-    return budgets.filter(
+    return list.filter(
       (b) =>
         b.id.toString().includes(normalizedStr) ||
         b.name.toLowerCase().includes(normalizedStr) ||
@@ -32,7 +38,11 @@ const useBudget = () => {
     );
   };
 
-  return { budgets, getById, getChildren, filtered };
+  const filtered = (str: string) => {
+    return filter(budgets, str);
+  };
+
+  return { budgets, getById, getNextId, getChildren, filtered };
 };
 
 export default useBudget;
