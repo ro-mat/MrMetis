@@ -254,19 +254,19 @@ describe("budgetCalculator", () => {
   it.each([
     {
       accountId: 1,
-      result: 64.7,
+      result: 84.7,
     },
     {
       accountId: 2,
-      result: 16.8,
+      result: 66.8,
     },
     {
       accountId: 3,
-      result: 20,
+      result: 40,
     },
     {
       accountId: undefined,
-      result: 101.5,
+      result: 191.5,
     },
   ])(
     "calculateForNextMonth pairs from previous month should return correct amount",
@@ -295,15 +295,15 @@ describe("budgetCalculator", () => {
     },
     {
       accountId: 2,
-      result: 16.8,
+      result: 66.8,
     },
     {
       accountId: 3,
-      result: 20,
+      result: 40,
     },
     {
       accountId: undefined,
-      result: 64,
+      result: 134,
     },
   ])(
     "calculateForNextMonth pairs from current month should return correct amount",
@@ -463,11 +463,11 @@ describe("budgetCalculator", () => {
     },
     {
       formula: "cur_month.getTotalSaving()",
-      result: 445.7,
+      result: 355.7,
     },
     {
       formula: "cur_month.getTotalSaving(1)",
-      result: 445.7,
+      result: 355.7,
     },
     {
       formula: "cur_month.getTotalSaving(2)",
@@ -495,19 +495,19 @@ describe("budgetCalculator", () => {
     },
     {
       formula: "cur_month.getTotalSpending()",
-      result: 769,
+      result: 879,
     },
     {
       formula: "cur_month.getTotalSpending(1)",
-      result: 109,
+      result: 149,
     },
     {
       formula: "cur_month.getTotalSpending(2)",
-      result: 510,
+      result: 560,
     },
     {
       formula: "cur_month.getTotalSpending(3)",
-      result: 150,
+      result: 170,
     },
     {
       formula: "cur_month.getTotalKeepOnAccount()",
@@ -527,15 +527,15 @@ describe("budgetCalculator", () => {
     },
     {
       formula: "cur_month.getTotalToOtherAccount()",
-      result: 810,
+      result: 900,
     },
     {
       formula: "cur_month.getTotalToOtherAccount(1)",
-      result: 660,
+      result: 730,
     },
     {
       formula: "cur_month.getTotalToOtherAccount(2)",
-      result: 150,
+      result: 170,
     },
     {
       formula: "cur_month.getTotalToOtherAccount(3)",
@@ -543,7 +543,7 @@ describe("budgetCalculator", () => {
     },
     {
       formula: "cur_month.getTotalFromOtherAccount()",
-      result: 810,
+      result: 900,
     },
     {
       formula: "cur_month.getTotalFromOtherAccount(1)",
@@ -551,47 +551,47 @@ describe("budgetCalculator", () => {
     },
     {
       formula: "cur_month.getTotalFromOtherAccount(2)",
-      result: 660,
+      result: 730,
     },
     {
       formula: "cur_month.getTotalFromOtherAccount(3)",
-      result: 150,
-    },
-    {
-      formula: "cur_month.getLeftFromPrevMonth()",
-      result: 101.5,
-    },
-    {
-      formula: "cur_month.getLeftFromPrevMonth(1)",
-      result: 64.7,
-    },
-    {
-      formula: "cur_month.getLeftFromPrevMonth(2)",
-      result: 16.8,
-    },
-    {
-      formula: "cur_month.getLeftFromPrevMonth(3)",
-      result: 20,
-    },
-    {
-      formula: "cur_month.getOpeningBalance()",
-      result: 2541.5,
-    },
-    {
-      formula: "cur_month.getOpeningBalance(1)",
-      result: 1694.7,
-    },
-    {
-      formula: "cur_month.getOpeningBalance(2)",
-      result: 676.8,
-    },
-    {
-      formula: "cur_month.getOpeningBalance(3)",
       result: 170,
     },
     {
+      formula: "cur_month.getLeftFromPrevMonth()",
+      result: 191.5,
+    },
+    {
+      formula: "cur_month.getLeftFromPrevMonth(1)",
+      result: 84.7,
+    },
+    {
+      formula: "cur_month.getLeftFromPrevMonth(2)",
+      result: 66.8,
+    },
+    {
+      formula: "cur_month.getLeftFromPrevMonth(3)",
+      result: 40,
+    },
+    {
+      formula: "cur_month.getOpeningBalance()",
+      result: 2721.5,
+    },
+    {
+      formula: "cur_month.getOpeningBalance(1)",
+      result: 1714.7,
+    },
+    {
+      formula: "cur_month.getOpeningBalance(2)",
+      result: 796.8,
+    },
+    {
+      formula: "cur_month.getOpeningBalance(3)",
+      result: 210,
+    },
+    {
       formula: "cur_month.getClosingBalance()",
-      result: 36.8,
+      result: 106.8,
     },
     {
       formula: "cur_month.getClosingBalance(1)",
@@ -599,27 +599,27 @@ describe("budgetCalculator", () => {
     },
     {
       formula: "cur_month.getClosingBalance(2)",
-      result: 16.8,
+      result: 66.8,
     },
     {
       formula: "cur_month.getClosingBalance(3)",
-      result: 20,
+      result: 40,
     },
     {
       formula: "cur_month.getMonthDelta()",
-      result: -64.7,
+      result: -84.7,
     },
     {
       formula: "cur_month.getMonthDelta(1)",
-      result: 595.3,
+      result: 645.3,
     },
     {
       formula: "cur_month.getMonthDelta(2)",
-      result: -510,
+      result: -560,
     },
     {
       formula: "cur_month.getMonthDelta(3)",
-      result: -150,
+      result: -170,
     },
   ])("calculate with data should return correct result", (params: any) => {
     const { budgets, accounts, statements } = getDemoData();

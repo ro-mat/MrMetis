@@ -236,6 +236,9 @@
     "cashWithdrawal": "Cash withdrawal",
     "main": "Main",
     "creditCard": "Credit card",
-    "cash": "Cash"
+    "cash": "Cash",
+    "unplanned": "Unplanned",
+    "borrow": "Filip borrowed",
+    "parking": "Parking"
   }
 }

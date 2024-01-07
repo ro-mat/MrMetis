@@ -87,6 +87,7 @@ export class BudgetPairArray {
     const budgetPairs = flattenBudgetPairs(this.list).filter(
       (i) =>
         i.budgetId === budgetId &&
+        i.budgetType !== BudgetTypeExtra.transferFromAccount && // hack, optimize later
         i.month.isSame(month, "M") &&
         (accountId === undefined || i.accountId === accountId)
     );
@@ -99,6 +100,7 @@ export class BudgetPairArray {
       prev.planned += cur.planned;
       prev.actual += cur.actual;
       prev.statements = [...prev.statements, ...cur.statements];
+      prev.children = [...prev.children, ...cur.children];
       return prev;
     }, new BudgetPair(budgetId, accountId ?? 0, month, budgetPairs[0].budgetType, 0, 0, budgetPairs[0].expectOneStatement, []));
   }
