@@ -149,17 +149,22 @@ const BudgetAddOrEdit = () => {
             amounts: values.amounts.map((a) => {
               return {
                 ...a,
-                fromAccountId: values.fromAccountId ?? a.fromAccountId,
+                fromAccountId: values.fromAccountId
+                  ? values.fromAccountId
+                  : a.fromAccountId,
               };
             }),
             overrides: values.overrides.map((o) => {
               return {
                 ...o,
-                fromAccountId: values.fromAccountId ?? o.accountId,
+                fromAccountId: values.fromAccountId
+                  ? values.fromAccountId
+                  : o.accountId,
               };
             }),
           };
 
+          debugger;
           if (values.id) {
             dispatch(updateBudget(budget));
           } else {

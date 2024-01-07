@@ -84,12 +84,23 @@ export class BudgetPairArray {
     month: Moment,
     accountId?: number
   ): BudgetPair | undefined {
-    return flattenBudgetPairs(this.list).find(
+    const budgetPairs = flattenBudgetPairs(this.list).filter(
       (i) =>
         i.budgetId === budgetId &&
         i.month.isSame(month, "M") &&
         (accountId === undefined || i.accountId === accountId)
     );
+
+    if (budgetPairs.length === 0) {
+      return undefined;
+    }
+
+    return budgetPairs.reduce((prev, cur) => {
+      prev.planned += cur.planned;
+      prev.actual += cur.actual;
+      prev.statements = [...prev.statements, ...cur.statements];
+      return prev;
+    }, new BudgetPair(budgetId, accountId ?? 0, month, budgetPairs[0].budgetType, 0, 0, budgetPairs[0].expectOneStatement, []));
   }
 
   getTotalPair(budgetTypes: BudgetType[], month: Moment, accountId?: number) {

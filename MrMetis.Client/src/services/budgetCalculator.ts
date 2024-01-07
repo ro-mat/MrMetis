@@ -159,7 +159,7 @@ export const getRelevantFormulas = (
     .map((o) => {
       return {
         budgetId: budget.id,
-        accountId: o.accountId,
+        accountId: budget.fromAccountId ? budget.fromAccountId : o.accountId,
         toAccountId: budget.toAccountId,
         parentId: budget.parentId,
         budgetType: budget.type,
@@ -192,7 +192,9 @@ export const getRelevantFormulas = (
     .map((a) => {
       return {
         budgetId: budget.id,
-        accountId: a.fromAccountId ?? budget.fromAccountId,
+        accountId: budget.fromAccountId
+          ? budget.fromAccountId
+          : a.fromAccountId,
         toAccountId: budget.toAccountId,
         parentId: budget.parentId,
         budgetType: budget.type,
