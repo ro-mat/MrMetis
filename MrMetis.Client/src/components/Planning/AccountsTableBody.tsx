@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { BudgetPairArray } from "services/budgetBuilder";
 import TableRowsExtra from "./TableRowsExtra";
 import { Moment } from "moment";
+import TableRowsFromOtherAccounts from "./TableRowsFromOtherAccounts";
 
 export interface IAccountsTableBodyProps {
   accountId: number;
@@ -42,11 +43,9 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         accountId={accountId}
         isStrong={false}
       />
-      <TableRowsByType
-        types={[BudgetTypeExtra.transferFromAccount]}
+      <TableRowsFromOtherAccounts
         months={months}
         budgetPairArray={budgetPairArray}
-        moreIsGood={true}
         highlight={isEven}
         accountId={accountId}
       />

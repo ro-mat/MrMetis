@@ -37,7 +37,8 @@ const TableRowsByType: FC<ITableRowsByTypeProps> = ({
         (b) =>
           types.includes(b.type) &&
           !b.parentId &&
-          budgetPairArray.isBudgetActive(b.id, accountId)
+          b.fromAccountId === accountId &&
+          budgetPairArray.isBudgetActive(b.id, b.fromAccountId)
       ),
     [budgets, types, budgetPairArray, accountId]
   );
