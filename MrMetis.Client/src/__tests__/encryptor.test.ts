@@ -1,7 +1,7 @@
 import { decrypt, encrypt, hashPassword } from "services/encryptor";
 
 const vaultKey =
-  "31ba961031e636c42ffa023bde2f79d7b196b8774889832b9055e9fdec6671b83e04fd97363fd699d544ebf19348373753c320f45f2770e8714e579d5a1a746d";
+  "f5205c56f121fb89c3397411b92e0c5b1749d7e872c9e6cecbccbe53b7cbe99c762683cef95c8f3f22e04f3546a4714725693dbd475cabb9fa79133b2726da3a";
 
 describe("encryptor", () => {
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe("encryptor", () => {
     const hash = await hashPassword("test", "test");
 
     expect(hash).toMatch(
-      "cc0c5aa815c29ec1ccedd2f924e661273b1229d17bc41580b389f6152a5093c30228e629d5b2080ae5290353fe091003f77208e358fb98b8633616de8f7a92bd"
+      "084d43f713452a720059994b9d6d0a79c6a5a01b639bc291bc9c311a1cf62d6196bc77c9d3153d3d128f3808827d8c2931c877ab1bb9c67cbd88e77bf5fc4694"
     );
     expect(setStorageItemSpy).toHaveBeenCalledWith("vk", vaultKey);
   });

@@ -1,28 +1,28 @@
 import AccountsTableBody from "components/Planning/AccountsTableBody";
 import TableHeader from "components/Planning/TableHeader";
-import TableRowMonthDelta from "components/Planning/TableRowMonthDelta";
-import useBudget from "hooks/useBudget";
-import React from "react";
-import { useSelector } from "react-redux";
-import { AppState } from "store/store";
+import React, { useMemo } from "react";
+import { IPlanningProps } from "./Index";
+import { useOutletContext } from "react-router-dom";
+import { BudgetTypeExtra } from "store/userdata/userdata.types";
+import TableRowsExtra from "components/Planning/TableRowsExtra";
+import useAccount from "hooks/useAccount";
 
 const PlanningAccounts = () => {
-  const { accounts } = useSelector((state: AppState) => state.data.userdata);
-  const { filter } = useSelector((state: AppState) => state.ui.ui);
+  const { months, budgetPairArray } = useOutletContext<IPlanningProps>();
 
-  const { budgetMonths, activeBudgets } = useBudget(
-    filter.fromRelativeMonth,
-    filter.toRelativeMonth
+  const { accounts } = useAccount();
+
+  const filteredAccounts = useMemo(
+    () => accounts.filter((a) => [1, 2, 3].includes(a.id)),
+    [accounts]
   );
-
-  const filteredAccounts = accounts.filter((a) => [1, 2, 3].includes(a.id));
 
   return (
     <>
       <div className="planning-table">
         <table>
           <thead>
-            <TableHeader budgetMonths={budgetMonths} />
+            <TableHeader months={months} />
           </thead>
           <tbody>
             {filteredAccounts.map((a, index) => (
@@ -30,13 +30,20 @@ const PlanningAccounts = () => {
                 <AccountsTableBody
                   accountId={a.id}
                   accountName={a.name}
-                  budgetMonths={budgetMonths}
-                  activeBudgets={activeBudgets}
+                  budgetPairArray={budgetPairArray}
+                  months={months}
                   index={index}
                 />
               </React.Fragment>
             ))}
-            <TableRowMonthDelta budgetMonths={budgetMonths} />
+            <tr>
+              <td colSpan={months.length * 2 + 1}>&nbsp;</td>
+            </tr>
+            <TableRowsExtra
+              type={BudgetTypeExtra.monthDelta}
+              budgetPairArray={budgetPairArray}
+              months={months}
+            />
           </tbody>
         </table>
       </div>

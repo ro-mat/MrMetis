@@ -11,21 +11,23 @@ import {
   deleteStatement,
   updateStatement,
 } from "store/userdata/userdata.actions";
-import { getById, getNextId } from "helpers/userdata";
 import { SET_SELECTED_STATEMENT } from "store/ui/ui.slice";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
 import { DATE_FORMAT } from "helpers/dateHelper";
+import useStatement from "hooks/useStatement";
 
 const StatementAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
 
-  const { statements, budgets, accounts } = useSelector(
+  const { budgets, accounts } = useSelector(
     (state: AppState) => state.data.userdata
   );
   const { selectedStatementId } = useSelector((state: AppState) => state.ui.ui);
+  const { getById: getStatementById, getNextId: getNextStatementId } =
+    useStatement();
 
   const defaultFormValues = useMemo(() => {
     return {
@@ -49,6 +51,7 @@ const StatementAddOrEdit = () => {
   const onDeleteClick = () => {
     if (selectedStatementId) {
       dispatch(deleteStatement(selectedStatementId));
+      dispatch(SET_SELECTED_STATEMENT(undefined));
     }
   };
 
@@ -58,7 +61,7 @@ const StatementAddOrEdit = () => {
       return;
     }
 
-    let item = getById(statements, selectedStatementId);
+    let item = getStatementById(selectedStatementId);
     if (!item) {
       return;
     }
@@ -68,7 +71,7 @@ const StatementAddOrEdit = () => {
       ...item,
     });
     setDate(moment(item.date).format(DATE_FORMAT));
-  }, [statements, defaultFormValues, selectedStatementId]);
+  }, [defaultFormValues, selectedStatementId, getStatementById]);
 
   return (
     <div>
@@ -102,7 +105,7 @@ const StatementAddOrEdit = () => {
           if (values.id) {
             dispatch(updateStatement(st));
           } else {
-            st.id = getNextId(statements);
+            st.id = getNextStatementId();
             dispatch(addStatement(st));
           }
 

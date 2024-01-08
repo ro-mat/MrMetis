@@ -1,42 +1,51 @@
 import React from "react";
-import { IActiveBudget } from "hooks/useBudget";
-import { BudgetTypeUser } from "store/userdata/userdata.types";
+import { BudgetTypeExtra, BudgetTypeUser } from "store/userdata/userdata.types";
 import TableRowsByType from "./TableRowsByType";
-import TableRowsFromPrevMonth from "./TableRowsFromPrevMonth";
-import { BudgetMonth } from "types/BudgetMonth";
+import { BudgetPairArray } from "services/budgetBuilder";
+import TableRowsExtra from "./TableRowsExtra";
+import { Moment } from "moment";
 
 export interface ITableBodyProps {
-  budgetMonths: BudgetMonth[];
-  activeBudgets: IActiveBudget[];
+  budgetPairArray: BudgetPairArray;
+  months: Moment[];
 }
 
-const TableBody = ({ budgetMonths, activeBudgets }: ITableBodyProps) => {
+const TableBody = ({ budgetPairArray, months }: ITableBodyProps) => {
   return (
     <>
-      <TableRowsFromPrevMonth budgetItems={budgetMonths} />
+      <TableRowsExtra
+        type={BudgetTypeExtra.leftFromPrevMonth}
+        budgetPairArray={budgetPairArray}
+        months={months}
+        isStrong={false}
+      />
       <TableRowsByType
-        types={[BudgetTypeUser.income]}
-        activeBudgets={activeBudgets}
-        budgetItems={budgetMonths}
+        type={BudgetTypeUser.income}
+        months={months}
+        budgetPairArray={budgetPairArray}
         moreIsGood={true}
+        showTotal={true}
       />
       <TableRowsByType
-        types={[BudgetTypeUser.savings]}
-        activeBudgets={activeBudgets}
-        budgetItems={budgetMonths}
+        type={BudgetTypeUser.savings}
+        months={months}
+        budgetPairArray={budgetPairArray}
         moreIsGood={true}
+        showTotal={true}
       />
       <TableRowsByType
-        types={[BudgetTypeUser.loanReturn]}
-        activeBudgets={activeBudgets}
-        budgetItems={budgetMonths}
+        type={BudgetTypeUser.loanReturn}
+        months={months}
+        budgetPairArray={budgetPairArray}
         moreIsGood={false}
+        showTotal={true}
       />
       <TableRowsByType
-        types={[BudgetTypeUser.spending]}
-        activeBudgets={activeBudgets}
-        budgetItems={budgetMonths}
+        type={BudgetTypeUser.spending}
+        months={months}
+        budgetPairArray={budgetPairArray}
         moreIsGood={false}
+        showTotal={true}
       />
     </>
   );

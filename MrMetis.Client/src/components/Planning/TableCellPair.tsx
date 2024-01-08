@@ -2,47 +2,36 @@ import { FC, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import { SET_PREVIEW_STATEMENTS } from "store/ui/ui.slice";
-import { IStatement } from "store/userdata/userdata.types";
 import PreviewStatements from "./PreviewStatements";
 import useId from "@mui/material/utils/useId";
+import { BudgetPair } from "services/budgetBuilder";
+import { BudgetType, BudgetTypeExtra } from "store/userdata/userdata.types";
 
 export interface ITableCellPairProps {
-  valuePlanned: number;
-  valueActual: number;
-  show?: boolean;
+  pair?: BudgetPair;
+  includeChildren?: boolean;
   isStrong?: boolean;
   moreIsGood?: boolean;
-  statements?: IStatement[];
 }
 
+const alwaysShowBudgetTypes = [
+  BudgetTypeExtra.leftFromPrevMonth,
+  BudgetTypeExtra.openingBalance,
+  BudgetTypeExtra.closingBalance,
+  BudgetTypeExtra.monthDelta,
+];
+
 const TableCellPair: FC<ITableCellPairProps> = ({
-  valuePlanned,
-  valueActual,
-  show = true,
+  pair,
+  includeChildren = false,
   isStrong = false,
   moreIsGood,
-  statements,
 }) => {
   const dispatch = useDispatch<TAppDispatch>();
   const pairId = useId();
 
   const { selectedPreviewStatements } = useSelector(
     (state: AppState) => state.ui.ui.previewStatements
-  );
-
-  const showStatementList = useMemo(
-    () =>
-      statements !== undefined &&
-      statements.length > 0 &&
-      selectedPreviewStatements === pairId,
-    [statements, selectedPreviewStatements, pairId]
-  );
-
-  const progressClass = getProgressClass(
-    valuePlanned,
-    valueActual,
-    show,
-    moreIsGood
   );
 
   const handleClick = () => {
@@ -53,13 +42,56 @@ const TableCellPair: FC<ITableCellPairProps> = ({
     dispatch(SET_PREVIEW_STATEMENTS(pairId));
   };
 
+  const show = useMemo<boolean>(
+    () =>
+      !!pair &&
+      (forceShow(pair.budgetType) ||
+        !!pair.planned ||
+        !!pair.actual ||
+        !!pair.getChildrenPlanned() ||
+        !!pair.getChildrenActual()),
+    [pair]
+  );
+
+  const planned = useMemo(
+    () =>
+      show
+        ? pair!.planned + (includeChildren ? pair!.getChildrenPlanned() : 0)
+        : undefined,
+    [show, pair, includeChildren]
+  );
+
+  const actual = useMemo(
+    () =>
+      show
+        ? pair!.actual + (includeChildren ? pair!.getChildrenActual() : 0)
+        : undefined,
+    [show, pair, includeChildren]
+  );
+
+  const progressClass = useMemo(
+    () => getProgressClass(planned ?? 0, actual ?? 0, show, moreIsGood),
+    [planned, actual, show, moreIsGood]
+  );
+
+  const statements = useMemo(() => {
+    if (!pair) return [];
+    const childStatements = includeChildren ? pair.getChildrenStatements() : [];
+    return [...pair.statements, ...childStatements];
+  }, [pair, includeChildren]);
+
+  const showStatementList = useMemo(
+    () => statements.length > 0 && selectedPreviewStatements === pairId,
+    [statements, selectedPreviewStatements, pairId]
+  );
+
   return (
     <>
       <td className="bl">
         {isStrong ? (
-          <strong>{show && valuePlanned.toFixed(2)}</strong>
+          <strong>{planned?.toFixed(2)}</strong>
         ) : (
-          show && valuePlanned.toFixed(2)
+          planned?.toFixed(2)
         )}
       </td>
       <td
@@ -68,14 +100,8 @@ const TableCellPair: FC<ITableCellPairProps> = ({
         } br ${progressClass}`}
         onClick={handleClick}
       >
-        {isStrong ? (
-          <strong>{show && valueActual.toFixed(2)}</strong>
-        ) : (
-          show && valueActual.toFixed(2)
-        )}
-        {showStatementList && (
-          <PreviewStatements statements={statements ?? []} />
-        )}
+        {isStrong ? <strong>{actual?.toFixed(2)}</strong> : actual?.toFixed(2)}
+        {showStatementList && <PreviewStatements statements={statements} />}
       </td>
     </>
   );
@@ -104,6 +130,10 @@ const getProgressClass = (
   }
 
   return diff <= 0 ? `gp-${perc}` : "r";
+};
+
+const forceShow = (budgetType: BudgetType) => {
+  return !!alwaysShowBudgetTypes.find((a) => a === budgetType);
 };
 
 export default TableCellPair;

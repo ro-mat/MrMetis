@@ -17,8 +17,6 @@ export const getData = () => {
         date: prev_month.date(2).format(DATE_FORMAT),
         budgetId: 1,
         accountId: 1,
-        budgetName: "Salary",
-        accountName: "Main",
       },
       {
         id: 2,
@@ -27,8 +25,6 @@ export const getData = () => {
         accountId: 1,
         date: prev_month.date(2).format(DATE_FORMAT),
         amount: 480,
-        budgetName: "Apt loan",
-        accountName: "Main",
       },
       {
         id: 3,
@@ -37,8 +33,6 @@ export const getData = () => {
         accountId: 1,
         date: prev_month.date(2).format(DATE_FORMAT),
         amount: 119,
-        budgetName: "Gym",
-        accountName: "Main",
       },
       {
         id: 4,
@@ -47,8 +41,6 @@ export const getData = () => {
         accountId: 1,
         date: prev_month.date(2).format(DATE_FORMAT),
         amount: 100,
-        budgetName: "Short term saving",
-        accountName: "Main",
       },
       {
         id: 5,
@@ -56,9 +48,7 @@ export const getData = () => {
         budgetId: 13,
         accountId: 1,
         date: prev_month.date(2).format(DATE_FORMAT),
-        amount: 112,
-        budgetName: "Long term saving",
-        accountName: "Main",
+        amount: 2,
       },
       {
         id: 6,
@@ -66,9 +56,7 @@ export const getData = () => {
         budgetId: 17,
         accountId: 1,
         date: prev_month.date(2).format(DATE_FORMAT),
-        amount: 710,
-        budgetName: "Send to Credit Card",
-        accountName: "Main",
+        amount: 780,
       },
       {
         id: 7,
@@ -77,8 +65,6 @@ export const getData = () => {
         accountId: 1,
         date: prev_month.date(8).format(DATE_FORMAT),
         amount: 27,
-        budgetName: "Electricity",
-        accountName: "Main",
       },
       {
         id: 8,
@@ -87,8 +73,6 @@ export const getData = () => {
         accountId: 1,
         date: prev_month.date(8).format(DATE_FORMAT),
         amount: 13.6,
-        budgetName: "Water",
-        accountName: "Main",
       },
       {
         id: 9,
@@ -97,8 +81,6 @@ export const getData = () => {
         accountId: 1,
         date: prev_month.date(8).format(DATE_FORMAT),
         amount: 14.2,
-        budgetName: "Gas",
-        accountName: "Main",
       },
       {
         id: 10,
@@ -107,8 +89,6 @@ export const getData = () => {
         accountId: 1,
         date: prev_month.date(15).format(DATE_FORMAT),
         amount: 28.9,
-        budgetName: "Internet",
-        accountName: "Main",
       },
       {
         id: 11,
@@ -117,8 +97,6 @@ export const getData = () => {
         accountId: 1,
         date: prev_month.date(15).format(DATE_FORMAT),
         amount: 9.8,
-        budgetName: "Phone",
-        accountName: "Main",
       },
       {
         id: 12,
@@ -126,9 +104,7 @@ export const getData = () => {
         budgetId: 18,
         accountId: 2,
         date: prev_month.date(7).format(DATE_FORMAT),
-        amount: 150,
-        budgetName: "Cash withdrewal",
-        accountName: "Credit card",
+        amount: 170,
       },
       {
         id: 13,
@@ -137,8 +113,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(7).format(DATE_FORMAT),
         amount: 36,
-        budgetName: "Going out",
-        accountName: "Credit card",
         comment: t("demoData.localBar"),
       },
       {
@@ -148,8 +122,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(8).format(DATE_FORMAT),
         amount: 2.7,
-        budgetName: "Going out",
-        accountName: "Credit card",
         comment: t("demoData.coffee"),
       },
       {
@@ -159,8 +131,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(14).format(DATE_FORMAT),
         amount: 23,
-        budgetName: "Going out",
-        accountName: "Credit card",
         comment: t("demoData.pool"),
       },
       {
@@ -170,8 +140,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(21).format(DATE_FORMAT),
         amount: 64.9,
-        budgetName: "Going out",
-        accountName: "Credit card",
         comment: t("demoData.hookah"),
       },
       {
@@ -181,8 +149,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(21).format(DATE_FORMAT),
         amount: 37,
-        budgetName: "Going out",
-        accountName: "Credit card",
         comment: t("demoData.beers"),
       },
       {
@@ -192,8 +158,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(28).format(DATE_FORMAT),
         amount: 46,
-        budgetName: "Going out",
-        accountName: "Credit card",
         comment: t("demoData.bowling"),
       },
       {
@@ -203,8 +167,6 @@ export const getData = () => {
         accountId: 3,
         date: prev_month.date(5).format(DATE_FORMAT),
         amount: 30,
-        budgetName: "Kids allowance",
-        accountName: "Cash",
       },
       {
         id: 20,
@@ -213,8 +175,6 @@ export const getData = () => {
         accountId: 3,
         date: prev_month.date(15).format(DATE_FORMAT),
         amount: 80,
-        budgetName: "Kids allowance",
-        accountName: "Cash",
       },
       {
         id: 21,
@@ -223,8 +183,6 @@ export const getData = () => {
         accountId: 3,
         date: prev_month.date(26).format(DATE_FORMAT),
         amount: 20,
-        budgetName: "Kids allowance",
-        accountName: "Cash",
       },
       {
         id: 22,
@@ -233,8 +191,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(1).format(DATE_FORMAT),
         amount: 16.3,
-        budgetName: "Groceries",
-        accountName: "Credit card",
         comment: t("demoData.vegetables"),
       },
       {
@@ -244,8 +200,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(8).format(DATE_FORMAT),
         amount: 16.8,
-        budgetName: "Groceries",
-        accountName: "Credit card",
         comment: t("demoData.steaks"),
       },
       {
@@ -255,8 +209,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(10).format(DATE_FORMAT),
         amount: 34.1,
-        budgetName: "Groceries",
-        accountName: "Credit card",
       },
       {
         id: 25,
@@ -265,8 +217,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(17).format(DATE_FORMAT),
         amount: 4.5,
-        budgetName: "Groceries",
-        accountName: "Credit card",
       },
       {
         id: 26,
@@ -275,8 +225,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(18).format(DATE_FORMAT),
         amount: 61.9,
-        budgetName: "Groceries",
-        accountName: "Credit card",
         comment: t("demoData.wholeSale"),
       },
       {
@@ -286,8 +234,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(20).format(DATE_FORMAT),
         amount: 42,
-        budgetName: "Alcohol",
-        accountName: "Credit card",
         comment: t("demoData.lagavulin"),
       },
       {
@@ -297,8 +243,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(22).format(DATE_FORMAT),
         amount: 21.4,
-        budgetName: "Alcohol",
-        accountName: "Credit card",
         comment: t("demoData.jimBeam"),
       },
       {
@@ -308,8 +252,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(22).format(DATE_FORMAT),
         amount: 40.3,
-        budgetName: "Groceries",
-        accountName: "Credit card",
         comment: t("demoData.partySnacks"),
       },
       {
@@ -319,8 +261,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(27).format(DATE_FORMAT),
         amount: 39.5,
-        budgetName: "Groceries",
-        accountName: "Credit card",
       },
       {
         id: 31,
@@ -329,8 +269,6 @@ export const getData = () => {
         accountId: 2,
         date: prev_month.date(1).format(DATE_FORMAT),
         amount: 56.8,
-        budgetName: "Going out",
-        accountName: "Credit card",
         comment: t("demoData.workParty"),
       },
       {
@@ -340,8 +278,6 @@ export const getData = () => {
         accountId: 1,
         date: cur_month.date(2).format(DATE_FORMAT),
         amount: 480,
-        budgetName: "Apt loan",
-        accountName: "Main",
       },
       {
         id: 33,
@@ -350,8 +286,6 @@ export const getData = () => {
         accountId: 1,
         date: cur_month.date(1).format(DATE_FORMAT),
         amount: 1635.8,
-        budgetName: "Salary",
-        accountName: "Main",
       },
       {
         id: 34,
@@ -360,8 +294,6 @@ export const getData = () => {
         accountId: 1,
         date: cur_month.date(7).format(DATE_FORMAT),
         amount: 11.5,
-        budgetName: "Electricity",
-        accountName: "Main",
       },
       {
         id: 35,
@@ -370,8 +302,6 @@ export const getData = () => {
         accountId: 1,
         date: cur_month.date(7).format(DATE_FORMAT),
         amount: 16.3,
-        budgetName: "Water",
-        accountName: "Main",
       },
       {
         id: 36,
@@ -380,8 +310,6 @@ export const getData = () => {
         accountId: 1,
         date: cur_month.date(7).format(DATE_FORMAT),
         amount: 15.8,
-        budgetName: "Gas",
-        accountName: "Main",
       },
       {
         id: 37,
@@ -390,8 +318,6 @@ export const getData = () => {
         accountId: 1,
         date: cur_month.date(7).format(DATE_FORMAT),
         amount: 28.9,
-        budgetName: "Internet",
-        accountName: "Main",
       },
       {
         id: 38,
@@ -400,8 +326,6 @@ export const getData = () => {
         accountId: 1,
         date: cur_month.date(7).format(DATE_FORMAT),
         amount: 10.3,
-        budgetName: "Phone",
-        accountName: "Main",
       },
       {
         id: 39,
@@ -410,18 +334,14 @@ export const getData = () => {
         accountId: 1,
         date: cur_month.date(7).format(DATE_FORMAT),
         amount: 100,
-        budgetName: "Short term saving",
-        accountName: "Main",
       },
       {
         id: 40,
         dateCreated: cur_month.format(DATE_FORMAT),
-        amount: 345,
+        amount: 255,
         date: cur_month.date(26).format(DATE_FORMAT),
         budgetId: 13,
         accountId: 1,
-        budgetName: "Long term saving",
-        accountName: "Main",
       },
       {
         id: 41,
@@ -429,9 +349,7 @@ export const getData = () => {
         budgetId: 17,
         accountId: 1,
         date: cur_month.date(7).format(DATE_FORMAT),
-        amount: 660,
-        budgetName: "Send to Credit Card",
-        accountName: "Main",
+        amount: 730,
       },
       {
         id: 42,
@@ -439,9 +357,7 @@ export const getData = () => {
         budgetId: 18,
         accountId: 2,
         date: cur_month.date(8).format(DATE_FORMAT),
-        amount: 150,
-        budgetName: "Cash withdrewal",
-        accountName: "Credit card",
+        amount: 170,
       },
       {
         id: 43,
@@ -450,8 +366,6 @@ export const getData = () => {
         accountId: 3,
         date: cur_month.date(8).format(DATE_FORMAT),
         amount: 40,
-        budgetName: "Kids allowance",
-        accountName: "Cash",
       },
       {
         id: 44,
@@ -460,8 +374,6 @@ export const getData = () => {
         accountId: 3,
         date: cur_month.date(15).format(DATE_FORMAT),
         amount: 35,
-        budgetName: "Kids allowance",
-        accountName: "Cash",
       },
       {
         id: 45,
@@ -470,8 +382,6 @@ export const getData = () => {
         date: cur_month.date(26).format(DATE_FORMAT),
         budgetId: 16,
         accountId: 3,
-        budgetName: "Kids allowance",
-        accountName: "Cash",
       },
       {
         id: 46,
@@ -480,8 +390,6 @@ export const getData = () => {
         accountId: 2,
         date: cur_month.date(2).format(DATE_FORMAT),
         amount: 40.6,
-        budgetName: "Going out",
-        accountName: "Credit card",
         comment: t("demoData.beers"),
       },
       {
@@ -491,8 +399,6 @@ export const getData = () => {
         accountId: 2,
         date: cur_month.date(8).format(DATE_FORMAT),
         amount: 3.6,
-        budgetName: "Going out",
-        accountName: "Credit card",
         comment: t("demoData.coffee"),
       },
       {
@@ -502,8 +408,6 @@ export const getData = () => {
         accountId: 2,
         date: cur_month.date(9).format(DATE_FORMAT),
         amount: 19.3,
-        budgetName: "Going out",
-        accountName: "Credit card",
         comment: t("demoData.pizza"),
       },
       {
@@ -513,8 +417,6 @@ export const getData = () => {
         accountId: 2,
         date: cur_month.date(3).format(DATE_FORMAT),
         amount: 16.4,
-        budgetName: "Groceries",
-        accountName: "Credit card",
         comment: t("demoData.market"),
       },
       {
@@ -524,8 +426,6 @@ export const getData = () => {
         accountId: 2,
         date: cur_month.date(8).format(DATE_FORMAT),
         amount: 36.8,
-        budgetName: "Groceries",
-        accountName: "Credit card",
       },
       {
         id: 51,
@@ -534,9 +434,34 @@ export const getData = () => {
         accountId: 2,
         date: cur_month.date(12).format(DATE_FORMAT),
         amount: 18.3,
-        budgetName: "Groceries",
-        accountName: "Credit card",
         comment: t("demoData.meat"),
+      },
+      {
+        id: 52,
+        dateCreated: cur_month.format(DATE_FORMAT),
+        budgetId: 19,
+        accountId: 1,
+        date: prev_month.date(13).format(DATE_FORMAT),
+        amount: 20,
+        comment: t("demoData.borrow"),
+      },
+      {
+        id: 53,
+        dateCreated: cur_month.format(DATE_FORMAT),
+        budgetId: 19,
+        accountId: 2,
+        date: cur_month.date(7).format(DATE_FORMAT),
+        amount: 15.4,
+        comment: t("demoData.parking"),
+      },
+      {
+        id: 54,
+        dateCreated: cur_month.format(DATE_FORMAT),
+        budgetId: 19,
+        accountId: 3,
+        date: cur_month.date(16).format(DATE_FORMAT),
+        amount: 9.6,
+        comment: t("demoData.parking"),
       },
     ],
     budgets: [
@@ -575,7 +500,7 @@ export const getData = () => {
           },
         ],
         overrides: [],
-        type: 20,
+        type: 30,
         expectOneStatement: true,
       },
       {
@@ -767,7 +692,7 @@ export const getData = () => {
         amounts: [
           {
             amount:
-              "cur_month.account(1).openingBalance - cur_month.account(1).totalSpending - cur_month.account(1).totalToOtherAccount - cur_month.getItem(14)",
+              "cur_month.getOpeningBalance(1) - cur_month.getTotalSpending(1) - cur_month.getTotalLoanReturn(1) - cur_month.getTotalToOtherAccount(1) - cur_month.getItem(14)",
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -844,7 +769,7 @@ export const getData = () => {
         amounts: [
           {
             amount:
-              "cur_month.account(2).totalSpendings + cur_month.account(2).totalToOtherAccount",
+              "cur_month.getTotalSpending(2) + cur_month.getTotalLoanReturn(2) + cur_month.getTotalSaving(2) + cur_month.getTotalToOtherAccount(2)",
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -863,7 +788,8 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount: "cur_month.account(3).totalSpendings",
+            amount:
+              "cur_month.getTotalSpending(3) + cur_month.getTotalLoanReturn(3) + cur_month.getTotalSaving(3)",
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -871,6 +797,38 @@ export const getData = () => {
         overrides: [],
         type: 50,
         expectOneStatement: true,
+      },
+      {
+        id: 19,
+        dateCreated: cur_month.format(DATE_FORMAT),
+        parentId: 0,
+        fromAccountId: 0,
+        toAccountId: 0,
+        name: t("demoData.unplanned"),
+        isEssential: true,
+        amounts: [
+          {
+            amount: "40",
+            fromAccountId: 1,
+            frequency: 1,
+            startDate: prev_month.date(1).format(DATE_FORMAT),
+          },
+          {
+            amount: "50",
+            fromAccountId: 2,
+            frequency: 1,
+            startDate: prev_month.date(1).format(DATE_FORMAT),
+          },
+          {
+            amount: "20",
+            fromAccountId: 3,
+            frequency: 1,
+            startDate: prev_month.date(1).format(DATE_FORMAT),
+          },
+        ],
+        overrides: [],
+        type: 20,
+        expectOneStatement: false,
       },
     ],
     accounts: [
@@ -884,7 +842,7 @@ export const getData = () => {
             month: prev_month.date(1).format(DATE_FORMAT),
           },
           {
-            amount: 64.7,
+            amount: 84.7,
             month: cur_month.date(1).format(DATE_FORMAT),
           },
         ],
@@ -895,7 +853,7 @@ export const getData = () => {
         name: t("demoData.creditCard"),
         leftFromPrevMonth: [
           {
-            amount: 16.8,
+            amount: 66.8,
             month: cur_month.date(1).format(DATE_FORMAT),
           },
         ],
@@ -906,7 +864,7 @@ export const getData = () => {
         name: t("demoData.cash"),
         leftFromPrevMonth: [
           {
-            amount: 20,
+            amount: 40,
             month: cur_month.date(1).format(DATE_FORMAT),
           },
         ],

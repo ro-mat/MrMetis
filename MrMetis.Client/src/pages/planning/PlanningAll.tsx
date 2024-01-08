@@ -1,32 +1,31 @@
 import React from "react";
 import TableBody from "components/Planning/TableBody";
 import TableHeader from "components/Planning/TableHeader";
-import TableRowMonthDelta from "components/Planning/TableRowMonthDelta";
-import useBudget from "hooks/useBudget";
-import { useSelector } from "react-redux";
-import { AppState } from "store/store";
+import { IPlanningProps } from "./Index";
+import { useOutletContext } from "react-router-dom";
+import TableRowsExtra from "components/Planning/TableRowsExtra";
+import { BudgetTypeExtra } from "store/userdata/userdata.types";
 
 const PlanningAll = () => {
-  const { filter } = useSelector((state: AppState) => state.ui.ui);
-
-  const { budgetMonths, activeBudgets } = useBudget(
-    filter.fromRelativeMonth,
-    filter.toRelativeMonth
-  );
+  const { months, budgetPairArray } = useOutletContext<IPlanningProps>();
 
   return (
     <>
       <div>
         <table className="planning-table">
           <thead>
-            <TableHeader budgetMonths={budgetMonths} />
+            <TableHeader months={months} />
           </thead>
           <tbody>
-            <TableBody
-              budgetMonths={budgetMonths}
-              activeBudgets={activeBudgets}
+            <TableBody budgetPairArray={budgetPairArray} months={months} />
+            <tr>
+              <td colSpan={months.length * 2 + 1}>&nbsp;</td>
+            </tr>
+            <TableRowsExtra
+              type={BudgetTypeExtra.monthDelta}
+              budgetPairArray={budgetPairArray}
+              months={months}
             />
-            <TableRowMonthDelta budgetMonths={budgetMonths} />
           </tbody>
         </table>
       </div>

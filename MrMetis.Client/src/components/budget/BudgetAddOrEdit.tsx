@@ -10,7 +10,6 @@ import {
   deleteBudget,
   updateBudget,
 } from "store/userdata/userdata.actions";
-import { getById, getNextId } from "helpers/userdata";
 import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
@@ -19,6 +18,7 @@ import { DATE_FORMAT } from "helpers/dateHelper";
 import { AmountType } from "types/IAmount";
 import BudgetOverrideItem from "./BudgetOverrideItem";
 import BudgetAmountItem from "./BudgetAmountItem";
+import useBudget from "hooks/useBudget";
 
 const BudgetAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -28,6 +28,7 @@ const BudgetAddOrEdit = () => {
     (state: AppState) => state.data.userdata
   );
   const { selectedBudgetId } = useSelector((state: AppState) => state.ui.ui);
+  const { getById: getBudgetById, getNextId: getNextBudgetId } = useBudget();
 
   const defaultFormValues = useMemo(() => {
     return {
@@ -62,6 +63,7 @@ const BudgetAddOrEdit = () => {
   const onDeleteClick = () => {
     if (selectedBudgetId && !disableDelete) {
       dispatch(deleteBudget(selectedBudgetId));
+      dispatch(SET_SELECTED_BUDGET(undefined));
     }
   };
 
@@ -71,13 +73,13 @@ const BudgetAddOrEdit = () => {
       return;
     }
 
-    let item = getById(budgets, selectedBudgetId);
+    let item = getBudgetById(selectedBudgetId);
     if (!item) {
       return;
     }
 
     if (item.parentId) {
-      const parent = getById(budgets, item.parentId);
+      const parent = getBudgetById(item.parentId);
       item = { ...item, fromAccountId: parent?.fromAccountId ?? 0 };
     }
 
@@ -91,7 +93,7 @@ const BudgetAddOrEdit = () => {
         moment(b.month).diff(moment(a.month))
       ),
     });
-  }, [budgets, defaultFormValues, selectedBudgetId]);
+  }, [defaultFormValues, selectedBudgetId, getBudgetById]);
 
   return (
     <div>
@@ -148,13 +150,17 @@ const BudgetAddOrEdit = () => {
             amounts: values.amounts.map((a) => {
               return {
                 ...a,
-                fromAccountId: values.fromAccountId ?? a.fromAccountId,
+                fromAccountId: values.fromAccountId
+                  ? values.fromAccountId
+                  : a.fromAccountId,
               };
             }),
             overrides: values.overrides.map((o) => {
               return {
                 ...o,
-                fromAccountId: values.fromAccountId ?? o.accountId,
+                fromAccountId: values.fromAccountId
+                  ? values.fromAccountId
+                  : o.accountId,
               };
             }),
           };
@@ -162,7 +168,7 @@ const BudgetAddOrEdit = () => {
           if (values.id) {
             dispatch(updateBudget(budget));
           } else {
-            budget.id = getNextId(budgets);
+            budget.id = getNextBudgetId();
             dispatch(addBudget(budget));
           }
 
@@ -214,7 +220,7 @@ const BudgetAddOrEdit = () => {
                   onChange={(e) => {
                     if (e.target.value) {
                       values.fromAccountId =
-                        getById(budgets, +e.target.value)?.fromAccountId ?? 0;
+                        getBudgetById(+e.target.value)?.fromAccountId ?? 0;
                     }
 
                     handleChange(e);
@@ -240,7 +246,7 @@ const BudgetAddOrEdit = () => {
                   disabled={
                     !!(
                       values.parentId &&
-                      getById(budgets, values.parentId)?.fromAccountId
+                      getBudgetById(values.parentId)?.fromAccountId
                     )
                   }
                 >
