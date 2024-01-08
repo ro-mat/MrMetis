@@ -49,7 +49,9 @@ export class BudgetPairArray {
   }
 
   isBudgetActive(budgetId: number, accountId?: number) {
-    for (let item of this.list.filter((l) => l.budgetId === budgetId)) {
+    for (let item of flattenBudgetPairs(this.list).filter(
+      (l) => l.budgetId === budgetId
+    )) {
       if (item.isActive(accountId)) {
         return true;
       }
@@ -87,7 +89,6 @@ export class BudgetPairArray {
     const budgetPairs = flattenBudgetPairs(this.list).filter(
       (i) =>
         i.budgetId === budgetId &&
-        i.budgetType !== BudgetTypeExtra.transferFromAccount && // hack, optimize later
         i.month.isSame(month, "M") &&
         (accountId === undefined || i.accountId === accountId)
     );
@@ -96,13 +97,26 @@ export class BudgetPairArray {
       return undefined;
     }
 
-    return budgetPairs.reduce((prev, cur) => {
+    const init = new BudgetPair(
+      budgetId,
+      accountId ?? 0,
+      month,
+      budgetPairs[0].budgetType,
+      0,
+      0,
+      budgetPairs[0].expectOneStatement,
+      []
+    );
+    init.children = [...budgetPairs[0].children];
+
+    const pair = budgetPairs.reduce((prev, cur) => {
       prev.planned += cur.planned;
       prev.actual += cur.actual;
       prev.statements = [...prev.statements, ...cur.statements];
-      prev.children = [...prev.children, ...cur.children];
       return prev;
-    }, new BudgetPair(budgetId, accountId ?? 0, month, budgetPairs[0].budgetType, 0, 0, budgetPairs[0].expectOneStatement, []));
+    }, init);
+
+    return pair;
   }
 
   getTotalPair(budgetTypes: BudgetType[], month: Moment, accountId?: number) {

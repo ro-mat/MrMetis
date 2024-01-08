@@ -162,8 +162,8 @@ describe("budgetBuilder", () => {
 
     const sendToCC = prevMonthBudgetPairs.getBudgetPair(17, prevMonthMoment)!;
     expect(sendToCC).not.toBe(undefined);
-    expect(sendToCC.planned).toBe(780);
-    expect(sendToCC.actual).toBe(780);
+    expect(sendToCC.planned).toBe(780 * 2);
+    expect(sendToCC.actual).toBe(780 * 2);
     expect(sendToCC.isActive()).toBe(true);
     expect(sendToCC.children).toHaveLength(0);
 
@@ -172,8 +172,8 @@ describe("budgetBuilder", () => {
       prevMonthMoment
     )!;
     expect(cashWithdrawal).not.toBe(undefined);
-    expect(cashWithdrawal.planned).toBe(170);
-    expect(cashWithdrawal.actual).toBe(170);
+    expect(cashWithdrawal.planned).toBe(170 * 2);
+    expect(cashWithdrawal.actual).toBe(170 * 2);
     expect(cashWithdrawal.isActive()).toBe(true);
     expect(cashWithdrawal.children).toHaveLength(0);
 
@@ -367,8 +367,8 @@ describe("budgetBuilder", () => {
 
     const sendToCC = curMonthBudgetPairs.getBudgetPair(17, curMonthMoment)!;
     expect(sendToCC).not.toBe(undefined);
-    expect(sendToCC.planned).toBe(730);
-    expect(sendToCC.actual).toBe(730);
+    expect(sendToCC.planned).toBe(730 * 2);
+    expect(sendToCC.actual).toBe(730 * 2);
     expect(sendToCC.isActive()).toBe(true);
     expect(sendToCC.children).toHaveLength(0);
 
@@ -377,8 +377,8 @@ describe("budgetBuilder", () => {
       curMonthMoment
     )!;
     expect(cashWithdrawal).not.toBe(undefined);
-    expect(cashWithdrawal.planned).toBe(170);
-    expect(cashWithdrawal.actual).toBe(170);
+    expect(cashWithdrawal.planned).toBe(170 * 2);
+    expect(cashWithdrawal.actual).toBe(170 * 2);
     expect(cashWithdrawal.isActive()).toBe(true);
     expect(cashWithdrawal.children).toHaveLength(0);
 

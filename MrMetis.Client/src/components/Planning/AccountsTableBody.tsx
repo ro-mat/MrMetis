@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { BudgetPairArray } from "services/budgetBuilder";
 import TableRowsExtra from "./TableRowsExtra";
 import { Moment } from "moment";
-import TableRowsFromOtherAccounts from "./TableRowsFromOtherAccounts";
+import TableRowTotal from "./TableRowTotal";
 
 export interface IAccountsTableBodyProps {
   accountId: number;
@@ -43,14 +43,16 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         accountId={accountId}
         isStrong={false}
       />
-      <TableRowsFromOtherAccounts
+      <TableRowsByType
+        type={BudgetTypeExtra.transferFromAccount}
         months={months}
         budgetPairArray={budgetPairArray}
+        moreIsGood={true}
         highlight={isEven}
         accountId={accountId}
       />
       <TableRowsByType
-        types={[BudgetTypeUser.income]}
+        type={BudgetTypeUser.income}
         months={months}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
@@ -65,6 +67,30 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         accountId={accountId}
       />
       <TableRowsByType
+        type={BudgetTypeUser.savings}
+        months={months}
+        budgetPairArray={budgetPairArray}
+        moreIsGood={false}
+        highlight={isEven}
+        accountId={accountId}
+      />
+      <TableRowsByType
+        type={BudgetTypeUser.loanReturn}
+        months={months}
+        budgetPairArray={budgetPairArray}
+        moreIsGood={false}
+        highlight={isEven}
+        accountId={accountId}
+      />
+      <TableRowsByType
+        type={BudgetTypeUser.spending}
+        months={months}
+        budgetPairArray={budgetPairArray}
+        moreIsGood={false}
+        highlight={isEven}
+        accountId={accountId}
+      />
+      <TableRowTotal
         types={[
           BudgetTypeUser.savings,
           BudgetTypeUser.loanReturn,
@@ -72,14 +98,12 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         ]}
         months={months}
         budgetPairArray={budgetPairArray}
-        moreIsGood={false}
-        showTotal={true}
-        totalLabel={t("planning.totalSpendings")}
         highlight={isEven}
+        totalLabel={t("planning.totalSpendings")}
         accountId={accountId}
       />
       <TableRowsByType
-        types={[BudgetTypeUser.keepOnAccount]}
+        type={BudgetTypeUser.keepOnAccount}
         months={months}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}
@@ -87,7 +111,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         accountId={accountId}
       />
       <TableRowsByType
-        types={[BudgetTypeUser.transferToAccount]}
+        type={BudgetTypeUser.transferToAccount}
         months={months}
         budgetPairArray={budgetPairArray}
         moreIsGood={true}

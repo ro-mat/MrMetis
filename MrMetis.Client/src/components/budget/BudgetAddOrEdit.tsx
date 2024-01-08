@@ -164,7 +164,6 @@ const BudgetAddOrEdit = () => {
             }),
           };
 
-          debugger;
           if (values.id) {
             dispatch(updateBudget(budget));
           } else {

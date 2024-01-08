@@ -1,14 +1,19 @@
-import React, { FC, useMemo } from "react";
-import { BudgetType, BudgetTypeUser } from "store/userdata/userdata.types";
+import React, { useMemo } from "react";
+import {
+  BudgetType,
+  BudgetTypeExtra,
+  BudgetTypeUser,
+  IBudget,
+} from "store/userdata/userdata.types";
 import TableRow from "./TableRow";
-import TableCellPair from "./TableCellPair";
 import { useTranslation } from "react-i18next";
 import { BudgetPairArray } from "services/budgetBuilder";
 import { Moment } from "moment";
 import useBudget from "hooks/useBudget";
+import TableRowTotal from "./TableRowTotal";
 
 export interface ITableRowsByTypeProps {
-  types: BudgetType[];
+  type: BudgetType;
   months: Moment[];
   budgetPairArray: BudgetPairArray;
   moreIsGood: boolean;
@@ -18,8 +23,8 @@ export interface ITableRowsByTypeProps {
   accountId?: number;
 }
 
-const TableRowsByType: FC<ITableRowsByTypeProps> = ({
-  types,
+const TableRowsByType = ({
+  type,
   months,
   budgetPairArray,
   moreIsGood,
@@ -27,22 +32,14 @@ const TableRowsByType: FC<ITableRowsByTypeProps> = ({
   showTotal = false,
   highlight = false,
   accountId,
-}) => {
+}: ITableRowsByTypeProps) => {
   const { t } = useTranslation();
   const { budgets } = useBudget();
 
   const filteredBudgets = useMemo(
     () =>
-      budgets.filter(
-        (b) =>
-          types.includes(b.type) &&
-          !b.parentId &&
-          (accountId === undefined ||
-            b.fromAccountId === 0 ||
-            b.fromAccountId === accountId) &&
-          budgetPairArray.isBudgetActive(b.id, accountId)
-      ),
-    [budgets, types, budgetPairArray, accountId]
+      budgets.filter((b) => filterFactory(type)(b, budgetPairArray, accountId)),
+    [budgets, type, budgetPairArray, accountId]
   );
 
   return (
@@ -59,31 +56,44 @@ const TableRowsByType: FC<ITableRowsByTypeProps> = ({
         />
       ))}
       {showTotal && (
-        <tr className={highlight ? "highlight" : ""}>
-          <td>
-            <strong>
-              {totalLabel ??
-                `${t("planning.total")} ${t(
-                  `budgetType.${BudgetTypeUser[types[0]]}`
-                )}`}
-            </strong>
-          </td>
-          {months.map((month, index) => {
-            const hasIncome = types.includes(BudgetTypeUser.income);
-            return (
-              <React.Fragment key={index}>
-                <TableCellPair
-                  pair={budgetPairArray.getTotalPair(types, month, accountId)}
-                  isStrong={true}
-                  moreIsGood={hasIncome}
-                />
-              </React.Fragment>
-            );
-          })}
-        </tr>
+        <TableRowTotal
+          types={[type]}
+          months={months}
+          budgetPairArray={budgetPairArray}
+          highlight={highlight}
+          totalLabel={totalLabel}
+          accountId={accountId}
+        />
       )}
     </>
   );
+};
+
+const filterFactory = (budgetType: BudgetType) => {
+  switch (budgetType) {
+    case BudgetTypeExtra.transferFromAccount:
+      return (
+        b: IBudget,
+        budgetPairArray: BudgetPairArray,
+        accountId?: number
+      ) =>
+        b.type === BudgetTypeUser.transferToAccount &&
+        b.toAccountId === accountId &&
+        budgetPairArray.isBudgetActive(b.id, accountId);
+
+    default:
+      return (
+        b: IBudget,
+        budgetPairArray: BudgetPairArray,
+        accountId?: number
+      ) =>
+        b.type === budgetType &&
+        !b.parentId &&
+        (accountId === undefined ||
+          b.fromAccountId === 0 ||
+          b.fromAccountId === accountId) &&
+        budgetPairArray.isBudgetActive(b.id, accountId);
+  }
 };
 
 export default TableRowsByType;

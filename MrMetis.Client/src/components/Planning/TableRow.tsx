@@ -14,6 +14,7 @@ export interface ITableRowProps {
   moreIsGood: boolean;
   indent?: number;
   highlight?: boolean;
+  onlyActive?: boolean;
   onlyRemaining?: boolean;
   accountId?: number;
 }
@@ -25,18 +26,25 @@ const TableRow = ({
   moreIsGood,
   indent = 0,
   highlight = false,
+  onlyActive = true,
   onlyRemaining = false,
   accountId,
 }: ITableRowProps) => {
   const [showChildren, toggleShowChildren] = useToggle(false);
   const { getChildren: getBudgetChildren } = useBudget();
 
-  if (onlyRemaining && !budgetPairArray.isBudgetRemaining(budget.id))
+  if (onlyRemaining && !budgetPairArray.isBudgetRemaining(budget.id, accountId))
+    return <></>;
+
+  if (onlyActive && !budgetPairArray.isBudgetActive(budget.id, accountId))
     return <></>;
 
   const children = getBudgetChildren(budget.id);
   const filteredChildren = children.filter(
-    (c) => onlyRemaining === false || budgetPairArray.isBudgetRemaining(c.id)
+    (c) =>
+      (onlyRemaining === false ||
+        budgetPairArray.isBudgetRemaining(c.id, accountId)) &&
+      (onlyActive === false || budgetPairArray.isBudgetActive(c.id, accountId))
   );
 
   return (
