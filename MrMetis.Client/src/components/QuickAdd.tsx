@@ -201,13 +201,16 @@ const QuickAdd = () => {
       });
     }
 
-    dispatch(
-      addStatement({
-        ...statement,
-        ...newData,
-        id: getNextStatementId(),
-      })
-    );
+    const newStatement = {
+      ...statement,
+      ...newData,
+      id: getNextStatementId(),
+    };
+
+    delete newStatement.budgetName;
+    delete newStatement.accountName;
+
+    dispatch(addStatement(newStatement));
 
     setStatement((s) => {
       return { ...s, comment: undefined };

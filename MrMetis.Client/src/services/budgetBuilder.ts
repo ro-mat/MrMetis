@@ -314,7 +314,12 @@ export const buildBudgetPairsForMonth = (
 
   while (relevantFormulas.length > 0) {
     if (relevantFormulas.length === lastLenght) {
-      throw Error("Circular reference detected!");
+      const problemFormulas = relevantFormulas
+        .map((f) => `{budget id: ${f.budgetId}, formula: ${f.formula}}`)
+        .join(", ");
+      throw Error(
+        `Infinite loop detected while calculating! Problem somewhere here: [${problemFormulas}]`
+      );
     }
     lastLenght = relevantFormulas.length;
 

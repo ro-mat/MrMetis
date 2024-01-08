@@ -61,6 +61,7 @@ const AccountAddOrEdit = () => {
   const onDeleteClick = () => {
     if (selectedAccountId && !disableDelete) {
       dispatch(deleteAccount(selectedAccountId));
+      dispatch(SET_SELECTED_ACCOUNT(undefined));
     }
   };
 

@@ -63,6 +63,7 @@ const BudgetAddOrEdit = () => {
   const onDeleteClick = () => {
     if (selectedBudgetId && !disableDelete) {
       dispatch(deleteBudget(selectedBudgetId));
+      dispatch(SET_SELECTED_BUDGET(undefined));
     }
   };
 

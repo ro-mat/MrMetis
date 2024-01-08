@@ -51,6 +51,7 @@ const StatementAddOrEdit = () => {
   const onDeleteClick = () => {
     if (selectedStatementId) {
       dispatch(deleteStatement(selectedStatementId));
+      dispatch(SET_SELECTED_STATEMENT(undefined));
     }
   };
 
