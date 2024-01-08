@@ -1,13 +1,5 @@
 import { IHaveId } from "types/IHaveId";
 
-// Obsolete
-export const getById = <T extends IHaveId>(
-  arr: T[],
-  id: number | undefined
-) => {
-  return id ? arr.find((i) => i.id === id) : undefined;
-};
-
 export const add = <T extends IHaveId>(arr: T[], obj: T) => {
   if (arr.find((i) => i.id === obj.id)) {
     console.error("Element with this id already exists");
