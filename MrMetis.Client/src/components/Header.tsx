@@ -3,13 +3,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { logout } from "store/auth/auth.actions";
 import { AppState, TAppDispatch } from "store/store";
-import QuickAdd from "./QuickAdd";
+import QuickAdd from "./quick-add/QuickAdd";
 import { useTranslation } from "react-i18next";
 import Logo from "styles/img/logo.png";
+import moment from "moment";
 
 const Header = (): JSX.Element => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t, i18n } = useTranslation();
+  moment.locale(i18n.language);
 
   const navigate = useNavigate();
 
@@ -19,6 +21,7 @@ const Header = (): JSX.Element => {
 
   const changeLang = (lang: string) => {
     i18n.changeLanguage(lang);
+    moment.updateLocale(i18n.language, {});
   };
 
   const onLogoutClick = () => {
