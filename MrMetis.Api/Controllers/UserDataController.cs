@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using MrMetis.Core.Dtos;
 using MrMetis.Core.Services;
 using MrMetis.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MrMetis.Api.Controllers
 {
@@ -18,6 +19,7 @@ namespace MrMetis.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Get()
         {
             var userId = HttpContext.GetUserId();
@@ -29,6 +31,7 @@ namespace MrMetis.Api.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> SetUserData([FromBody] UserDataDto model)
         {
             var userId = HttpContext.GetUserId();
@@ -40,6 +43,7 @@ namespace MrMetis.Api.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteStatement(int id)
         {
             var userId = HttpContext.GetUserId();
