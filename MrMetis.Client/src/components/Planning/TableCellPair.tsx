@@ -9,6 +9,7 @@ import { BudgetType, BudgetTypeExtra } from "store/userdata/userdata.types";
 
 export interface ITableCellPairProps {
   pair?: BudgetPair;
+  accountId?: number;
   includeChildren?: boolean;
   isStrong?: boolean;
   moreIsGood?: boolean;
@@ -23,6 +24,7 @@ const alwaysShowBudgetTypes = [
 
 const TableCellPair: FC<ITableCellPairProps> = ({
   pair,
+  accountId,
   includeChildren = false,
   isStrong = false,
   moreIsGood,
@@ -48,25 +50,27 @@ const TableCellPair: FC<ITableCellPairProps> = ({
       (forceShow(pair.budgetType) ||
         !!pair.planned ||
         !!pair.actual ||
-        !!pair.getChildrenPlanned() ||
-        !!pair.getChildrenActual()),
-    [pair]
+        !!pair.getChildrenPlanned(accountId) ||
+        !!pair.getChildrenActual(accountId)),
+    [pair, accountId]
   );
 
   const planned = useMemo(
     () =>
       show
-        ? pair!.planned + (includeChildren ? pair!.getChildrenPlanned() : 0)
+        ? pair!.planned +
+          (includeChildren ? pair!.getChildrenPlanned(accountId) : 0)
         : undefined,
-    [show, pair, includeChildren]
+    [show, pair, includeChildren, accountId]
   );
 
   const actual = useMemo(
     () =>
       show
-        ? pair!.actual + (includeChildren ? pair!.getChildrenActual() : 0)
+        ? pair!.actual +
+          (includeChildren ? pair!.getChildrenActual(accountId) : 0)
         : undefined,
-    [show, pair, includeChildren]
+    [show, pair, includeChildren, accountId]
   );
 
   const progressClass = useMemo(

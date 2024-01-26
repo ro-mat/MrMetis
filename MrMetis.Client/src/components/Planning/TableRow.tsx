@@ -75,6 +75,7 @@ const TableRow = ({
                 }
                 moreIsGood={moreIsGood}
                 includeChildren={filteredChildren.length > 0 && !showChildren}
+                accountId={accountId}
               />
             </React.Fragment>
           );
@@ -91,6 +92,7 @@ const TableRow = ({
             indent={indent + 1}
             accountId={accountId}
             onlyRemaining={onlyRemaining}
+            highlight={highlight}
           />
         ))}
     </>

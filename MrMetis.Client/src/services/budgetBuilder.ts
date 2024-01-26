@@ -30,9 +30,12 @@ export type BudgetStatement = {
 
 export class BudgetPairArray {
   list: BudgetPair[] = [];
+  flatList: BudgetPair[] = [];
 
   constructor(list?: BudgetPair[]) {
-    if (list) this.list = list;
+    if (!list) return;
+    this.list = list;
+    this.flatList = flattenBudgetPairs(list);
   }
 
   tryAddBudgetPair(budgetPair: BudgetPair) {
@@ -49,10 +52,11 @@ export class BudgetPairArray {
   }
 
   isBudgetActive(budgetId: number, accountId?: number) {
-    for (let item of flattenBudgetPairs(this.list).filter(
-      (l) => l.budgetId === budgetId
-    )) {
-      if (item.isActive(accountId)) {
+    for (let item of this.flatList.filter((l) => l.budgetId === budgetId)) {
+      if (
+        item.isActive(accountId) ||
+        item.children.find((c) => c.isActive(accountId))
+      ) {
         return true;
       }
     }
@@ -60,9 +64,7 @@ export class BudgetPairArray {
   }
 
   isBudgetRemaining(budgetId: number, accountId?: number) {
-    for (let item of flattenBudgetPairs(this.list).filter(
-      (l) => l.budgetId === budgetId
-    )) {
+    for (let item of this.flatList.filter((l) => l.budgetId === budgetId)) {
       if (item.isRemaining(accountId)) {
         return true;
       }
@@ -86,11 +88,13 @@ export class BudgetPairArray {
     month: Moment,
     accountId?: number
   ): BudgetPair | undefined {
-    const budgetPairs = flattenBudgetPairs(this.list).filter(
+    const budgetPairs = this.flatList.filter(
       (i) =>
         i.budgetId === budgetId &&
         i.month.isSame(month, "M") &&
-        (accountId === undefined || i.accountId === accountId)
+        (accountId === undefined ||
+          i.accountId === accountId ||
+          i.accountId === 0)
     );
 
     if (budgetPairs.length === 0) {
@@ -206,17 +210,27 @@ export class BudgetPair {
     return false;
   }
 
-  getChildrenPlanned(): number {
+  getChildrenPlanned(accountId?: number): number {
     const planned = this.children.reduce(
-      (prev, cur) => prev + cur.planned + cur.getChildrenPlanned(),
+      (prev, cur) =>
+        prev +
+        (!accountId || cur.accountId === accountId || cur.accountId === 0
+          ? cur.planned
+          : 0) +
+        cur.getChildrenPlanned(accountId),
       0
     );
     return roundTo(planned, 2);
   }
 
-  getChildrenActual(): number {
+  getChildrenActual(accountId?: number): number {
     const actual = this.children.reduce(
-      (prev, cur) => prev + cur.actual + cur.getChildrenActual(),
+      (prev, cur) =>
+        prev +
+        (!accountId || cur.accountId === accountId || cur.accountId === 0
+          ? cur.actual
+          : 0) +
+        cur.getChildrenActual(accountId),
       0
     );
     return roundTo(actual, 2);
