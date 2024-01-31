@@ -15,7 +15,6 @@ import moment from "moment";
 import { useTranslation } from "react-i18next";
 import Hint from "components/Hint";
 import { DATE_FORMAT } from "helpers/dateHelper";
-import { AmountType } from "types/IAmount";
 import BudgetOverrideItem from "./BudgetOverrideItem";
 import BudgetAmountItem from "./BudgetAmountItem";
 import useBudget from "hooks/useBudget";
@@ -300,7 +299,6 @@ const BudgetAddOrEdit = () => {
                           fromAccountId: !!values.fromAccountId
                             ? values.fromAccountId
                             : 1,
-                          amountType: AmountType.Basic,
                           frequency: 1,
                           startDate: new Date(),
                         })
