@@ -297,7 +297,9 @@ const BudgetAddOrEdit = () => {
                       onClick={() =>
                         unshift({
                           amount: "0",
-                          fromAccountId: values.fromAccountId ?? 1,
+                          fromAccountId: !!values.fromAccountId
+                            ? values.fromAccountId
+                            : 1,
                           amountType: AmountType.Basic,
                           frequency: 1,
                           startDate: new Date(),
