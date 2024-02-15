@@ -158,6 +158,7 @@
     "emailEmpty": "Email cannot be empty",
     "emailInvalid": "Email is invalid",
     "passwordEmpty": "Password cannot be empty",
+    "passwordTooShort": "Password is too short",
     "passwordInvalid": "Password cannot be less than 8 characters long",
     "codeEmpty": "Code cannot be empty",
     "codeInvalid": "Invalid code",

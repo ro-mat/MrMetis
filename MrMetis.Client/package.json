@@ -10,6 +10,7 @@
     "@fortawesome/free-regular-svg-icons": "^6.1.1",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/react-fontawesome": "^0.1.19",
+    "@hookform/resolvers": "^3.3.4",
     "@mui/material": "^5.11.10",
     "@mui/x-date-pickers": "^6.5.0",
     "@reduxjs/toolkit": "^1.8.1",
@@ -31,6 +32,7 @@
     "react": "^18.0.0",
     "react-datepicker": "^4.10.0",
     "react-dom": "^18.0.0",
+    "react-hook-form": "^7.50.1",
     "react-i18next": "^11.16.7",
     "react-idle-timer": "^5.6.2",
     "react-redux": "^8.0.1",
@@ -40,7 +42,8 @@
     "react-toastify": "^9.0.1",
     "redux": "^4.2.0",
     "redux-thunk": "^2.4.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "zod": "^3.22.4"
   },
   "scripts": {
     "start": "react-scripts start .env.development .env",

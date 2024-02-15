@@ -2,6 +2,17 @@ import { DATE_FORMAT } from "helpers/dateHelper";
 import moment from "moment";
 import { BudgetTypeUser } from "store/userdata/userdata.types";
 
+const loginFormDefault = {
+  email: "",
+  password: "",
+};
+
+const registerFormDefault = {
+  email: "",
+  password: "",
+  invitationCode: "",
+};
+
 const budgetAddOrEditFormDefault = {
   id: 0,
   dateCreated: moment().format(DATE_FORMAT),
@@ -34,6 +45,8 @@ const accountAddOrEditFormDefault = {
 };
 
 export {
+  loginFormDefault,
+  registerFormDefault,
   budgetAddOrEditFormDefault,
   statementAddOrEditFormDefault,
   accountAddOrEditFormDefault,

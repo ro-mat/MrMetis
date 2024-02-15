@@ -13,7 +13,7 @@ import moment from "moment";
 import useBudget from "hooks/useBudget";
 import useAccount from "hooks/useAccount";
 
-const Budget = () => {
+const BudgetPage = () => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
 
@@ -120,4 +120,4 @@ const Budget = () => {
   );
 };
 
-export default Budget;
+export default BudgetPage;

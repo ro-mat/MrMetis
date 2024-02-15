@@ -6,7 +6,7 @@ import { SET_SELECTED_STATEMENT } from "store/ui/ui.slice";
 import StatementTable from "components/StatementTable";
 import { useTranslation } from "react-i18next";
 
-const Statements = () => {
+const StatementsPage = () => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
 
@@ -51,4 +51,4 @@ const Statements = () => {
   );
 };
 
-export default Statements;
+export default StatementsPage;
