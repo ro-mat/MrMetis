@@ -14,10 +14,10 @@ import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 import Hint from "components/Hint";
-import { DATE_FORMAT } from "helpers/dateHelper";
 import BudgetOverrideItem from "./BudgetOverrideItem";
 import BudgetAmountItem from "./BudgetAmountItem";
 import useBudget from "hooks/useBudget";
+import { budgetAddOrEditFormDefault } from "helpers/constants/defaults";
 
 const BudgetAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -30,19 +30,7 @@ const BudgetAddOrEdit = () => {
   const { getById: getBudgetById, getNextId: getNextBudgetId } = useBudget();
 
   const defaultFormValues = useMemo(() => {
-    return {
-      id: 0,
-      dateCreated: moment().format(DATE_FORMAT),
-      parentId: 0,
-      fromAccountId: 0,
-      toAccountId: 0,
-      name: "",
-      isEssential: false,
-      amounts: [],
-      overrides: [],
-      type: BudgetTypeUser.spending,
-      expectOneStatement: false,
-    };
+    return budgetAddOrEditFormDefault;
   }, []);
 
   const [formValues, setFormValues] = useState<IBudget>(defaultFormValues);

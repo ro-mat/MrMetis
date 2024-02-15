@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import moment from "moment";
 import { DATE_FORMAT } from "helpers/dateHelper";
 import useStatement from "hooks/useStatement";
+import { statementAddOrEditFormDefault } from "helpers/constants/defaults";
 
 const StatementAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -30,15 +31,7 @@ const StatementAddOrEdit = () => {
     useStatement();
 
   const defaultFormValues = useMemo(() => {
-    return {
-      id: 0,
-      dateCreated: moment().format(DATE_FORMAT),
-      amount: 0,
-      comment: "",
-      date: moment().format(DATE_FORMAT),
-      budgetId: 0,
-      accountId: 0,
-    };
+    return statementAddOrEditFormDefault;
   }, []);
 
   const [date, setDate] = useState(defaultFormValues.date);

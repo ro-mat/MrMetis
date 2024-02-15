@@ -16,9 +16,8 @@ import { DatePickerField } from "components/DatePickerField";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
 import Hint from "components/Hint";
-import moment from "moment";
-import { DATE_FORMAT } from "helpers/dateHelper";
 import useAccount from "hooks/useAccount";
+import { accountAddOrEditFormDefault } from "helpers/constants/defaults";
 
 const AccountAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -32,12 +31,7 @@ const AccountAddOrEdit = () => {
   const { getById: getAccountById, getNextId: getNextAccountId } = useAccount();
 
   const defaultFormValues = useMemo(() => {
-    return {
-      id: 0,
-      dateCreated: moment().format(DATE_FORMAT),
-      name: "",
-      leftFromPrevMonth: [],
-    };
+    return accountAddOrEditFormDefault;
   }, []);
 
   const [formValues, setFormValues] = useState<IAccount>(defaultFormValues);
