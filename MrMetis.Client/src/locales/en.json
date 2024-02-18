@@ -168,6 +168,7 @@
     "missingTransactionData": "Not enough data for statement",
     "nameEmpty": "Name cannot be empty",
     "monthEmpty": "Month cannot be empty",
+    "amountEmpty": "Amount cannot be empty",
     "NaN": "Not a number"
   },
   "landingPage": {

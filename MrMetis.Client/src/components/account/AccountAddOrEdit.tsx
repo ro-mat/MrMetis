@@ -2,7 +2,6 @@ import React, { useEffect, useMemo } from "react";
 import Labeled from "components/Labeled";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
-import { IAccount } from "store/userdata/userdata.types";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import {
@@ -13,7 +12,6 @@ import {
 import { SET_SELECTED_ACCOUNT } from "store/ui/ui.slice";
 import { DatePickerField } from "components/DatePickerField";
 import "react-datepicker/dist/react-datepicker.css";
-import { useTranslation } from "react-i18next";
 import useAccount from "hooks/useAccount";
 import { accountAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
@@ -29,7 +27,10 @@ const schema = z.object({
   leftFromPrevMonth: z.array(
     z.object({
       month: z.date({ required_error: "errors.monthEmpty" }),
-      amount: z.coerce.number({ required_error: "errors.NaN" }).optional(),
+      amount: z.coerce.number({
+        invalid_type_error: "errors.NaN",
+        required_error: "errors.amountEmpty",
+      }),
     })
   ),
 });
@@ -67,7 +68,7 @@ const AccountAddOrEdit = () => {
         ...l,
         accountId: 0,
         month: moment(l.month).format(DATE_FORMAT),
-        amount: l.amount?.toString() ?? "0",
+        amount: l.amount ?? 0,
       })),
     };
 
@@ -128,7 +129,7 @@ const AccountAddOrEdit = () => {
       leftFromPrevMonth: account?.leftFromPrevMonth.map((l) => ({
         ...l,
         month: new Date(l.month),
-        amount: parseFloat(l.amount),
+        amount: l.amount ?? 0,
       })),
     });
   }, [selectedAccountId, reset, getAccountById]);

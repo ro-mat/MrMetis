@@ -164,7 +164,7 @@ export const getRelevantFormulas = (
         parentId: budget.parentId,
         budgetType: budget.type,
         expectOneStatement: budget.expectOneStatement,
-        formula: o.amount,
+        formula: o.amount.toString(),
       };
     });
 
