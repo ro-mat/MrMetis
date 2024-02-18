@@ -66,7 +66,7 @@ const AccountAddOrEdit = () => {
       id: data.id ?? 0,
       leftFromPrevMonth: data.leftFromPrevMonth.map((l) => ({
         ...l,
-        accountId: 0,
+        accountId: selectedAccountId ?? 0,
         month: moment(l.month).format(DATE_FORMAT),
         amount: l.amount ?? 0,
       })),
@@ -83,25 +83,17 @@ const AccountAddOrEdit = () => {
     dispatch(SET_SELECTED_ACCOUNT(undefined));
   };
 
-  const accountId = useMemo(() => getValues("id"), [getValues]);
-
-  const { budgets, statements } = useSelector(
-    (state: AppState) => state.data.userdata
-  );
   const { selectedAccountId } = useSelector((state: AppState) => state.ui.ui);
 
-  const { getById: getAccountById, getNextId: getNextAccountId } = useAccount();
+  const {
+    getById: getAccountById,
+    getNextId: getNextAccountId,
+    isAccountUsed,
+  } = useAccount();
 
   const disableDelete = useMemo(
-    () =>
-      selectedAccountId !== undefined &&
-      (budgets.some(
-        (b) =>
-          b.fromAccountId === selectedAccountId ||
-          b.toAccountId === selectedAccountId
-      ) ||
-        statements.some((s) => s.accountId === selectedAccountId)),
-    [selectedAccountId, budgets, statements]
+    () => selectedAccountId !== undefined && isAccountUsed(selectedAccountId),
+    [selectedAccountId, isAccountUsed]
   );
 
   const onCancelEditClick = () => {
@@ -192,7 +184,7 @@ const AccountAddOrEdit = () => {
           </div>
         </div>
         <AddOrEditControls
-          isNew={!!accountId}
+          isNew={!selectedAccountId}
           isValid={isValid}
           onCancelEditClick={onCancelEditClick}
           onDeleteClick={onDeleteClick}

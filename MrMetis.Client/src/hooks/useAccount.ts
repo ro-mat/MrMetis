@@ -3,7 +3,9 @@ import { useSelector } from "react-redux";
 import { AppState } from "store/store";
 
 const useAccount = () => {
-  const { accounts } = useSelector((state: AppState) => state.data.userdata);
+  const { accounts, budgets, statements } = useSelector(
+    (state: AppState) => state.data.userdata
+  );
 
   const getById = useCallback(
     (accountId?: number) => accounts.find((a) => a.id === accountId),
@@ -16,7 +18,15 @@ const useAccount = () => {
     return maxExistingId + 1;
   }, [accounts]);
 
-  return { accounts, getById, getNextId };
+  const isAccountUsed = useCallback(
+    (accountId: number) =>
+      budgets.some(
+        (b) => b.fromAccountId === accountId || b.toAccountId === accountId
+      ) || statements.some((s) => s.accountId === accountId),
+    [budgets, statements]
+  );
+
+  return { accounts, getById, getNextId, isAccountUsed };
 };
 
 export default useAccount;
