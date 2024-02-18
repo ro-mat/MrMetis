@@ -77,12 +77,7 @@
     "amount": "Amount",
     "budget": "Budget",
     "account": "Account",
-    "comment": "Comment",
-
-    "add": "Add",
-    "edit": "Edit",
-    "cancel": "Cancel",
-    "delete": "Delete"
+    "comment": "Comment"
   },
   "budget": {
     "header": "Budget list",
@@ -107,13 +102,6 @@
     "overrides": "Overrides",
     "month": "Month",
 
-    "hintDeleteDisabled": "This budget item is used, therefore cannot be deleted",
-
-    "add": "Add",
-    "edit": "Edit",
-    "cancel": "Cancel",
-    "delete": "Delete",
-
     "amountHint": {
       "label": "Advanced amount",
       "description": "[cur_month | prev_month]: Current month or previous month\n.[\ngetLeftFromPrevMonth([accountId]): Left from previous month with optional account specification\ngetTotalIncome([accountId]): Total of type 'Income' with optional account specification\ngetTotalSpending([accountId]): Total of type 'Spending' with optional account specification\ngetTotalLoanReturn([accountId]): Total of type 'Loan return' with optional account specification\ngetTotalSavings([accountId]): Total of type 'Savings' with optional account specification\ngetTotalToOtherAccount([accountId]): Total of type 'Transfer to other account' with optional account specification\ngetTotalFromOtherAccount([accountId]): Total of type 'Transfer from other account' with optional account specification\ngetTotalKeepOnAccount([accountId]): Total of type 'Keep on account' with optional account specification\ngetOpeningBalance([accountId]): = (getLeftFromPrevMonth + getTotalIncome + getTotalFromOtherAccount) with optional account specification\ngetClosingBalance([accountId]): = (getOpeningBalance - getTotalSavings - getTotalLoanReturn - getTotalSpending - totalToOtherAccount)  with optional account specification\ngetItem(<budgetId>[, accountId]): Gets amount of a specific budget item with optional account specification\ngetDaysInMonth(): Gets total of calendar days in a month (1 - 31)\ngetWeekdaysInMonth([1..7]): Gets total of a certain weekday in a month (e.g. getWeekdaysInMonth(2) = Tuesdays in a month)\n]"
@@ -126,14 +114,14 @@
 
     "leftFromPrevMonth": "Left from prev month",
     "month": "Month",
-    "amount": "Amount",
-
-    "hintDeleteDisabled": "This account is used, therefore cannot be deleted",
-
+    "amount": "Amount"
+  },
+  "addOrEdit": {
     "add": "Add",
     "edit": "Edit",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "hintDeleteDisabled": "This item is used, therefore cannot be deleted"
   },
   "demo": {
     "topBarMessage": "You are using demo data! The data is not saved and may be lost. Feel free to play around and change anything.",

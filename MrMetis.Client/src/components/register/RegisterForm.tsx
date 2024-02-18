@@ -48,14 +48,14 @@ const RegisterForm = () => {
       <Labeled
         labelKey="register.email"
         required
-        errorKey={errors.email ? errors.email.message : undefined}
+        errorKey={errors.email?.message}
       >
         <input {...register("email")} type="text" disabled={isFetching} />
       </Labeled>
       <Labeled
         labelKey="register.password"
         required
-        errorKey={errors.password ? errors.password.message : undefined}
+        errorKey={errors.password?.message}
       >
         <input
           {...register("password")}
@@ -66,9 +66,7 @@ const RegisterForm = () => {
       <Labeled
         labelKey="register.code"
         required
-        errorKey={
-          errors.invitationCode ? errors.invitationCode.message : undefined
-        }
+        errorKey={errors.invitationCode?.message}
       >
         <input
           {...register("invitationCode")}

@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
-import StatementAddOrEdit from "components/StatementAddOrEdit";
+import StatementAddOrEdit from "components/statement/StatementAddOrEdit";
 import { SET_SELECTED_STATEMENT } from "store/ui/ui.slice";
 import StatementTable from "components/StatementTable";
 import { useTranslation } from "react-i18next";

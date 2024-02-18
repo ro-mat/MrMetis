@@ -77,11 +77,7 @@
     "amount": "Сумма",
     "budget": "Бюджет",
     "account": "Счет",
-    "comment": "Коментарий",
-    "add": "Добавить",
-    "edit": "Править",
-    "cancel": "Отменить",
-    "delete": "Удалить"
+    "comment": "Коментарий"
   },
   "budget": {
     "header": "Список бюджетов",
@@ -106,13 +102,6 @@
     "overrides": "Правки",
     "month": "Месяц",
 
-    "hintDeleteDisabled": "Этот бюджет используется и поэтому не может быть удален",
-
-    "add": "Добавить",
-    "edit": "Править",
-    "cancel": "Отменить",
-    "delete": "Удалить",
-
     "amountHint": {
       "label": "Продвинутая сумма",
       "description": "[cur_month | prev_month]: Текущий или предыдущий месяц\n.[\ngetLeftFromPrevMonth([accountId]): Остаток от предыдущего месяца с необязательным уточнением счета\ngetTotalIncome([accountId]): Сумма типа 'Прибыль' с необязательным уточнением счета\ngetTotalSpending([accountId]): Сумма типа 'Расход' с необязательным уточнением счета\ngetTotalLoanReturn([accountId]): Сумма типа 'Возврат долга' с необязательным уточнением счета\ngetTotalSavings([accountId]): Сумма типа 'Сбережение' с необязательным уточнением счета\ngetTotalToOtherAccount([accountId]): Сумма типа 'Перевод на счет' с необязательным уточнением счета\ngetTotalFromOtherAccount([accountId]): Сумма типа 'Перевод со счета' с необязательным уточнением счета\ngetTotalKeepOnAccount([accountId]): Сумма типа 'Оставить на счету' с необязательным уточнением счета\ngetOpeningBalance([accountId]): = (getLeftFromPrevMonth + getTotalIncome + getTotalFromOtherAccount) с необязательным уточнением счета\ngetClosingBalance([accountId]): = (getOpeningBalance - getTotalSavings - getTotalLoanReturn - getTotalSpending - totalToOtherAccount) с необязательным уточнением счета\ngetItem(<budgetId>[, accountId]): Получает сумму определенного бюжета с необязательным уточнением счета\ngetDaysInMonth(): Получает количество календарных дней в месяце (1 - 31)\ngetWeekdaysInMonth([1..7]): Получает сумму дней недели в месяце (пр. getWeekdaysInMonth(2) = Количество Вторников в месяце)\n]"
@@ -125,14 +114,14 @@
 
     "leftFromPrevMonth": "Остаток с прошлого месяца",
     "month": "Месяц",
-    "amount": "Сумма",
-
-    "hintDeleteDisabled": "Этот счет используется и поэтому не может быть уделен",
-
+    "amount": "Сумма"
+  },
+  "addOrEdit": {
     "add": "Добавить",
     "edit": "Править",
     "cancel": "Отменить",
-    "delete": "Удалить"
+    "delete": "Удалить",
+    "hintDeleteDisabled": "Этот объект используется и поэтому не может быть уделен"
   },
   "demo": {
     "topBarMessage": "Вы используете тестовые данные! Данные не сохраняются и могут быть потеряны. Можете манипулировать данными и пробовать продукт.",

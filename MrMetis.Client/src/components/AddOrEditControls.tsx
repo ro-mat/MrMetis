@@ -25,24 +25,24 @@ const AddOrEditControls = ({
           <input
             type="submit"
             className="btn small primary"
-            value={t("account.edit")}
+            value={t("addOrEdit.edit")}
             disabled={!isValid}
           />
           <input
             type="button"
             className="btn small"
-            value={t("account.cancel")}
+            value={t("addOrEdit.cancel")}
             onClick={() => onCancelEditClick()}
           />
           <input
             type="button"
             className="btn small"
-            value={t("account.delete")}
+            value={t("addOrEdit.delete")}
             onClick={() => onDeleteClick()}
             disabled={disableDelete}
           />
           {disableDelete && (
-            <Hint label="?">{t("account.hintDeleteDisabled")}</Hint>
+            <Hint label="?">{t("addOrEdit.hintDeleteDisabled")}</Hint>
           )}
         </>
       )}
@@ -50,11 +50,10 @@ const AddOrEditControls = ({
         <input
           type="submit"
           className="btn small primary"
-          value={t("account.add")}
+          value={t("addOrEdit.add")}
           disabled={!isValid}
         />
       )}
-      <div>{isValid ? "valid" : "not-valid"}</div>
     </div>
   );
 };

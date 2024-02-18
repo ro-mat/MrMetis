@@ -43,7 +43,6 @@ const AccountAddOrEdit = () => {
   const {
     register,
     handleSubmit,
-    getValues,
     reset,
     control,
     formState: { errors, isValid },
@@ -133,7 +132,7 @@ const AccountAddOrEdit = () => {
           <Labeled
             labelKey="account.name"
             required
-            errorKey={errors.name ? errors.name.message : undefined}
+            errorKey={errors.name?.message}
           >
             <input {...register("name")} type="text" />
           </Labeled>

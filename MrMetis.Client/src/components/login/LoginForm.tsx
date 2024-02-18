@@ -44,17 +44,13 @@ const LoginForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Labeled
-        labelKey="login.email"
-        required
-        errorKey={errors.email ? errors.email.message : undefined}
-      >
+      <Labeled labelKey="login.email" required errorKey={errors.email?.message}>
         <input {...register("email")} type="text" disabled={isFetching} />
       </Labeled>
       <Labeled
         labelKey="login.password"
         required
-        errorKey={errors.password ? errors.password.message : undefined}
+        errorKey={errors.password?.message}
       >
         <input
           {...register("password")}

@@ -29,17 +29,15 @@ const budgetAddOrEditFormDefault = {
 
 const statementAddOrEditFormDefault = {
   id: 0,
-  dateCreated: moment().format(DATE_FORMAT),
   amount: 0,
   comment: "",
-  date: moment().format(DATE_FORMAT),
+  date: new Date(),
   budgetId: 0,
   accountId: 0,
 };
 
 const accountAddOrEditFormDefault = {
   id: 0,
-  dateCreated: moment().format(DATE_FORMAT),
   name: "",
   leftFromPrevMonth: [],
 };
