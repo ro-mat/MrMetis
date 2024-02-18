@@ -166,7 +166,8 @@
     "failedLogin": "Не удалось войти",
     "missingTransactionData": "Не достаточно данных для транзакции",
     "nameEmpty": "Имя не может быть пустым",
-    "monthEmpty": "Месяц не может быть пустым"
+    "monthEmpty": "Месяц не может быть пустым",
+    "NaN": "Не номер"
   },
   "landingPage": {
     "welcome": {

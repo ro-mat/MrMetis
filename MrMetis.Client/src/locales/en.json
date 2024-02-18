@@ -167,7 +167,8 @@
     "failedLogin": "Failed to login",
     "missingTransactionData": "Not enough data for statement",
     "nameEmpty": "Name cannot be empty",
-    "monthEmpty": "Month cannot be empty"
+    "monthEmpty": "Month cannot be empty",
+    "NaN": "Not a number"
   },
   "landingPage": {
     "welcome": {

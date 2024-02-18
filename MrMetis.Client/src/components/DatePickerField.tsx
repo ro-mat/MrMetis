@@ -1,31 +1,32 @@
 import React from "react";
-import { type FieldAttributes, useField, useFormikContext } from "formik";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
-import moment from "moment";
+import DatePicker from "react-datepicker";
 import { useTranslation } from "react-i18next";
+import { Controller } from "react-hook-form";
+import "react-datepicker/dist/react-datepicker.css";
 
-export const DatePickerField = ({ ...props }: FieldAttributes<any>) => {
+interface IDatePickerFieldProps {
+  name: string;
+  control?: any;
+}
+
+export const DatePickerField = ({ name, control }: IDatePickerFieldProps) => {
   const { i18n } = useTranslation();
 
-  const { setFieldValue } = useFormikContext();
-  const [field] = useField(props);
   return (
-    <LocalizationProvider
-      dateAdapter={AdapterMoment}
-      adapterLocale={i18n.language}
-    >
-      <DatePicker
-        views={["month", "year"]}
-        minDate={moment().add(-1, "y")}
-        maxDate={moment().add(1, "y")}
-        value={(field.value && moment(field.value)) || null}
-        format="MM-YYYY"
-        onChange={(val) => {
-          setFieldValue(field.name, val);
-        }}
-      />
-    </LocalizationProvider>
+    <Controller
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <DatePicker
+          {...field}
+          locale={i18n.language}
+          dateFormat="MM-yyyy"
+          selected={field.value ? new Date(field.value) : null}
+          onChange={(date) => field.onChange(date)}
+          showMonthYearPicker
+          showTwoColumnMonthYearPicker
+        />
+      )}
+    />
   );
 };

@@ -30,7 +30,7 @@
     "moment": "^2.29.4",
     "node-sass": "^7.0.1",
     "react": "^18.0.0",
-    "react-datepicker": "^4.10.0",
+    "react-datepicker": "^4.25.0",
     "react-dom": "^18.0.0",
     "react-hook-form": "^7.50.1",
     "react-i18next": "^11.16.7",

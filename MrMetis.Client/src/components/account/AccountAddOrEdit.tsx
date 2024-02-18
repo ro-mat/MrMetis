@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import Labeled from "components/Labeled";
-import { Formik, FormikErrors, FieldArray } from "formik";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { IAccount } from "store/userdata/userdata.types";
@@ -15,13 +14,75 @@ import { SET_SELECTED_ACCOUNT } from "store/ui/ui.slice";
 import { DatePickerField } from "components/DatePickerField";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
-import Hint from "components/Hint";
 import useAccount from "hooks/useAccount";
 import { accountAddOrEditFormDefault } from "helpers/constants/defaults";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFieldArray, useForm } from "react-hook-form";
+import { DATE_FORMAT } from "helpers/dateHelper";
+import moment from "moment";
+import AddOrEditControls from "components/AddOrEditControls";
+
+const schema = z.object({
+  id: z.number().optional(),
+  name: z.string({ required_error: "errors.nameEmpty" }),
+  leftFromPrevMonth: z.array(
+    z.object({
+      month: z.date({ required_error: "errors.monthEmpty" }),
+      amount: z.coerce.number({ required_error: "errors.NaN" }).optional(),
+    })
+  ),
+});
+
+type FormFields = z.infer<typeof schema>;
 
 const AccountAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
-  const { t } = useTranslation();
+
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    reset,
+    control,
+    formState: { errors, isValid },
+  } = useForm<FormFields>({
+    defaultValues: accountAddOrEditFormDefault,
+    resolver: zodResolver(schema),
+    mode: "onTouched",
+  });
+
+  const { fields, prepend, remove } = useFieldArray({
+    control,
+    name: "leftFromPrevMonth",
+  });
+
+  const onSubmit = async (data: FormFields) => {
+    const oldAccount = getAccountById(selectedAccountId)!;
+    const account = {
+      ...oldAccount,
+      ...data,
+      id: data.id ?? 0,
+      leftFromPrevMonth: data.leftFromPrevMonth.map((l) => ({
+        ...l,
+        accountId: 0,
+        month: moment(l.month).format(DATE_FORMAT),
+        amount: l.amount?.toString() ?? "0",
+      })),
+    };
+
+    if (account.id) {
+      dispatch(updateAccount(account));
+    } else {
+      account.id = getNextAccountId();
+      dispatch(addAccount(account));
+    }
+
+    reset();
+    dispatch(SET_SELECTED_ACCOUNT(undefined));
+  };
+
+  const accountId = useMemo(() => getValues("id"), [getValues]);
 
   const { budgets, statements } = useSelector(
     (state: AppState) => state.data.userdata
@@ -30,21 +91,15 @@ const AccountAddOrEdit = () => {
 
   const { getById: getAccountById, getNextId: getNextAccountId } = useAccount();
 
-  const defaultFormValues = useMemo(() => {
-    return accountAddOrEditFormDefault;
-  }, []);
-
-  const [formValues, setFormValues] = useState<IAccount>(defaultFormValues);
-
   const disableDelete = useMemo(
     () =>
       selectedAccountId !== undefined &&
-      (budgets.findIndex(
+      (budgets.some(
         (b) =>
           b.fromAccountId === selectedAccountId ||
           b.toAccountId === selectedAccountId
-      ) >= 0 ||
-        statements.findIndex((s) => s.accountId === selectedAccountId) >= 0),
+      ) ||
+        statements.some((s) => s.accountId === selectedAccountId)),
     [selectedAccountId, budgets, statements]
   );
 
@@ -61,172 +116,88 @@ const AccountAddOrEdit = () => {
 
   useEffect(() => {
     if (!selectedAccountId) {
-      setFormValues(defaultFormValues);
+      reset();
       return;
     }
 
-    let item = getAccountById(selectedAccountId);
-    if (!item) {
-      return;
-    }
+    const account = getAccountById(selectedAccountId);
 
-    setFormValues({
-      ...defaultFormValues,
-      ...item,
+    reset({
+      ...accountAddOrEditFormDefault,
+      ...account,
+      leftFromPrevMonth: account?.leftFromPrevMonth.map((l) => ({
+        ...l,
+        month: new Date(l.month),
+        amount: parseFloat(l.amount),
+      })),
     });
-  }, [getAccountById, defaultFormValues, selectedAccountId]);
+  }, [selectedAccountId, reset, getAccountById]);
 
   return (
     <div>
-      <Formik
-        validateOnChange={true}
-        enableReinitialize={true}
-        initialValues={formValues}
-        validate={(values) => {
-          const errors: FormikErrors<IAccount> = {};
-
-          if (!values.name) {
-            errors.name = "errors.nameEmpty";
-          }
-
-          for (let value of values.leftFromPrevMonth) {
-            if (value.month === null) {
-              errors.leftFromPrevMonth = "errors.monthEmpty";
-              break;
-            }
-          }
-
-          return errors;
-        }}
-        onSubmit={(values) => {
-          const account = {
-            ...values,
-          };
-
-          if (values.id) {
-            dispatch(updateAccount(account));
-          } else {
-            account.id = getNextAccountId();
-            dispatch(addAccount(account));
-          }
-
-          setFormValues(defaultFormValues);
-          dispatch(SET_SELECTED_ACCOUNT(undefined));
-        }}
-      >
-        {({
-          values,
-          isValid,
-          errors,
-          touched,
-          handleSubmit,
-          handleChange,
-          handleBlur,
-        }) => (
-          <form onSubmit={handleSubmit}>
-            <div className="crud">
-              <Labeled
-                labelKey="account.name"
-                required
-                errorKey={touched.name && errors.name ? errors.name : undefined}
-              >
-                <input
-                  type="text"
-                  id="name"
-                  value={values.name}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
-              </Labeled>
-            </div>
-            <FieldArray
-              name="leftFromPrevMonth"
-              render={({ unshift, remove }) => (
-                <div className="list-wrapper">
-                  <Labeled
-                    labelKey="account.leftFromPrevMonth"
-                    horisontal={true}
-                  >
-                    <button
-                      type="button"
-                      className="small secondary"
-                      onClick={() =>
-                        unshift({ amount: "0", month: new Date() })
-                      }
-                    >
-                      +
-                    </button>
-                  </Labeled>
-                  <div className="list">
-                    {errors.leftFromPrevMonth !== undefined &&
-                      typeof errors.leftFromPrevMonth === "string" && (
-                        <div className="error">
-                          {t(errors.leftFromPrevMonth)}
-                        </div>
-                      )}
-                    {values.leftFromPrevMonth?.map((amount, index) => (
-                      <div key={index}>
-                        <Labeled labelKey="account.month" required>
-                          <DatePickerField
-                            name={`leftFromPrevMonth[${index}].month`}
-                          />
-                        </Labeled>
-                        <Labeled labelKey="account.amount">
-                          <input
-                            type="number"
-                            name={`leftFromPrevMonth[${index}].amount`}
-                            value={amount.amount}
-                            onChange={handleChange}
-                          />
-                        </Labeled>
-                        <button type="button" onClick={() => remove(index)}>
-                          <FontAwesomeIcon icon={faTrashCan} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            />
-            <div className="controls">
-              {!!values.id && (
-                <>
-                  <input
-                    type="submit"
-                    className="btn small primary"
-                    value={t("account.edit")}
-                    disabled={!isValid}
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="crud">
+          <Labeled
+            labelKey="account.name"
+            required
+            errorKey={errors.name ? errors.name.message : undefined}
+          >
+            <input {...register("name")} type="text" />
+          </Labeled>
+        </div>
+        <div className="list-wrapper">
+          <Labeled labelKey="account.leftFromPrevMonth" horisontal={true}>
+            <button
+              type="button"
+              className="small secondary"
+              onClick={() =>
+                prepend({
+                  amount: 0,
+                  month: new Date(),
+                })
+              }
+            >
+              +
+            </button>
+          </Labeled>
+          <div className="list">
+            {fields.map((amount, index) => (
+              <div key={index}>
+                <Labeled
+                  labelKey="account.month"
+                  errorKey={errors.leftFromPrevMonth?.[index]?.month?.message}
+                  required
+                >
+                  <DatePickerField
+                    name={`leftFromPrevMonth.${index}.month`}
+                    control={control}
                   />
+                </Labeled>
+                <Labeled
+                  labelKey="account.amount"
+                  errorKey={errors.leftFromPrevMonth?.[index]?.amount?.message}
+                >
                   <input
-                    type="button"
-                    className="btn small"
-                    value={t("account.cancel")}
-                    onClick={() => onCancelEditClick()}
+                    {...register(`leftFromPrevMonth.${index}.amount`)}
+                    type="number"
+                    step="0.01"
                   />
-                  <input
-                    type="button"
-                    className="btn small"
-                    value={t("account.delete")}
-                    onClick={() => onDeleteClick()}
-                    disabled={disableDelete}
-                  />
-                  {disableDelete && (
-                    <Hint label="?">{t("account.hintDeleteDisabled")}</Hint>
-                  )}
-                </>
-              )}
-              {!values.id && (
-                <input
-                  type="submit"
-                  className="btn small primary"
-                  value={t("account.add")}
-                  disabled={!isValid}
-                />
-              )}
-            </div>
-          </form>
-        )}
-      </Formik>
+                </Labeled>
+                <button type="button" onClick={() => remove(index)}>
+                  <FontAwesomeIcon icon={faTrashCan} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+        <AddOrEditControls
+          isNew={!!accountId}
+          isValid={isValid}
+          onCancelEditClick={onCancelEditClick}
+          onDeleteClick={onDeleteClick}
+          disableDelete={disableDelete}
+        />
+      </form>
     </div>
   );
 };
