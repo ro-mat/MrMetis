@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
+import DatePicker from "react-datepicker";
 import Labeled from "components/Labeled";
-import { Field, Formik, FormikErrors, FieldArray } from "formik";
-import { Select, MenuItem } from "@mui/material";
-import { BudgetTypeUser, IBudget } from "store/userdata/userdata.types";
+import { BudgetTypeUser } from "store/userdata/userdata.types";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import {
@@ -14,33 +13,128 @@ import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 import Hint from "components/Hint";
-import BudgetOverrideItem from "./BudgetOverrideItem";
-import BudgetAmountItem from "./BudgetAmountItem";
 import useBudget from "hooks/useBudget";
 import { budgetAddOrEditFormDefault } from "helpers/constants/defaults";
+import { z } from "zod";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import AddOrEditControls from "components/AddOrEditControls";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
+import { DatePickerField } from "components/DatePickerField";
+import useAccount from "hooks/useAccount";
+
+const schema = z
+  .object({
+    id: z.number().optional(),
+    name: z.string({ required_error: "errors.nameEmpty" }),
+    type: z.number({ required_error: "errors.typeEmpty" }),
+    fromAccountId: z.number().optional(),
+    toAccountId: z.number().optional(),
+    expectOneStatement: z.boolean(),
+    parentId: z.number().optional(),
+    isEssential: z.boolean(),
+    amounts: z.array(
+      z.object({
+        startDate: z.date({ required_error: "errors.dateEmpty" }),
+        endDate: z.date().optional(),
+        fromAccountId: z.number({ required_error: "errors.fromAccountEmpty" }),
+        frequency: z.number({ required_error: "errors.frequencyEmpty" }),
+        amount: z.string(),
+      })
+    ),
+    overrides: z.array(
+      z.object({
+        month: z.date({ required_error: "errors.monthEmpty" }),
+        accountId: z.number({ required_error: "errors.fromAccountEmpty" }),
+        amount: z.number(),
+      })
+    ),
+  })
+  .refine((input) => {
+    return (
+      input.type !== BudgetTypeUser.transferToAccount || input.toAccountId !== 0
+    );
+  });
+
+export type FormFields = z.infer<typeof schema>;
 
 const BudgetAddOrEdit = () => {
+  const { i18n, t } = useTranslation();
   const dispatch = useDispatch<TAppDispatch>();
-  const { t } = useTranslation();
 
-  const { budgets, accounts, statements } = useSelector(
-    (state: AppState) => state.data.userdata
-  );
+  const {
+    register,
+    handleSubmit,
+    reset,
+    getValues,
+    control,
+    formState: { errors, isValid },
+  } = useForm<FormFields>({
+    defaultValues: budgetAddOrEditFormDefault,
+    resolver: zodResolver(schema),
+    mode: "onTouched",
+  });
+
+  const {
+    fields: amountFields,
+    prepend: prependAmount,
+    remove: removeAmount,
+  } = useFieldArray({
+    control,
+    name: "amounts",
+  });
+
+  const {
+    fields: overrideFields,
+    prepend: prependOverride,
+    remove: removeOverride,
+  } = useFieldArray({
+    control,
+    name: "overrides",
+  });
+
+  const onSubmit = (data: FormFields) => {
+    const oldBudget = getBudgetById(selectedBudgetId)!;
+    const budget = {
+      ...oldBudget,
+      ...data,
+      amounts: data.amounts.map((a) => {
+        return {
+          ...a,
+        };
+      }),
+      overrides: data.overrides.map((o) => {
+        return {
+          ...o,
+        };
+      }),
+    };
+
+    if (data.id) {
+      dispatch(updateBudget(budget));
+    } else {
+      budget.id = getNextBudgetId();
+      dispatch(addBudget(budget));
+    }
+
+    reset();
+    dispatch(SET_SELECTED_BUDGET(undefined));
+  };
+
   const { selectedBudgetId } = useSelector((state: AppState) => state.ui.ui);
-  const { getById: getBudgetById, getNextId: getNextBudgetId } = useBudget();
 
-  const defaultFormValues = useMemo(() => {
-    return budgetAddOrEditFormDefault;
-  }, []);
-
-  const [formValues, setFormValues] = useState<IBudget>(defaultFormValues);
+  const {
+    budgets,
+    getById: getBudgetById,
+    getNextId: getNextBudgetId,
+    isBudgetUsed,
+  } = useBudget();
+  const { accounts } = useAccount();
 
   const disableDelete = useMemo(
-    () =>
-      selectedBudgetId !== undefined &&
-      (budgets.findIndex((b) => b.parentId === selectedBudgetId) >= 0 ||
-        statements.findIndex((s) => s.budgetId === selectedBudgetId) >= 0),
-    [selectedBudgetId, budgets, statements]
+    () => selectedBudgetId !== undefined && isBudgetUsed(selectedBudgetId),
+    [selectedBudgetId, isBudgetUsed]
   );
 
   const onCancelEditClick = () => {
@@ -56,7 +150,7 @@ const BudgetAddOrEdit = () => {
 
   useEffect(() => {
     if (!selectedBudgetId) {
-      setFormValues(defaultFormValues);
+      reset();
       return;
     }
 
@@ -70,8 +164,8 @@ const BudgetAddOrEdit = () => {
       item = { ...item, fromAccountId: parent?.fromAccountId ?? 0 };
     }
 
-    setFormValues({
-      ...defaultFormValues,
+    reset({
+      ...budgetAddOrEditFormDefault,
       ...item,
       amounts: [...item.amounts].sort((a, b) =>
         moment(b.startDate).diff(moment(a.startDate))
@@ -80,317 +174,234 @@ const BudgetAddOrEdit = () => {
         moment(b.month).diff(moment(a.month))
       ),
     });
-  }, [defaultFormValues, selectedBudgetId, getBudgetById]);
+  }, [reset, selectedBudgetId, getBudgetById]);
 
   return (
     <div>
-      <Formik
-        validateOnChange={true}
-        enableReinitialize={true}
-        initialValues={formValues}
-        validate={(values) => {
-          const errors: FormikErrors<IBudget> = {};
-
-          if (!values.name) {
-            errors.name = "errors.nameEmpty";
-          }
-          if (!values.type) {
-            errors.type = "errors.typeEmpty";
-          }
-          if (
-            values.type === BudgetTypeUser.transferToAccount &&
-            !values.toAccountId
-          ) {
-            errors.toAccountId = "errors.toAccountEmpty";
-          }
-
-          for (let amount of values.amounts) {
-            if (!amount.startDate) {
-              errors.amounts = "errors.dateEmpty";
-              break;
-            }
-            if (!values.fromAccountId && !amount.fromAccountId) {
-              errors.fromAccountId = "errors.fromAccountEmpty";
-              break;
-            }
-            if (!amount.frequency) {
-              errors.amounts = "errors.frequencyEmpty";
-              break;
-            }
-          }
-          for (let override of values.overrides) {
-            if (!override.month) {
-              errors.amounts = "errors.monthEmpty";
-              break;
-            }
-            if (!values.fromAccountId && !override.accountId) {
-              errors.fromAccountId = "errors.fromAccountEmpty";
-              break;
-            }
-          }
-
-          return errors;
-        }}
-        onSubmit={(values) => {
-          const budget = {
-            ...values,
-            amounts: values.amounts.map((a) => {
-              return {
-                ...a,
-                fromAccountId: values.fromAccountId
-                  ? values.fromAccountId
-                  : a.fromAccountId,
-              };
-            }),
-            overrides: values.overrides.map((o) => {
-              return {
-                ...o,
-                fromAccountId: values.fromAccountId
-                  ? values.fromAccountId
-                  : o.accountId,
-              };
-            }),
-          };
-
-          if (values.id) {
-            dispatch(updateBudget(budget));
-          } else {
-            budget.id = getNextBudgetId();
-            dispatch(addBudget(budget));
-          }
-
-          setFormValues(defaultFormValues);
-          dispatch(SET_SELECTED_BUDGET(undefined));
-        }}
-      >
-        {({
-          values,
-          isValid,
-          errors,
-          touched,
-          handleSubmit,
-          handleChange,
-          handleBlur,
-        }) => (
-          <form onSubmit={handleSubmit}>
-            <div className="crud">
-              <Labeled labelKey="budget.name" required>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={values.name}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
-              </Labeled>
-              <Labeled labelKey="budget.type" required>
-                <Select
-                  id="type"
-                  name="type"
-                  value={values.type}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                >
-                  {[10, 20, 30, 40, 50, 60].map((i) => (
-                    <MenuItem key={i} value={i}>
-                      {t(`budgetType.${BudgetTypeUser[i]}`)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Labeled>
-              <Labeled labelKey="budget.parent">
-                <Select
-                  id="parentId"
-                  name="parentId"
-                  value={values.parentId ?? ""}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      values.fromAccountId =
-                        getBudgetById(+e.target.value)?.fromAccountId ?? 0;
-                    }
-
-                    handleChange(e);
-                  }}
-                >
-                  <MenuItem value={0}>{t("general.no")}</MenuItem>
-                  {budgets
-                    .filter((b) => b.type === values.type && b.id !== values.id)
-                    .map((b) => (
-                      <MenuItem key={b.id} value={b.id}>
-                        {b.name}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </Labeled>
-              <Labeled labelKey="budget.fromAccount">
-                <Select
-                  id="fromAccountId"
-                  name="fromAccountId"
-                  value={values.fromAccountId}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  disabled={
-                    !!(
-                      values.parentId &&
-                      getBudgetById(values.parentId)?.fromAccountId
-                    )
-                  }
-                >
-                  <MenuItem value={0}>{t("general.no")}</MenuItem>
-                  {accounts.map((a) => (
-                    <MenuItem key={a.id} value={a.id}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="crud">
+          <Labeled labelKey="budget.name" required>
+            <input {...register("name")} type="text" />
+          </Labeled>
+          <Labeled labelKey="budget.type" required>
+            <select {...register("type")}>
+              {[10, 20, 30, 40, 50, 60].map((i) => (
+                <option key={i} value={i}>
+                  {t(`budgetType.${BudgetTypeUser[i]}`)}
+                </option>
+              ))}
+            </select>
+          </Labeled>
+          <Labeled labelKey="budget.parent">
+            <select {...register("parentId")}>
+              <option value={0}>{t("general.no")}</option>
+              {budgets
+                .filter(
+                  (b) => b.type === getValues().type && b.id !== getValues().id
+                )
+                .map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+            </select>
+          </Labeled>
+          <Labeled labelKey="budget.fromAccount">
+            <select
+              {...register("fromAccountId")}
+              disabled={!!getBudgetById(selectedBudgetId)?.fromAccountId}
+            >
+              <option value={0}>{t("general.no")}</option>
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          </Labeled>
+          {getValues().type === BudgetTypeUser.transferToAccount && (
+            <Labeled labelKey="budget.toAccount" required>
+              <select {...register("toAccountId")}>
+                <option value={0}>{t("general.no")}</option>
+                {accounts
+                  .filter((a) => a.id !== getValues().fromAccountId)
+                  .map((a) => (
+                    <option key={a.id} value={a.id}>
                       {a.name}
-                    </MenuItem>
+                    </option>
                   ))}
-                </Select>
-              </Labeled>
-              {values.type === BudgetTypeUser.transferToAccount && (
-                <Labeled labelKey="budget.toAccount" required>
-                  <Select
-                    id="toAccountId"
-                    name="toAccountId"
-                    value={values.toAccountId}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  >
-                    <MenuItem value={0}>{t("general.no")}</MenuItem>
-                    {accounts
-                      .filter((a) => a.id !== values.fromAccountId)
-                      .map((a) => (
-                        <MenuItem key={a.id} value={a.id}>
-                          {a.name}
-                        </MenuItem>
-                      ))}
-                  </Select>
+              </select>
+            </Labeled>
+          )}
+          <Labeled labelKey="budget.expectOneStatement">
+            <input
+              type="checkbox"
+              {...register("expectOneStatement")}
+              //defaultChecked={getValues().expectOneStatement}
+            />
+          </Labeled>
+        </div>
+        <div className="list-wrapper">
+          <Labeled labelKey="budget.amounts" horisontal={true}>
+            <button
+              type="button"
+              className="small secondary"
+              onClick={() =>
+                prependAmount({
+                  amount: "0",
+                  fromAccountId:
+                    getValues().fromAccountId !== undefined
+                      ? getValues().fromAccountId!
+                      : 1,
+                  frequency: 1,
+                  startDate: new Date(),
+                })
+              }
+            >
+              +
+            </button>
+          </Labeled>
+          <div>
+            <Hint label={t("budget.amountHint.label")}>
+              <pre>{t("budget.amountHint.description")}</pre>
+            </Hint>
+          </div>
+          <div className="list">
+            {amountFields.map((amount, index) => (
+              <div key={index}>
+                <Labeled labelKey="budget.startDate" required>
+                  <Controller
+                    control={control as any} //TODO: remove any and fix
+                    name={`amounts[${index}].startDate`}
+                    render={({ field }) => (
+                      <DatePicker
+                        {...field}
+                        locale={i18n.language}
+                        selected={field.value ? new Date(field.value) : null}
+                        onChange={(date) => field.onChange(date)}
+                      />
+                    )}
+                  />
                 </Labeled>
-              )}
-              <Labeled labelKey="budget.expectOneStatement">
-                <Field
-                  type="checkbox"
-                  name="expectOneStatement"
-                  checked={values.expectOneStatement}
-                />
-              </Labeled>
-            </div>
-            <FieldArray
-              name="amounts"
-              render={({ unshift, remove }) => (
-                <div className="list-wrapper">
-                  <Labeled labelKey="budget.amounts" horisontal={true}>
-                    <button
-                      type="button"
-                      className="small secondary"
-                      onClick={() =>
-                        unshift({
-                          amount: "0",
-                          fromAccountId: !!values.fromAccountId
-                            ? values.fromAccountId
-                            : 1,
-                          frequency: 1,
-                          startDate: new Date(),
-                        })
-                      }
-                    >
-                      +
-                    </button>
-                  </Labeled>
-                  <div>
-                    <Hint label={t("budget.amountHint.label")}>
-                      <pre>{t("budget.amountHint.description")}</pre>
-                    </Hint>
-                  </div>
-                  <div className="list">
-                    {values.amounts?.map((amount, index) => (
-                      <BudgetAmountItem
-                        index={index}
-                        item={amount}
-                        budgetAccountId={values.fromAccountId}
-                        accounts={accounts}
-                        handleChange={handleChange}
-                        handleBlur={handleBlur}
-                        handleRemoveItem={remove}
+                <Labeled labelKey="budget.endDate">
+                  <Controller
+                    control={control as any} //TODO: remove any and fix
+                    name={`amounts[${index}].endDate`}
+                    render={({ field }) => (
+                      <DatePicker
+                        {...field}
+                        locale={i18n.language}
+                        selected={field.value ? new Date(field.value) : null}
+                        onChange={(date) => field.onChange(date)}
                       />
+                    )}
+                  />
+                </Labeled>
+                <Labeled labelKey="budget.fromAccount" required>
+                  <select
+                    {...register(`amounts.${index}.fromAccountId`)}
+                    value={
+                      getValues().fromAccountId
+                        ? getValues().fromAccountId!
+                        : amount.fromAccountId
+                        ? amount.fromAccountId
+                        : 1
+                    }
+                    disabled={!!getValues().fromAccountId}
+                  >
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
                     ))}
-                  </div>
+                  </select>
+                </Labeled>
+                <Labeled labelKey="budget.amount">
+                  <input {...register(`amounts.${index}.amount`)} type="text" />
+                </Labeled>
+                <Labeled labelKey="budget.frequency" required>
+                  <input
+                    {...register(`amounts.${index}.frequency`)}
+                    type="number"
+                  />
+                </Labeled>
+                <div>
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={() => removeAmount(index)}
+                  >
+                    <FontAwesomeIcon icon={faTrashCan} />
+                  </button>
                 </div>
-              )}
-            />
-            <FieldArray
-              name="overrides"
-              render={({ unshift, remove }) => (
-                <div className="list-wrapper">
-                  <Labeled labelKey="budget.overrides" horisontal={true}>
-                    <button
-                      type="button"
-                      className="small secondary"
-                      onClick={() =>
-                        unshift({
-                          month: new Date(),
-                          amount: "0",
-                          accountId: 1,
-                        })
-                      }
-                    >
-                      +
-                    </button>
-                  </Labeled>
-                  <div className="list">
-                    {values.overrides?.map((ovr, index) => (
-                      <BudgetOverrideItem
-                        key={index}
-                        index={index}
-                        item={ovr}
-                        budgetAccountId={values.fromAccountId}
-                        accounts={accounts}
-                        handleChange={handleChange}
-                        handleBlur={handleBlur}
-                        handleRemoveItem={remove}
-                      />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="list-wrapper">
+          <Labeled labelKey="budget.overrides" horisontal={true}>
+            <button
+              type="button"
+              className="small secondary"
+              onClick={() =>
+                prependOverride({
+                  month: new Date(),
+                  amount: 0,
+                  accountId: 1,
+                })
+              }
+            >
+              +
+            </button>
+          </Labeled>
+          <div className="list">
+            {overrideFields.map((ovr, index) => (
+              <div>
+                <Labeled labelKey="budget.month" required>
+                  <DatePickerField name={`overrides[${index}].month`} />
+                </Labeled>
+                <Labeled labelKey="budget.fromAccount" required>
+                  <select
+                    {...register(`overrides.${index}.accountId`)}
+                    value={
+                      getValues().fromAccountId
+                        ? getValues().fromAccountId!
+                        : ovr.accountId
+                        ? ovr.accountId
+                        : 1
+                    }
+                    disabled={!!getValues().fromAccountId}
+                  >
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
                     ))}
-                  </div>
+                  </select>
+                </Labeled>
+                <Labeled labelKey="budget.amount">
+                  <input
+                    {...register(`overrides.${index}.amount`)}
+                    type="number"
+                  />
+                </Labeled>
+                <div>
+                  <button type="button" onClick={() => removeOverride(index)}>
+                    <FontAwesomeIcon icon={faTrashCan} />
+                  </button>
                 </div>
-              )}
-            />
-            <div className="controls">
-              {!!values.id && (
-                <>
-                  <input
-                    type="submit"
-                    className="btn small primary"
-                    value={t("budget.edit")}
-                    disabled={!isValid}
-                  />
-                  <input
-                    type="button"
-                    className="btn small"
-                    value={t("budget.cancel")}
-                    onClick={() => onCancelEditClick()}
-                  />
-                  <input
-                    type="button"
-                    className="btn small"
-                    value={t("budget.delete")}
-                    onClick={() => onDeleteClick()}
-                    disabled={disableDelete}
-                  />
-                  {disableDelete && (
-                    <Hint label="?">{t("budget.hintDeleteDisabled")}</Hint>
-                  )}
-                </>
-              )}
-              {!values.id && (
-                <input
-                  type="submit"
-                  className="btn small primary"
-                  value={t("budget.add")}
-                  disabled={!isValid}
-                />
-              )}
-            </div>
-          </form>
-        )}
-      </Formik>
+              </div>
+            ))}
+          </div>
+        </div>
+        <AddOrEditControls
+          isNew={!selectedBudgetId}
+          isValid={isValid}
+          onCancelEditClick={onCancelEditClick}
+          onDeleteClick={onDeleteClick}
+          disableDelete={disableDelete}
+        />
+      </form>
     </div>
   );
 };

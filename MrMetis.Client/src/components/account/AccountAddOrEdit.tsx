@@ -66,7 +66,6 @@ const AccountAddOrEdit = () => {
       leftFromPrevMonth: data.leftFromPrevMonth.map((l) => ({
         ...l,
         accountId: selectedAccountId ?? 0,
-        month: moment(l.month).format(DATE_FORMAT),
         amount: l.amount ?? 0,
       })),
     };
