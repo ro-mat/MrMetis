@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { BudgetTypeUser } from "store/userdata/userdata.types";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
@@ -76,6 +76,8 @@ const BudgetAddOrEdit = () => {
     handleSubmit,
     reset,
     control,
+    getValues,
+    setValue,
     formState: { errors, isValid },
   } = useForm<FormFields>({
     defaultValues: budgetAddOrEditFormDefault,
@@ -148,14 +150,27 @@ const BudgetAddOrEdit = () => {
     label: t(`budgetType.${BudgetTypeUser[i]}`),
   }));
 
-  // A budget-level account overrides the account of each amount/override row.
-  const defaultAccountId = (rowAccountId?: number) =>
-    fromAccountId || rowAccountId || 1;
+  // A budget-level account is forced on every amount/override row
+  // (existing and new ones); the row selects are disabled meanwhile.
+  useEffect(() => {
+    if (!fromAccountId) return;
 
-  const disableDelete = useMemo(
-    () => selectedBudgetId !== undefined && isBudgetUsed(selectedBudgetId),
-    [selectedBudgetId, isBudgetUsed]
-  );
+    getValues("amounts").forEach((_, i) =>
+      setValue(`amounts.${i}.fromAccountId`, fromAccountId)
+    );
+    getValues("overrides").forEach((_, i) =>
+      setValue(`overrides.${i}.accountId`, fromAccountId)
+    );
+  }, [
+    fromAccountId,
+    amountFields.length,
+    overrideFields.length,
+    getValues,
+    setValue,
+  ]);
+
+  const disableDelete =
+    selectedBudgetId !== undefined && isBudgetUsed(selectedBudgetId);
 
   const onCancelEditClick = () => {
     dispatch(SET_SELECTED_BUDGET(undefined));
@@ -262,7 +277,7 @@ const BudgetAddOrEdit = () => {
               onClick={() =>
                 prependAmount({
                   amount: "0",
-                  fromAccountId: fromAccountId ?? 1,
+                  fromAccountId: fromAccountId || 1,
                   frequency: 1,
                   startDate: new Date(),
                 })
@@ -277,8 +292,8 @@ const BudgetAddOrEdit = () => {
             </Hint>
           </div>
           <div className="list">
-            {amountFields.map((amount, index) => (
-              <div key={index}>
+            {amountFields.map((field, index) => (
+              <div key={field.id}>
                 <DateInput
                   name={`amounts.${index}.startDate`}
                   control={control}
@@ -298,7 +313,6 @@ const BudgetAddOrEdit = () => {
                   })}
                   label="budget.fromAccount"
                   required
-                  defaultValue={defaultAccountId(amount.fromAccountId)}
                   disabled={!!fromAccountId}
                 />
                 <TextInput
@@ -322,15 +336,19 @@ const BudgetAddOrEdit = () => {
           <Field label="budget.overrides" horizontal>
             <Button
               onClick={() =>
-                prependOverride({ month: new Date(), amount: 0, accountId: 1 })
+                prependOverride({
+                  month: new Date(),
+                  amount: 0,
+                  accountId: fromAccountId || 1,
+                })
               }
             >
               +
             </Button>
           </Field>
           <div className="list">
-            {overrideFields.map((ovr, index) => (
-              <div key={index}>
+            {overrideFields.map((field, index) => (
+              <div key={field.id}>
                 <DateInput
                   name={`overrides.${index}.month`}
                   control={control}
@@ -344,7 +362,6 @@ const BudgetAddOrEdit = () => {
                   })}
                   label="budget.fromAccount"
                   required
-                  defaultValue={defaultAccountId(ovr.accountId)}
                   disabled={!!fromAccountId}
                 />
                 <TextInput
