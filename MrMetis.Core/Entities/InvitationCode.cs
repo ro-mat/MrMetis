@@ -1,10 +1,8 @@
 using MrMetis.Core.Entities.Base;
-using MrMetis.Core.Interfaces;
-using MrMetis.Core.Interfaces.Base;
 
 namespace MrMetis.Core.Entities;
 
-public class InvitationCode : BaseEntity, IAggregateRoot
+public class InvitationCode : BaseEntity
 {
-    public string Code { get; set; }
+    public required string Code { get; set; }
 }

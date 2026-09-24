@@ -1,103 +1,163 @@
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
 using MrMetis.Core.Entities;
-using MrMetis.Core.Interfaces;
-using MrMetis.Core.Interfaces.Base;
-using MrMetis.Core.Services;
-using NSubstitute;
-using NSubstitute.ReturnsExtensions;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
+using MrMetis.Core.Options;
+using MrMetis.Infrastructure.Services;
 
-namespace MrMetis.Test
+namespace MrMetis.Test;
+
+public class IdentityServiceTests : DbTestBase
 {
-    public class IdentityServiceTests
+    private const string Email = "email@email.com";
+    private const string InvitationCode = "code";
+
+    // user created with the legacy HashHelper hash
+    private const string LegacyHash = "d7c8efc324bf9028757eb6c21c0f89e132ce05d520d4e52a70c0ed85dbaa0de3";
+    private const string LegacySalt = "aslqvigxjd6y2k30kud6i3a67g930yc1";
+    private const string LegacyPassword = "8570rglys6qtzb619yiweu9bhtg1o2hhu0qwyn22u52adbdmwkf25wkgf1mzt1ej";
+
+    private IdentityService _service = null!;
+
+    [SetUp]
+    public void Setup()
     {
-        private IConfiguration _configuration;
-        private IAsyncRepository<User> _userRepository;
-        private IAsyncRepository<InvitationCode> _invitationCodeRepository;
-        private readonly Dictionary<string, string> configSettings = new() { { "Authentication:Jwt:Secret", "BudgetYourLife999-unit-test-secret-at-least-32-bytes" } };
-
-        [SetUp]
-        public void Setup()
+        var jwt = new JwtOptions
         {
-            _configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(configSettings)
-                .Build();
-            _userRepository = Substitute.For<IAsyncRepository<User>>();
-            _invitationCodeRepository = Substitute.For<IAsyncRepository<InvitationCode>>();
-        }
+            Secret = "BudgetYourLife999-unit-test-secret-at-least-32-bytes",
+            Issuer = "test",
+            Audience = "test"
+        };
+        _service = new IdentityService(Db, Options.Create(jwt), new PasswordHasher<User>(), TimeProvider.System);
+    }
 
-        [Test]
-        public async Task Login_WithCorrectData_ShouldReturnCorrectToken()
-        {
-            // Arrange
-            var email = "email@email.com";
-            var dbPass = "d7c8efc324bf9028757eb6c21c0f89e132ce05d520d4e52a70c0ed85dbaa0de3";
-            var salt = "aslqvigxjd6y2k30kud6i3a67g930yc1";
-            var userPass = "8570rglys6qtzb619yiweu9bhtg1o2hhu0qwyn22u52adbdmwkf25wkgf1mzt1ej";
+    [Test]
+    public async Task Login_LegacyUserWithCorrectData_ShouldReturnToken()
+    {
+        await AddLegacyUser(LegacyHash, LegacySalt);
 
-            _userRepository
-                .GetAsync(Arg.Any<Expression<Func<User, bool>>>())
-                .ReturnsForAnyArgs(new User { Email = email, Password = dbPass, Salt = salt });
+        var result = await _service.LoginAsync(Email, LegacyPassword);
 
-            var service = new IdentityService(_configuration, _userRepository, _invitationCodeRepository);
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Token, Is.Not.Empty);
+    }
 
-            // Act
-            var result = await service.LoginAsync(email, userPass);
+    [Test]
+    public async Task Login_LegacyUser_ShouldUpgradeHash()
+    {
+        await AddLegacyUser(LegacyHash, LegacySalt);
 
-            // Assert
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Token, Is.Not.Empty);
-        }
+        await _service.LoginAsync(Email, LegacyPassword);
 
-        [TestCase("bad", "aslqvigxjd6y2k30kud6i3a67g930yc1", "8570rglys6qtzb619yiweu9bhtg1o2hhu0qwyn22u52adbdmwkf25wkgf1mzt1ej")]
-        [TestCase("d7c8efc324bf9028757eb6c21c0f89e132ce05d520d4e52a70c0ed85dbaa0de3", "bad", "8570rglys6qtzb619yiweu9bhtg1o2hhu0qwyn22u52adbdmwkf25wkgf1mzt1ej")]
-        [TestCase("d7c8efc324bf9028757eb6c21c0f89e132ce05d520d4e52a70c0ed85dbaa0de3", "aslqvigxjd6y2k30kud6i3a67g930yc1", "bad")]
-        public async Task Login_WithBadData_ShouldReturnError(string dbPass, string salt, string userPass)
-        {
-            // Arrange
-            var email = "email@email.com";
+        await using var db = CreateContext();
+        var user = await db.Users.SingleAsync();
+        Assert.That(user.Salt, Is.Null);
+        Assert.That(user.Password, Is.Not.EqualTo(LegacyHash));
+        Assert.That((await _service.LoginAsync(Email, LegacyPassword)).Success, Is.True);
+        Assert.That((await _service.LoginAsync(Email, "bad")).Success, Is.False);
+    }
 
-            _userRepository
-                .GetAsync(Arg.Any<Expression<Func<User, bool>>>())
-                .ReturnsForAnyArgs(new User { Email = email, Password = dbPass, Salt = salt });
+    [TestCase("bad", LegacySalt, LegacyPassword)]
+    [TestCase(LegacyHash, "bad", LegacyPassword)]
+    [TestCase(LegacyHash, LegacySalt, "bad")]
+    public async Task Login_LegacyUserWithBadData_ShouldReturnError(string dbPass, string salt, string userPass)
+    {
+        await AddLegacyUser(dbPass, salt);
 
-            var service = new IdentityService(_configuration, _userRepository, _invitationCodeRepository);
+        var result = await _service.LoginAsync(Email, userPass);
 
-            // Act
-            var result = await service.LoginAsync(email, userPass);
+        AssertFailed(result.Success, result.Token, result.Errors, "failedLogin");
+        await using var db = CreateContext();
+        Assert.That((await db.Users.SingleAsync()).Salt, Is.EqualTo(salt));
+    }
 
-            // Assert
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.Token, Is.Null);
-            Assert.That(result.Errors, Is.Not.Null);
-            Assert.That(result.Errors.Count, Is.EqualTo(1));
-            Assert.That(result.Errors.First(), Is.EqualTo("failedLogin"));
-        }
+    [Test]
+    public async Task Login_WithBadEmail_ShouldReturnError()
+    {
+        var result = await _service.LoginAsync("any", "any");
 
-        [Test]
-        public async Task Login_WithBadEmail_ShouldReturnError()
-        {
-            // Arrange
-            _userRepository
-                .GetAsync(Arg.Any<Expression<Func<User, bool>>>())
-                .ReturnsNullForAnyArgs();
+        AssertFailed(result.Success, result.Token, result.Errors, "failedLogin");
+    }
 
-            var service = new IdentityService(_configuration, _userRepository, _invitationCodeRepository);
+    [Test]
+    public async Task Register_WithBadCode_ShouldReturnError()
+    {
+        await AddInvitationCode();
 
-            // Act
-            var result = await service.LoginAsync("any", "any");
+        var result = await _service.RegisterAsync(Email, "password", "bad");
 
-            // Assert
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.Token, Is.Null);
-            Assert.That(result.Errors, Is.Not.Null);
-            Assert.That(result.Errors.Count, Is.EqualTo(1));
-            Assert.That(result.Errors.First(), Is.EqualTo("failedLogin"));
-        }
+        AssertFailed(result.Success, result.Token, result.Errors, "codeInvalid");
+    }
+
+    [Test]
+    public async Task Register_WithExistingEmail_ShouldReturnError()
+    {
+        await AddInvitationCode();
+        await AddLegacyUser(LegacyHash, LegacySalt);
+
+        var result = await _service.RegisterAsync(Email, "password", InvitationCode);
+
+        AssertFailed(result.Success, result.Token, result.Errors, "emailExists");
+    }
+
+    [Test]
+    public async Task Register_WithValidData_ShouldCreateUserAndUseCode()
+    {
+        await AddInvitationCode();
+
+        var result = await _service.RegisterAsync(Email, "password", InvitationCode);
+
+        Assert.That(result.Success, Is.True);
+        await using var db = CreateContext();
+        var user = await db.Users.Include(u => u.UserData).SingleAsync();
+        Assert.That(user.Email, Is.EqualTo(Email));
+        Assert.That(user.Password, Is.Not.EqualTo("password"));
+        Assert.That(user.Salt, Is.Null);
+        Assert.That(user.UserData, Is.Not.Null);
+        Assert.That(user.IsActive, Is.True);
+
+        // invitation code is soft deleted
+        Assert.That(await db.InvitationCodes.AnyAsync(), Is.False);
+        Assert.That((await db.InvitationCodes.IgnoreQueryFilters().SingleAsync()).IsActive, Is.False);
+
+        Assert.That((await _service.LoginAsync(Email, "password")).Success, Is.True);
+        Assert.That((await _service.RegisterAsync("other@email.com", "password", InvitationCode)).Errors, Is.EqualTo(new[] { "codeInvalid" }));
+    }
+
+    [Test]
+    public async Task Register_ShouldReturnTokenWithUserClaims()
+    {
+        await AddInvitationCode();
+
+        var result = await _service.RegisterAsync(Email, "password", InvitationCode);
+
+        var token = new JsonWebTokenHandler().ReadJsonWebToken(result.Token);
+        await using var db = CreateContext();
+        var user = await db.Users.SingleAsync();
+        Assert.That(token.GetClaim(JwtRegisteredClaimNames.Email).Value, Is.EqualTo(Email));
+        Assert.That(token.GetClaim("id").Value, Is.EqualTo(user.Id.ToString()));
+        Assert.That(token.ValidTo, Is.EqualTo(DateTime.UtcNow.AddMinutes(120)).Within(TimeSpan.FromMinutes(1)));
+    }
+
+    private static void AssertFailed(bool success, string? token, IReadOnlyList<string> errors, string error)
+    {
+        Assert.That(success, Is.False);
+        Assert.That(token, Is.Null);
+        Assert.That(errors, Is.EqualTo(new[] { error }));
+    }
+
+    private async Task AddLegacyUser(string hash, string salt)
+    {
+        Db.Users.Add(new User { Email = Email, Password = hash, Salt = salt, UserData = new UserData() });
+        await Db.SaveChangesAsync();
+        Db.ChangeTracker.Clear();
+    }
+
+    private async Task AddInvitationCode()
+    {
+        Db.InvitationCodes.Add(new InvitationCode { Code = InvitationCode });
+        await Db.SaveChangesAsync();
+        Db.ChangeTracker.Clear();
     }
 }

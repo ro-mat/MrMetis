@@ -1,49 +1,26 @@
-
-using System;
-using System.Linq;
-using System.Reflection;
-using MrMetis.Core.Entities.Base;
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using MrMetis.Core.Entities.Base;
 
 namespace MrMetis.Infrastructure.Helpers;
 
 public static class BaseEntityConfiguration
 {
-    public static void Configure<TEntity>(ModelBuilder modelBuilder) where TEntity : BaseEntity
+    /// <summary>
+    /// Hides soft deleted (inactive) rows of every <see cref="BaseEntity"/> from queries
+    /// </summary>
+    public static ModelBuilder ApplySoftDeleteQueryFilter(this ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<TEntity>().HasQueryFilter(entity => EF.Property<bool>(entity, nameof(entity.IsActive)) != false);
-    }
+        var entityTypes = modelBuilder.Model.GetEntityTypes()
+            .Where(t => t.BaseType is null && typeof(BaseEntity).IsAssignableFrom(t.ClrType));
 
-    public static ModelBuilder ApplyBaseEntityConfiguration(this ModelBuilder modelBuilder)
-    {
-        if (modelBuilder is null)
+        foreach (var entityType in entityTypes)
         {
-            throw new ArgumentNullException(nameof(modelBuilder));
+            var entity = Expression.Parameter(entityType.ClrType, "entity");
+            var filter = Expression.Lambda(Expression.Property(entity, nameof(BaseEntity.IsActive)), entity);
+            modelBuilder.Entity(entityType.ClrType).HasQueryFilter(filter);
         }
 
-        var method = typeof(BaseEntityConfiguration).GetTypeInfo().DeclaredMethods
-            .Single(m => m.Name == nameof(Configure));
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            if (entityType.ClrType.HasBaseEntity(typeof(BaseEntity)))
-            {
-
-                method.MakeGenericMethod(entityType.ClrType).Invoke(null, new[] { modelBuilder });
-            }
-        }
         return modelBuilder;
-    }
-
-    static bool HasBaseEntity(this Type type, Type T)
-    {
-        for (var baseType = type.BaseType; baseType != null; baseType = baseType.BaseType)
-        {
-            if (baseType == T)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

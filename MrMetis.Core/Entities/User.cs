@@ -1,15 +1,17 @@
-﻿using MrMetis.Core.Entities.Base;
-using MrMetis.Core.Interfaces;
-using MrMetis.Core.Interfaces.Base;
+using MrMetis.Core.Entities.Base;
 
 namespace MrMetis.Core.Entities;
 
-public class User : BaseEntity, IAggregateRoot
+public class User : BaseEntity
 {
-    public string Email { get; set; }
-    public string Password { get; set; }
-    public string Salt { get; set; }
+    public required string Email { get; set; }
+    public required string Password { get; set; }
+
+    /// <summary>
+    /// Only set for users whose password still uses the legacy <see cref="Helpers.HashHelper"/> hash
+    /// </summary>
+    public string? Salt { get; set; }
 
     public int UserDataId { get; set; }
-    public virtual UserData UserData { get; set; }
+    public UserData UserData { get; set; } = null!;
 }

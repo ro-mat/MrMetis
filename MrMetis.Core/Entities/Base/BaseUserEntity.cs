@@ -1,6 +1,6 @@
-﻿namespace MrMetis.Core.Entities.Base;
+namespace MrMetis.Core.Entities.Base;
 
 public class BaseUserEntity : BaseEntity
 {
-    public virtual User User { get; set; }
+    public User User { get; set; } = null!;
 }

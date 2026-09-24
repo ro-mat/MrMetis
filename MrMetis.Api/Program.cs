@@ -1,26 +1,25 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using MrMetis.Api.Endpoints;
+using MrMetis.Api.Extensions;
+using MrMetis.Infrastructure;
+using MrMetis.Infrastructure.Extensions;
 
-namespace MrMetis.Api
+var builder = WebApplication.CreateBuilder(args);
+
+builder.AddInfrastructure();
+builder.AddApiServices();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopmentOrTest())
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
-    }
+    await app.InitializeDatabaseAsync();
 }
+
+app.UseApiPipeline();
+
+app.MapIdentityEndpoints();
+app.MapUserDataEndpoints();
+app.MapHealthChecks("/health");
+app.MapSpaFallback();
+
+app.Run();

@@ -1,8 +1,3 @@
-﻿namespace MrMetis.Core.Requests;
+namespace MrMetis.Core.Requests;
 
-public class UserRegistrationRequest
-{
-    public string Email { get; set; }
-    public string Password { get; set; }
-    public string InvitationCode { get; set; }
-}
+public record UserRegistrationRequest(string Email, string Password, string InvitationCode);

@@ -1,6 +1,3 @@
-﻿namespace MrMetis.Core.Responses;
+namespace MrMetis.Core.Responses;
 
-public class AuthSuccessResponse
-{
-    public string Token { get; set; }
-}
+public record AuthSuccessResponse(string Token);

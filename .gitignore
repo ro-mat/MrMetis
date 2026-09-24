@@ -14,3 +14,4 @@ MrMetis.Client/build/
 app/node_modules/
 logs/
 /.env
+*.csproj.user

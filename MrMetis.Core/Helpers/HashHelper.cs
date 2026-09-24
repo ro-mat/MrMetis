@@ -1,38 +1,29 @@
-﻿using System;
 using System.Security.Cryptography;
 using System.Text;
-using MrMetis.Core.Dtos;
 
 namespace MrMetis.Core.Helpers;
 
-public class HashHelper
+/// <summary>
+/// Legacy password hash (iterated salted SHA-256). Only used to verify users created before the switch to
+/// PasswordHasher, whose hash is upgraded on their next successful login.
+/// </summary>
+public static class HashHelper
 {
     private const int Iterations = 1205;
 
-    public static HashModel HashString(string str, string salt = null)
+    public static bool Verify(string password, string salt, string hash)
     {
-        salt ??= GetSalt();
-        using var sha256 = SHA256.Create();
-        byte[] hashedBytes;
-
-        for (var i = 0; i < Iterations; i++)
-        {
-            hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(str + salt));
-            str = BitConverter.ToString(hashedBytes).Replace("-", "").ToLower();
-        }
-
-        return new HashModel
-        {
-            Hash = str,
-            Salt = salt
-        };
+        var computed = HashString(password, salt);
+        return CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(computed), Encoding.UTF8.GetBytes(hash));
     }
 
-    private static string GetSalt()
+    public static string HashString(string str, string salt)
     {
-        var bytes = new byte[128 / 8];
-        using var keyGenerator = RandomNumberGenerator.Create();
-        keyGenerator.GetBytes(bytes);
-        return BitConverter.ToString(bytes).Replace("-", "").ToLower();
+        for (var i = 0; i < Iterations; i++)
+        {
+            str = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(str + salt)));
+        }
+
+        return str;
     }
 }

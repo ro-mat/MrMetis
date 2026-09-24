@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-
 namespace MrMetis.Core.Responses;
 
-public class AuthenticationResult
+public record AuthenticationResult(bool Success, string? Token, IReadOnlyList<string> Errors)
 {
-    public string Token { get; set; } = null;
-    public bool Success { get; set; }
-    public IEnumerable<string> Errors { get; set; }
+    public static AuthenticationResult Succeeded(string token) => new(true, token, []);
+
+    public static AuthenticationResult Failed(string error) => new(false, null, [error]);
 }

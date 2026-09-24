@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MrMetis.Infrastructure.Contexts;
 
@@ -11,9 +12,11 @@ using MrMetis.Infrastructure.Contexts;
 namespace MrMetis.Infrastructure.Migrations
 {
     [DbContext(typeof(MrMetisContext))]
-    partial class MrMetisContextModelSnapshot : ModelSnapshot
+    [Migration("20260924125214_ModernizeSchema")]
+    partial class ModernizeSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

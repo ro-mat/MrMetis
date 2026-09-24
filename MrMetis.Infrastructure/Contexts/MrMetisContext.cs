@@ -1,74 +1,51 @@
-using System;
-using MrMetis.Core.Entities;
-using MrMetis.Infrastructure.Helpers;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using MrMetis.Core.Entities;
+using MrMetis.Core.Options;
+using MrMetis.Infrastructure.Helpers;
 
-namespace MrMetis.Infrastructure.Contexts
+namespace MrMetis.Infrastructure.Contexts;
+
+public class MrMetisContext(DbContextOptions<MrMetisContext> options, IOptions<DatabaseOptions> databaseOptions)
+    : DbContext(options)
 {
-    public class MrMetisContext : DbContext
+    private readonly string _schema = databaseOptions.Value.Schema;
+
+    public DbSet<User> Users => Set<User>();
+    public DbSet<UserData> UserDatas => Set<UserData>();
+    public DbSet<InvitationCode> InvitationCodes => Set<InvitationCode>();
+
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        private string _schemaUsed { get; set; }
+        builder.HasDefaultSchema(_schema);
 
-        public MrMetisContext()
+        builder.Entity<User>(entity =>
         {
-        }
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Email).IsUnique();
 
-        /// <summary>
-        /// Only used by localhost
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="configuration"></param>
-        public MrMetisContext(DbContextOptions<MrMetisContext> options)
-            : base(options)
+            entity.ToTable(nameof(Users), _schema);
+        });
+
+        builder.Entity<UserData>(entity =>
         {
-            _schemaUsed = "dbo";
-            Database.SetCommandTimeout(30);
-        }
+            entity.HasKey(e => e.Id);
 
-        public MrMetisContext(DbContextOptions<MrMetisContext> options, IConfiguration configuration)
-            : base(options)
+            entity.HasOne(e => e.User)
+                .WithOne(d => d.UserData)
+                .HasForeignKey<User>(e => e.UserDataId)
+                .IsRequired();
+
+            entity.ToTable(nameof(UserDatas), _schema);
+        });
+
+        builder.Entity<InvitationCode>(entity =>
         {
-            _schemaUsed = configuration["Database:Schema"];
-            Database.SetCommandTimeout(!String.IsNullOrEmpty(configuration["Database:CommandTimeout"]) ? int.Parse(configuration["Database:CommandTimeout"]) : 30);
-        }
+            entity.HasKey(e => e.Id);
 
-        public virtual DbSet<User> Users { get; set; }
-        public virtual DbSet<UserData> UserDatas { get; set; }
-        public virtual DbSet<InvitationCode> InvitationCodes { get; set; }
+            entity.ToTable(nameof(InvitationCodes), _schema);
+        });
 
-        protected override void OnModelCreating(ModelBuilder builder)
-        {
-            builder.ApplyBaseEntityConfiguration();
-            builder.HasDefaultSchema(_schemaUsed);
-
-            base.OnModelCreating(builder);
-
-            builder.Entity<User>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-
-                entity.ToTable(nameof(Users), _schemaUsed);
-            });
-
-            builder.Entity<UserData>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-
-                entity.HasOne(e => e.User)
-                    .WithOne(d => d.UserData)
-                    .HasForeignKey<User>(e => e.UserDataId)
-                    .IsRequired();
-
-                entity.ToTable(nameof(UserDatas), _schemaUsed);
-            });
-
-            builder.Entity<InvitationCode>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-
-                entity.ToTable(nameof(InvitationCodes), _schemaUsed);
-            });
-        }
+        builder.ApplySoftDeleteQueryFilter();
     }
 }

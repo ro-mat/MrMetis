@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace MrMetis.Core.Entities.Base;
 
 public class BaseEntity
