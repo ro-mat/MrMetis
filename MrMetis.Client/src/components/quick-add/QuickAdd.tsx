@@ -1,11 +1,5 @@
 import moment from "moment";
-import React, {
-  ChangeEvent,
-  KeyboardEvent,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { ChangeEvent, KeyboardEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { TAppDispatch } from "store/store";
@@ -15,8 +9,9 @@ import { IStatement } from "store/userdata/userdata.types";
 import Hint from "../Hint";
 import { DATE_FORMAT } from "helpers/dateHelper";
 import NewStatementPreview from "./NewStatementPreview";
-import SuggestionDropdown from "./SuggestionDropdown";
 import useStatementSuggestions from "hooks/useStatementSuggestions";
+import useListSelection from "hooks/useListSelection";
+import { Button, Dropdown, TextInput } from "components/ui";
 
 const createDefaultStatement = (): IStatement => ({
   id: 0,
@@ -35,12 +30,16 @@ const QuickAdd = () => {
     createDefaultStatement
   );
   const [isActive, setIsActive] = useState<boolean>(false);
-  const [selectedSuggestion, setSelectedSuggestion] = useState<string>("");
 
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { searchText, setSearchText, filteredSuggestions } =
     useStatementSuggestions();
+  const {
+    selectedId: selectedSuggestion,
+    setSelectedId: setSelectedSuggestion,
+    move: moveSelection,
+  } = useListSelection(filteredSuggestions);
 
   const isComplete = !!(
     statement.budgetId &&
@@ -49,29 +48,15 @@ const QuickAdd = () => {
     statement.date
   );
 
-  const getSelectedSuggestionData = () =>
-    filteredSuggestions.find((s) => s.id === selectedSuggestion)?.obj ?? {};
+  const suggestionData = (id: string) =>
+    filteredSuggestions.find((s) => s.id === id)?.obj ?? {};
+
+  const applySuggestion = (id: string) =>
+    setStatement((old) => ({ ...old, ...suggestionData(id) }));
 
   const resetInput = () => {
     setSearchText("");
     setSelectedSuggestion("");
-  };
-
-  const moveSelection = (step: 1 | -1) => {
-    const count = filteredSuggestions.length;
-    if (count === 0) return;
-
-    const index = filteredSuggestions.findIndex(
-      (s) => s.id === selectedSuggestion
-    );
-    setSelectedSuggestion(
-      filteredSuggestions[(index + step + count) % count].id
-    );
-  };
-
-  const applySelectedSuggestion = () => {
-    const newData = getSelectedSuggestionData();
-    setStatement((old) => ({ ...old, ...newData }));
   };
 
   const saveStatement = () => {
@@ -80,7 +65,10 @@ const QuickAdd = () => {
       return;
     }
 
-    const newStatement = { ...statement, ...getSelectedSuggestionData() };
+    const newStatement = {
+      ...statement,
+      ...suggestionData(selectedSuggestion),
+    };
     dispatch(ADD_STATEMENT(newStatement));
     setStatement({ ...newStatement, comment: undefined });
 
@@ -94,7 +82,7 @@ const QuickAdd = () => {
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     switch (event.key) {
       case "Tab":
-        applySelectedSuggestion();
+        applySuggestion(selectedSuggestion);
         resetInput();
         break;
       case "Enter":
@@ -119,22 +107,16 @@ const QuickAdd = () => {
     event.preventDefault();
   };
 
-  const handleClick = () => {
-    applySelectedSuggestion();
+  const handlePick = (id: string) => {
+    applySuggestion(id);
     resetInput();
     inputRef.current?.focus();
   };
 
-  // Preselect the first suggestion whenever the list changes.
-  useEffect(() => {
-    setSelectedSuggestion(filteredSuggestions[0]?.id ?? "");
-  }, [filteredSuggestions]);
-
   return (
     <div className="quick-add">
       <div className="text-wrapper">
-        <input
-          type="text"
+        <TextInput
           placeholder={t("quickAdd.quickAdd")}
           value={searchText}
           ref={inputRef}
@@ -144,13 +126,9 @@ const QuickAdd = () => {
         />
         {isActive && (
           <>
-            <button
-              className="small secondary"
-              disabled={!isComplete}
-              onClick={saveStatement}
-            >
+            <Button disabled={!isComplete} onClick={saveStatement}>
               {">"}
-            </button>
+            </Button>
             <Hint label="?" labelClass="ml-1">
               {t("quickAdd.hint")}
             </Hint>
@@ -160,12 +138,14 @@ const QuickAdd = () => {
       {isActive && (
         <>
           <NewStatementPreview statement={statement} />
-          <SuggestionDropdown
-            inputText={searchText}
-            suggestions={filteredSuggestions}
-            selectedSuggestion={selectedSuggestion}
-            setSelectedSuggestion={setSelectedSuggestion}
-            handleClickSuggestion={handleClick}
+          <Dropdown
+            items={filteredSuggestions}
+            selectedId={selectedSuggestion}
+            onHover={setSelectedSuggestion}
+            onPick={handlePick}
+            emptyText={
+              searchText.length > 2 ? t("quickAdd.nothingFound") : undefined
+            }
           />
         </>
       )}

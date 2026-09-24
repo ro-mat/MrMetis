@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import Hint from "./Hint";
+import { Button, CancelButton, CtaButton } from "./ui";
 
 interface IAddOrEditControlsProps {
   isNew: boolean;
@@ -9,6 +10,7 @@ interface IAddOrEditControlsProps {
   disableDelete: boolean;
 }
 
+// Submit / cancel / delete buttons at the bottom of every add-or-edit form.
 const AddOrEditControls = ({
   isNew,
   isValid,
@@ -18,41 +20,23 @@ const AddOrEditControls = ({
 }: IAddOrEditControlsProps) => {
   const { t } = useTranslation();
 
+  if (isNew) {
+    return (
+      <div className="controls">
+        <CtaButton disabled={!isValid}>{t("addOrEdit.add")}</CtaButton>
+      </div>
+    );
+  }
+
   return (
     <div className="controls">
-      {!isNew && (
-        <>
-          <input
-            type="submit"
-            className="btn small primary"
-            value={t("addOrEdit.edit")}
-            disabled={!isValid}
-          />
-          <input
-            type="button"
-            className="btn small"
-            value={t("addOrEdit.cancel")}
-            onClick={() => onCancelEditClick()}
-          />
-          <input
-            type="button"
-            className="btn small"
-            value={t("addOrEdit.delete")}
-            onClick={() => onDeleteClick()}
-            disabled={disableDelete}
-          />
-          {disableDelete && (
-            <Hint label="?">{t("addOrEdit.hintDeleteDisabled")}</Hint>
-          )}
-        </>
-      )}
-      {isNew && (
-        <input
-          type="submit"
-          className="btn small primary"
-          value={t("addOrEdit.add")}
-          disabled={!isValid}
-        />
+      <CtaButton disabled={!isValid}>{t("addOrEdit.edit")}</CtaButton>
+      <CancelButton onClick={onCancelEditClick} />
+      <Button onClick={onDeleteClick} disabled={disableDelete}>
+        {t("addOrEdit.delete")}
+      </Button>
+      {disableDelete && (
+        <Hint label="?">{t("addOrEdit.hintDeleteDisabled")}</Hint>
       )}
     </div>
   );

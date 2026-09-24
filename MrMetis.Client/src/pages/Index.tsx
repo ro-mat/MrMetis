@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faLock } from "@fortawesome/free-solid-svg-icons";
+import { CtaButton, TextInput } from "components/ui";
 
 const Index = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -26,12 +27,9 @@ const Index = () => {
             <h2>{t("landingPage.welcome.header")}</h2>
             <p>{t("landingPage.welcome.text1")}</p>
             <p>{t("landingPage.welcome.text2")}</p>
-            <input
-              type="button"
-              onClick={handleDemoClick}
-              className="btn primary"
-              value={t("landingPage.welcome.buttonText")}
-            />
+            <CtaButton type="button" size="normal" onClick={handleDemoClick}>
+              {t("landingPage.welcome.buttonText")}
+            </CtaButton>
           </div>
         </section>
         <section>
@@ -82,17 +80,13 @@ const Index = () => {
             <p>{t("landingPage.newsletter.text")}</p>
             <div>
               <form action="">
-                <input
-                  type="text"
+                <TextInput
                   disabled
                   placeholder={t("landingPage.newsletter.inputPlaceholder")}
                 />
-                <input
-                  type="submit"
-                  disabled
-                  className="btn primary"
-                  value={t("landingPage.newsletter.buttonText")}
-                />
+                <CtaButton size="normal" disabled>
+                  {t("landingPage.newsletter.buttonText")}
+                </CtaButton>
               </form>
             </div>
           </div>

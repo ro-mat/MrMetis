@@ -1,7 +1,4 @@
 import React, { useEffect, useMemo } from "react";
-import Labeled from "components/Labeled";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import {
@@ -10,8 +7,13 @@ import {
   UPDATE_ACCOUNT,
 } from "store/userdata/userdata.slice";
 import { SET_SELECTED_ACCOUNT } from "store/ui/ui.slice";
-import { DatePickerField } from "components/DatePickerField";
-import "react-datepicker/dist/react-datepicker.css";
+import {
+  Button,
+  DateInput,
+  Field,
+  RemoveButton,
+  TextInput,
+} from "components/ui";
 import useAccount from "hooks/useAccount";
 import { accountAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
@@ -125,55 +127,38 @@ const AccountAddOrEdit = () => {
     <div>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="crud">
-          <Labeled
-            labelKey="account.name"
+          <TextInput
+            {...register("name")}
+            label="account.name"
             required
-            errorKey={errors.name?.message}
-          >
-            <input {...register("name")} type="text" />
-          </Labeled>
+            error={errors.name?.message}
+          />
         </div>
         <div className="list-wrapper">
-          <Labeled labelKey="account.leftFromPrevMonth" horisontal={true}>
-            <button
-              type="button"
-              className="small secondary"
-              onClick={() =>
-                prepend({
-                  amount: 0,
-                  month: new Date(),
-                })
-              }
-            >
+          <Field label="account.leftFromPrevMonth" horizontal>
+            <Button onClick={() => prepend({ amount: 0, month: new Date() })}>
               +
-            </button>
-          </Labeled>
+            </Button>
+          </Field>
           <div className="list">
             {fields.map((amount, index) => (
               <div key={index}>
-                <Labeled
-                  labelKey="account.month"
-                  errorKey={errors.leftFromPrevMonth?.[index]?.month?.message}
+                <DateInput
+                  name={`leftFromPrevMonth.${index}.month`}
+                  control={control}
+                  mode="month"
+                  label="account.month"
                   required
-                >
-                  <DatePickerField
-                    name={`leftFromPrevMonth.${index}.month`}
-                    control={control}
-                  />
-                </Labeled>
-                <Labeled
-                  labelKey="account.amount"
-                  errorKey={errors.leftFromPrevMonth?.[index]?.amount?.message}
-                >
-                  <input
-                    {...register(`leftFromPrevMonth.${index}.amount`)}
-                    type="number"
-                    step="0.01"
-                  />
-                </Labeled>
-                <button type="button" onClick={() => remove(index)}>
-                  <FontAwesomeIcon icon={faTrashCan} />
-                </button>
+                  error={errors.leftFromPrevMonth?.[index]?.month?.message}
+                />
+                <TextInput
+                  {...register(`leftFromPrevMonth.${index}.amount`)}
+                  type="number"
+                  step="0.01"
+                  label="account.amount"
+                  error={errors.leftFromPrevMonth?.[index]?.amount?.message}
+                />
+                <RemoveButton onClick={() => remove(index)} />
               </div>
             ))}
           </div>

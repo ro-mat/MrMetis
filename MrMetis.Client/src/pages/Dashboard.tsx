@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import RemainingPlannedExpences from "components/dashboard/RemainingPlannedExpences";
 import CurrentBalance from "components/dashboard/CurrentBalance";
 import ThisMonthStatements from "components/dashboard/ThisMonthStatements";
+import { Button } from "components/ui";
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -25,24 +26,20 @@ const Dashboard = () => {
       <h2>{t("dashboard.header")}</h2>
       <div className="month-select">
         <div>
-          <button
-            className="small secondary"
-            onClick={() => setRelativeMonth((val) => val - 1)}
-          >
+          <Button onClick={() => setRelativeMonth((val) => val - 1)}>
             {"<"}
-          </button>
+          </Button>
         </div>
         <div className={`month ${relativeMonthNr === 0 ? "current" : ""}`}>
           {relativeMonth.format("YYYY-MM")}
         </div>
         <div>
-          <button
-            className="small secondary"
+          <Button
             onClick={() => setRelativeMonth((val) => (val < 0 ? val + 1 : val))}
             disabled={relativeMonthNr === 0}
           >
             {">"}
-          </button>
+          </Button>
         </div>
       </div>
       {isReady ? (

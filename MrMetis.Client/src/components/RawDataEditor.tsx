@@ -8,6 +8,7 @@ import { ADD_ERROR_TOAST } from "store/ui/ui.slice";
 import { loadUserdata } from "store/userdata/userdata.actions";
 import { SAVE_CHANGES, SET_USERDATA } from "store/userdata/userdata.slice";
 import { IUserdata } from "store/userdata/userdata.types";
+import { Button, CtaButton, TextArea } from "components/ui";
 
 const RawDataEditor = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -49,15 +50,16 @@ const RawDataEditor = () => {
         {isOpen ? "<" : ">"}
       </div>
       <div className="content">
-        <div className="edit-box">
-          <textarea
-            value={userdataStr}
-            onChange={(e) => setUserdataStr(e.currentTarget.value)}
-          />
-        </div>
+        <TextArea
+          className="edit-box"
+          value={userdataStr}
+          onChange={(e) => setUserdataStr(e.currentTarget.value)}
+        />
         <div className="controls">
-          <button onClick={handleDiscard}>{t("rawData.discard")}</button>
-          <button onClick={handleSubmit}>{t("rawData.save")}</button>
+          <Button onClick={handleDiscard}>{t("rawData.discard")}</Button>
+          <CtaButton type="button" onClick={handleSubmit}>
+            {t("rawData.save")}
+          </CtaButton>
         </div>
       </div>
     </div>

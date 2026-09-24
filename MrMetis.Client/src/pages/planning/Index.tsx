@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import ErrorBoundary from "components/ErrorBoundary";
 import { useTranslation } from "react-i18next";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
+import { ToggleGroup } from "components/ui";
 import { useSelector } from "react-redux";
 import { AppState } from "store/store";
 import useBudgetCalculate from "hooks/useBudgetCalculate";
@@ -12,6 +13,15 @@ export type IPlanningProps = {
   months: Moment[];
   budgetPairArray: BudgetPairArray;
 };
+
+const subnavItems = [
+  { value: "/planning/all", to: "/planning/all", label: "planning.all" },
+  {
+    value: "/planning/accounts",
+    to: "/planning/accounts",
+    label: "planning.perAccount",
+  },
+];
 
 const Planning = () => {
   const { t } = useTranslation();
@@ -30,28 +40,13 @@ const Planning = () => {
   return (
     <>
       <h2>{t("planning.header")}</h2>
-      <div id="planning-subnav">
-        <Link
-          to="/planning/all"
-          className={`btn small ${
-            location.pathname.startsWith("/planning/all")
-              ? "primary"
-              : "secondary"
-          }`}
-        >
-          {t("planning.all")}
-        </Link>
-        <Link
-          to="/planning/accounts"
-          className={`btn small  ${
-            location.pathname.startsWith("/planning/accounts")
-              ? "primary"
-              : "secondary"
-          }`}
-        >
-          {t("planning.perAccount")}
-        </Link>
-      </div>
+      <ToggleGroup
+        id="planning-subnav"
+        items={subnavItems}
+        value={
+          subnavItems.find((i) => location.pathname.startsWith(i.value))?.value
+        }
+      />
       <ErrorBoundary>
         {isReady ? (
           <Outlet context={{ months, budgetPairArray }} />

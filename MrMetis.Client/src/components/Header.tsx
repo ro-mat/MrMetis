@@ -5,9 +5,12 @@ import { logout } from "store/auth/auth.actions";
 import { AppState, TAppDispatch } from "store/store";
 import { selectIsAuthenticated } from "store/auth/auth.selectors";
 import QuickAdd from "./quick-add/QuickAdd";
+import { Button, ToggleGroup } from "./ui";
 import { useTranslation } from "react-i18next";
 import Logo from "styles/img/logo.png";
 import moment from "moment";
+
+const languages = ["en", "ru"].map((l) => ({ value: l, label: l }));
 
 const Header = (): React.JSX.Element => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -40,23 +43,18 @@ const Header = (): React.JSX.Element => {
         <div>{(authenticated || isDemo) && <QuickAdd />}</div>
       </div>
       <div className="right">
-        <div className="lang-select">
-          {["en", "ru"].map((l) => (
-            <button
-              key={l}
-              onClick={() => changeLang(l)}
-              className={`${i18n.language === l ? "selected" : ""}`}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
+        <ToggleGroup
+          className="lang-select"
+          variant="text"
+          translate={false}
+          items={languages}
+          value={i18n.language}
+          onChange={changeLang}
+        />
         {authenticated && (
           <div className="dropdown">
             <Link to="/dashboard">{t("nav.dashboard")}</Link>|
-            <button onClick={onLogoutClick} className="btn small secondary">
-              {t("nav.logout")}
-            </button>
+            <Button onClick={onLogoutClick}>{t("nav.logout")}</Button>
           </div>
         )}
         {!authenticated && (

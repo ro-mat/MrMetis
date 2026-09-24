@@ -1,11 +1,9 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import moment from "moment";
 import { IStatement } from "store/userdata/userdata.types";
-import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DATE_FORMAT } from "helpers/dateHelper";
-import Labeled from "./Labeled";
+import { EditButton, FilterInput } from "./ui";
 import useBudget from "hooks/useBudget";
 import useAccount from "hooks/useAccount";
 import useStatement from "hooks/useStatement";
@@ -49,16 +47,11 @@ const StatementTable = ({
 
   return (
     <>
-      <div className="filter-text">
-        <Labeled labelKey="statement.filter" horisontal={true}>
-          <input
-            type="text"
-            id="filter"
-            value={filter}
-            onChange={(e) => setFilter(e.currentTarget.value)}
-          />
-        </Labeled>
-      </div>
+      <FilterInput
+        label="statement.filter"
+        value={filter}
+        onChange={setFilter}
+      />
       <table>
         <thead>
           <tr>
@@ -80,13 +73,7 @@ const StatementTable = ({
               <td>{s.comment}</td>
               {editButtonHandler !== undefined && (
                 <td>
-                  <button
-                    type="button"
-                    className="small"
-                    onClick={() => editButtonHandler(s.id)}
-                  >
-                    <FontAwesomeIcon icon={faPenToSquare} />
-                  </button>
+                  <EditButton onClick={() => editButtonHandler(s.id)} />
                 </td>
               )}
             </tr>

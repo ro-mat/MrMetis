@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { register as registerUser } from "store/auth/auth.actions";
 import { ICredentials } from "store/auth/auth.types";
 import { AppState, TAppDispatch } from "store/store";
-import Labeled from "components/Labeled";
+import { CtaButton, TextInput } from "components/ui";
 import "styles/register.scss";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -46,43 +46,36 @@ const RegisterForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Labeled
-        labelKey="register.email"
+      <TextInput
+        {...register("email")}
+        label="register.email"
         required
-        errorKey={errors.email?.message}
-      >
-        <input {...register("email")} type="text" disabled={isFetching} />
-      </Labeled>
-      <Labeled
-        labelKey="register.password"
+        error={errors.email?.message}
+        disabled={isFetching}
+      />
+      <TextInput
+        {...register("password")}
+        type="password"
+        label="register.password"
         required
-        errorKey={errors.password?.message}
-      >
-        <input
-          {...register("password")}
-          type="password"
-          disabled={isFetching}
-        />
-      </Labeled>
-      <Labeled
-        labelKey="register.code"
+        error={errors.password?.message}
+        disabled={isFetching}
+      />
+      <TextInput
+        {...register("invitationCode")}
+        label="register.code"
         required
-        errorKey={errors.invitationCode?.message}
+        error={errors.invitationCode?.message}
+        disabled={isFetching}
+      />
+      <CtaButton
+        size="normal"
+        disabled={!isValid}
+        loading={isFetching}
+        loadingLabel="register.registering"
       >
-        <input
-          {...register("invitationCode")}
-          type="text"
-          disabled={isFetching}
-        />
-      </Labeled>
-      <button
-        type="submit"
-        className="btn primary"
-        disabled={!isValid || isFetching}
-      >
-        {isFetching && t("register.registering")}
-        {!isFetching && t("register.register")}
-      </button>
+        {t("register.register")}
+      </CtaButton>
     </form>
   );
 };

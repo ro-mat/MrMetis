@@ -2,12 +2,10 @@ import React, { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import { BudgetTypeUser } from "store/userdata/userdata.types";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
 import BudgetAddOrEdit from "components/budget/BudgetAddOrEdit";
 import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import { useTranslation } from "react-i18next";
-import Labeled from "components/Labeled";
+import { EditButton, FilterInput, PageHeader } from "components/ui";
 import useBudgetCalculate from "hooks/useBudgetCalculate";
 import moment from "moment";
 import useBudget from "hooks/useBudget";
@@ -39,32 +37,26 @@ const BudgetPage = () => {
     dispatch(SET_SELECTED_BUDGET(id));
   };
 
-  const handleAddOrEditButtonClick = () => {
+  const toggleAddOrEdit = () => {
     dispatch(SET_SELECTED_BUDGET(showAddOrEdit ? undefined : 0));
   };
 
   return (
     <>
-      <div className="head-wrapper">
-        <h2>{t("budget.header")}</h2>
-        <button onClick={handleAddOrEditButtonClick}>
-          {showAddOrEdit ? "-" : "+"}
-        </button>
-      </div>
+      <PageHeader
+        title="budget.header"
+        isOpen={showAddOrEdit}
+        onToggle={toggleAddOrEdit}
+      />
       {!isFetching && (
         <>
           {showAddOrEdit && <BudgetAddOrEdit />}
           <div>
-            <div className="filter-text">
-              <Labeled labelKey="budget.filter" horisontal={true}>
-                <input
-                  type="text"
-                  id="filter"
-                  value={filter}
-                  onChange={(e) => setFilter(e.currentTarget.value)}
-                />
-              </Labeled>
-            </div>
+            <FilterInput
+              label="budget.filter"
+              value={filter}
+              onChange={setFilter}
+            />
             <table>
               <thead>
                 <tr>
@@ -101,13 +93,7 @@ const BudgetPage = () => {
                         : t("general.no")}
                     </td>
                     <td>
-                      <button
-                        type="button"
-                        className="small"
-                        onClick={() => onEditBudgetClick(b.id)}
-                      >
-                        <FontAwesomeIcon icon={faPenToSquare} />
-                      </button>
+                      <EditButton onClick={() => onEditBudgetClick(b.id)} />
                     </td>
                   </tr>
                 ))}

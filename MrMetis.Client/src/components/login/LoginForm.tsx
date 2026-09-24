@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { login } from "store/auth/auth.actions";
 import { ICredentials } from "store/auth/auth.types";
 import { AppState, TAppDispatch } from "store/store";
-import Labeled from "components/Labeled";
+import { CtaButton, TextInput } from "components/ui";
 import "styles/login.scss";
 import { useTranslation } from "react-i18next";
 import { loginFormDefault } from "helpers/constants/defaults";
@@ -45,28 +45,29 @@ const LoginForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Labeled labelKey="login.email" required errorKey={errors.email?.message}>
-        <input {...register("email")} type="text" disabled={isFetching} />
-      </Labeled>
-      <Labeled
-        labelKey="login.password"
+      <TextInput
+        {...register("email")}
+        label="login.email"
         required
-        errorKey={errors.password?.message}
+        error={errors.email?.message}
+        disabled={isFetching}
+      />
+      <TextInput
+        {...register("password")}
+        type="password"
+        label="login.password"
+        required
+        error={errors.password?.message}
+        disabled={isFetching}
+      />
+      <CtaButton
+        size="normal"
+        disabled={!isValid}
+        loading={isFetching}
+        loadingLabel="login.loggingIn"
       >
-        <input
-          {...register("password")}
-          type="password"
-          disabled={isFetching}
-        />
-      </Labeled>
-      <button
-        type="submit"
-        className="btn primary"
-        disabled={!isValid || isFetching}
-      >
-        {isFetching && t("login.loggingIn")}
-        {!isFetching && t("login.login")}
-      </button>
+        {t("login.login")}
+      </CtaButton>
     </form>
   );
 };

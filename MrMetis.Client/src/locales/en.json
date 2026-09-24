@@ -1,7 +1,8 @@
 {
   "general": {
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "nothingFound": "Nothing found"
   },
   "nav": {
     "login": "Login",

@@ -1,6 +1,4 @@
 import { useEffect } from "react";
-import Labeled from "../Labeled";
-import DatePicker from "react-datepicker";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import {
@@ -9,17 +7,18 @@ import {
   UPDATE_STATEMENT,
 } from "store/userdata/userdata.slice";
 import { SET_SELECTED_STATEMENT } from "store/ui/ui.slice";
-import "react-datepicker/dist/react-datepicker.css";
-import { useTranslation } from "react-i18next";
 import moment from "moment";
 import { DATE_FORMAT } from "helpers/dateHelper";
 import useStatement from "hooks/useStatement";
 import { statementAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
 import { requiredError } from "helpers/zodHelper";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddOrEditControls from "components/AddOrEditControls";
+import AccountSelect from "components/AccountSelect";
+import BudgetSelect from "components/BudgetSelect";
+import { DateInput, TextArea, TextInput } from "components/ui";
 
 const schema = z.object({
   id: z.number().optional(),
@@ -35,11 +34,6 @@ type FormFields = z.output<typeof schema>;
 
 const StatementAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
-  const { i18n } = useTranslation();
-
-  const { budgets, accounts } = useSelector(
-    (state: AppState) => state.data.userdata
-  );
   const { selectedStatementId } = useSelector((state: AppState) => state.ui.ui);
   const { getById: getStatementById } = useStatement();
 
@@ -90,7 +84,7 @@ const StatementAddOrEdit = () => {
       return;
     }
 
-    let item = getStatementById(selectedStatementId);
+    const item = getStatementById(selectedStatementId);
     if (!item) {
       return;
     }
@@ -106,63 +100,42 @@ const StatementAddOrEdit = () => {
     <div>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="crud">
-          <Labeled
-            labelKey="statement.amount"
-            errorKey={errors.amount?.message}
+          <TextInput
+            {...register("amount")}
+            type="number"
+            step="0.01"
+            label="statement.amount"
             required
-          >
-            <input {...register("amount")} type="number" step="0.01" />
-          </Labeled>
-          <Labeled
-            labelKey="statement.date"
-            errorKey={errors.date?.message}
+            error={errors.amount?.message}
+          />
+          <DateInput
+            name="date"
+            control={control}
+            label="statement.date"
             required
-          >
-            <Controller
-              control={control as any} //TODO: remove any and fix
-              name={"date"}
-              render={({ field }) => (
-                <DatePicker
-                  {...field}
-                  locale={i18n.language}
-                  selected={field.value ? new Date(field.value) : null}
-                  onChange={(date: Date | null) => field.onChange(date)}
-                />
-              )}
-            />
-          </Labeled>
-          <Labeled
-            labelKey="statement.budget"
-            errorKey={errors.budgetId?.message}
+            error={errors.date?.message}
+          />
+          <BudgetSelect
+            name="budgetId"
+            control={control}
+            filterable
+            label="statement.budget"
             required
-          >
-            <select {...register("budgetId")}>
-              {budgets.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </Labeled>
-          <Labeled
-            labelKey="statement.account"
-            errorKey={errors.accountId?.message}
+            error={errors.budgetId?.message}
+          />
+          <AccountSelect
+            name="accountId"
+            control={control}
+            filterable
+            label="statement.account"
             required
-          >
-            <select {...register("accountId")}>
-              {accounts.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </Labeled>
-          <Labeled
-            labelKey="statement.comment"
-            errorKey={errors.comment?.message}
-          >
-            <textarea {...register("comment")} />
-          </Labeled>
+            error={errors.accountId?.message}
+          />
+          <TextArea
+            {...register("comment")}
+            label="statement.comment"
+            error={errors.comment?.message}
+          />
         </div>
         <AddOrEditControls
           isNew={!selectedStatementId}

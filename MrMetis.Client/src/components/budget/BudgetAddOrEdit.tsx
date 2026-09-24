@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import Labeled from "components/Labeled";
-import { BudgetTypeUser, IAccount } from "store/userdata/userdata.types";
+import { BudgetTypeUser } from "store/userdata/userdata.types";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import {
@@ -16,13 +15,20 @@ import useBudget from "hooks/useBudget";
 import { budgetAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
 import { requiredError } from "helpers/zodHelper";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddOrEditControls from "components/AddOrEditControls";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
-import useAccount from "hooks/useAccount";
-import { DatePickerField } from "components/DatePickerField";
+import AccountSelect from "components/AccountSelect";
+import BudgetSelect from "components/BudgetSelect";
+import {
+  Button,
+  Checkbox,
+  DateInput,
+  Field,
+  RemoveButton,
+  SelectBox,
+  TextInput,
+} from "components/ui";
 import { DATE_FORMAT } from "helpers/dateHelper";
 import { getEnumArray } from "helpers/enumHelper";
 
@@ -61,13 +67,6 @@ const schema = z
 
 export type FormFields = z.infer<typeof schema>;
 
-const AccountOptions = ({ accounts }: { accounts: IAccount[] }) =>
-  accounts.map((a) => (
-    <option key={a.id} value={a.id}>
-      {a.name}
-    </option>
-  ));
-
 const BudgetAddOrEdit = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch<TAppDispatch>();
@@ -76,7 +75,6 @@ const BudgetAddOrEdit = () => {
     register,
     handleSubmit,
     reset,
-    getValues,
     control,
     formState: { errors, isValid },
   } = useForm<FormFields>({
@@ -137,12 +135,22 @@ const BudgetAddOrEdit = () => {
 
   const { selectedBudgetId } = useSelector((state: AppState) => state.ui.ui);
 
-  const { budgets, getById: getBudgetById, isBudgetUsed } = useBudget();
-  const { accounts } = useAccount();
+  const { getById: getBudgetById, isBudgetUsed } = useBudget();
+
+  // fields the rest of the form depends on
+  const [id, type, fromAccountId] = useWatch({
+    control,
+    name: ["id", "type", "fromAccountId"],
+  });
+
+  const budgetTypeOptions = getEnumArray(BudgetTypeUser).map((i) => ({
+    value: i,
+    label: t(`budgetType.${BudgetTypeUser[i]}`),
+  }));
 
   // A budget-level account overrides the account of each amount/override row.
   const defaultAccountId = (rowAccountId?: number) =>
-    getValues().fromAccountId || rowAccountId || 1;
+    fromAccountId || rowAccountId || 1;
 
   const disableDelete = useMemo(
     () => selectedBudgetId !== undefined && isBudgetUsed(selectedBudgetId),
@@ -203,74 +211,66 @@ const BudgetAddOrEdit = () => {
     <div>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="crud">
-          <Labeled labelKey="budget.name" required>
-            <input {...register("name")} type="text" />
-          </Labeled>
-          <Labeled labelKey="budget.type" required>
-            <select {...register("type", { valueAsNumber: true })}>
-              {getEnumArray(BudgetTypeUser).map((i) => (
-                <option key={i} value={i}>
-                  {t(`budgetType.${BudgetTypeUser[i]}`)}
-                </option>
-              ))}
-            </select>
-          </Labeled>
-          <Labeled labelKey="budget.parent">
-            <select {...register("parentId", { valueAsNumber: true })}>
-              <option value={0}>{t("general.no")}</option>
-              {budgets
-                .filter(
-                  (b) => b.type === getValues().type && b.id !== getValues().id
-                )
-                .map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-            </select>
-          </Labeled>
-          <Labeled labelKey="budget.fromAccount">
-            <select
-              {...register("fromAccountId", { valueAsNumber: true })}
-              disabled={!!getBudgetById(selectedBudgetId)?.fromAccountId}
-            >
-              <option value={0}>{t("general.no")}</option>
-              <AccountOptions accounts={accounts} />
-            </select>
-          </Labeled>
-          {getValues().type === BudgetTypeUser.transferToAccount && (
-            <Labeled labelKey="budget.toAccount" required>
-              <select {...register("toAccountId", { valueAsNumber: true })}>
-                <option value={0}>{t("general.no")}</option>
-                <AccountOptions
-                  accounts={accounts.filter(
-                    (a) => a.id !== getValues().fromAccountId
-                  )}
-                />
-              </select>
-            </Labeled>
+          <TextInput
+            {...register("name")}
+            label="budget.name"
+            required
+            error={errors.name?.message}
+          />
+          <SelectBox
+            {...register("type", { valueAsNumber: true })}
+            label="budget.type"
+            required
+            options={budgetTypeOptions}
+          />
+          <BudgetSelect
+            name="parentId"
+            control={control}
+            filterable
+            label="budget.parent"
+            emptyOption="general.no"
+            exclude={(b) => b.type !== type || b.id === id}
+          />
+          <AccountSelect
+            name="fromAccountId"
+            control={control}
+            filterable
+            label="budget.fromAccount"
+            emptyOption="general.no"
+            disabled={!!getBudgetById(selectedBudgetId)?.fromAccountId}
+          />
+          {type === BudgetTypeUser.transferToAccount && (
+            <AccountSelect
+              name="toAccountId"
+              control={control}
+              filterable
+              label="budget.toAccount"
+              required
+              emptyOption="general.no"
+              exclude={(a) => a.id === fromAccountId}
+            />
           )}
-          <Labeled labelKey="budget.expectOneStatement">
-            <input type="checkbox" {...register("expectOneStatement")} />
-          </Labeled>
+          <Checkbox
+            {...register("expectOneStatement")}
+            label="budget.expectOneStatement"
+            horizontal={false}
+          />
         </div>
         <div className="list-wrapper">
-          <Labeled labelKey="budget.amounts" horisontal={true}>
-            <button
-              type="button"
-              className="small secondary"
+          <Field label="budget.amounts" horizontal>
+            <Button
               onClick={() =>
                 prependAmount({
                   amount: "0",
-                  fromAccountId: getValues().fromAccountId ?? 1,
+                  fromAccountId: fromAccountId ?? 1,
                   frequency: 1,
                   startDate: new Date(),
                 })
               }
             >
               +
-            </button>
-          </Labeled>
+            </Button>
+          </Field>
           <div>
             <Hint label={t("budget.amountHint.label")}>
               <pre>{t("budget.amountHint.description")}</pre>
@@ -279,102 +279,82 @@ const BudgetAddOrEdit = () => {
           <div className="list">
             {amountFields.map((amount, index) => (
               <div key={index}>
-                <Labeled labelKey="budget.startDate" required>
-                  <DatePickerField
-                    name={`amounts.${index}.startDate`}
-                    control={control}
-                  />
-                </Labeled>
-                <Labeled labelKey="budget.endDate">
-                  <DatePickerField
-                    name={`amounts.${index}.endDate`}
-                    control={control}
-                  />
-                </Labeled>
-                <Labeled labelKey="budget.fromAccount" required>
-                  <select
-                    {...register(`amounts.${index}.fromAccountId`, {
-                      valueAsNumber: true,
-                    })}
-                    defaultValue={defaultAccountId(amount.fromAccountId)}
-                    disabled={!!getValues().fromAccountId}
-                  >
-                    <AccountOptions accounts={accounts} />
-                  </select>
-                </Labeled>
-                <Labeled labelKey="budget.amount">
-                  <input {...register(`amounts.${index}.amount`)} type="text" />
-                </Labeled>
-                <Labeled labelKey="budget.frequency" required>
-                  <input
-                    {...register(`amounts.${index}.frequency`, {
-                      valueAsNumber: true,
-                    })}
-                    type="number"
-                  />
-                </Labeled>
-                <div>
-                  <button
-                    type="button"
-                    className="button"
-                    onClick={() => removeAmount(index)}
-                  >
-                    <FontAwesomeIcon icon={faTrashCan} />
-                  </button>
-                </div>
+                <DateInput
+                  name={`amounts.${index}.startDate`}
+                  control={control}
+                  mode="month"
+                  label="budget.startDate"
+                  required
+                />
+                <DateInput
+                  name={`amounts.${index}.endDate`}
+                  control={control}
+                  mode="month"
+                  label="budget.endDate"
+                />
+                <AccountSelect
+                  {...register(`amounts.${index}.fromAccountId`, {
+                    valueAsNumber: true,
+                  })}
+                  label="budget.fromAccount"
+                  required
+                  defaultValue={defaultAccountId(amount.fromAccountId)}
+                  disabled={!!fromAccountId}
+                />
+                <TextInput
+                  {...register(`amounts.${index}.amount`)}
+                  label="budget.amount"
+                />
+                <TextInput
+                  {...register(`amounts.${index}.frequency`, {
+                    valueAsNumber: true,
+                  })}
+                  type="number"
+                  label="budget.frequency"
+                  required
+                />
+                <RemoveButton onClick={() => removeAmount(index)} />
               </div>
             ))}
           </div>
         </div>
         <div className="list-wrapper">
-          <Labeled labelKey="budget.overrides" horisontal={true}>
-            <button
-              type="button"
-              className="small secondary"
+          <Field label="budget.overrides" horizontal>
+            <Button
               onClick={() =>
-                prependOverride({
-                  month: new Date(),
-                  amount: 0,
-                  accountId: 1,
-                })
+                prependOverride({ month: new Date(), amount: 0, accountId: 1 })
               }
             >
               +
-            </button>
-          </Labeled>
+            </Button>
+          </Field>
           <div className="list">
             {overrideFields.map((ovr, index) => (
               <div key={index}>
-                <Labeled labelKey="budget.month" required>
-                  <DatePickerField
-                    name={`overrides.${index}.month`}
-                    control={control}
-                  />
-                </Labeled>
-                <Labeled labelKey="budget.fromAccount" required>
-                  <select
-                    {...register(`overrides.${index}.accountId`, {
-                      valueAsNumber: true,
-                    })}
-                    defaultValue={defaultAccountId(ovr.accountId)}
-                    disabled={!!getValues().fromAccountId}
-                  >
-                    <AccountOptions accounts={accounts} />
-                  </select>
-                </Labeled>
-                <Labeled labelKey="budget.amount">
-                  <input
-                    {...register(`overrides.${index}.amount`, {
-                      valueAsNumber: true,
-                    })}
-                    type="number"
-                  />
-                </Labeled>
-                <div>
-                  <button type="button" onClick={() => removeOverride(index)}>
-                    <FontAwesomeIcon icon={faTrashCan} />
-                  </button>
-                </div>
+                <DateInput
+                  name={`overrides.${index}.month`}
+                  control={control}
+                  mode="month"
+                  label="budget.month"
+                  required
+                />
+                <AccountSelect
+                  {...register(`overrides.${index}.accountId`, {
+                    valueAsNumber: true,
+                  })}
+                  label="budget.fromAccount"
+                  required
+                  defaultValue={defaultAccountId(ovr.accountId)}
+                  disabled={!!fromAccountId}
+                />
+                <TextInput
+                  {...register(`overrides.${index}.amount`, {
+                    valueAsNumber: true,
+                  })}
+                  type="number"
+                  label="budget.amount"
+                />
+                <RemoveButton onClick={() => removeOverride(index)} />
               </div>
             ))}
           </div>

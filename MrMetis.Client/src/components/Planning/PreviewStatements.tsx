@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { BudgetStatement } from "services/budgetBuilder";
 import { TAppDispatch } from "store/store";
 import { SET_PREVIEW_STATEMENTS } from "store/ui/ui.slice";
+import { CloseButton } from "components/ui";
 
 interface IPreviewStatementsProps {
   statements: BudgetStatement[];
@@ -32,9 +33,7 @@ const PreviewStatements = ({ statements }: IPreviewStatementsProps) => {
                 </div>
               ))}
           </div>
-          <button onClick={handleClose} className="close">
-            X
-          </button>
+          <CloseButton onClick={handleClose} />
         </div>
       )}
     </>

@@ -1,8 +1,7 @@
 import React, { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
+import { EditButton, PageHeader } from "components/ui";
 import AccountAddOrEdit from "components/account/AccountAddOrEdit";
 import { SET_SELECTED_ACCOUNT } from "store/ui/ui.slice";
 import { useTranslation } from "react-i18next";
@@ -26,16 +25,13 @@ const AccountsPage = () => {
 
   return (
     <>
-      <div className="head-wrapper">
-        <h2>{t("account.header")}</h2>
-        <button
-          onClick={() =>
-            dispatch(SET_SELECTED_ACCOUNT(showAddOrEdit ? undefined : 0))
-          }
-        >
-          {showAddOrEdit ? "-" : "+"}
-        </button>
-      </div>
+      <PageHeader
+        title="account.header"
+        isOpen={showAddOrEdit}
+        onToggle={() =>
+          dispatch(SET_SELECTED_ACCOUNT(showAddOrEdit ? undefined : 0))
+        }
+      />
       {!isFetching && (
         <>
           {showAddOrEdit && <AccountAddOrEdit />}
@@ -54,13 +50,7 @@ const AccountsPage = () => {
                     <td>{a.id}</td>
                     <td>{a.name}</td>
                     <td>
-                      <button
-                        type="button"
-                        className="small"
-                        onClick={() => onEditAccountClick(a.id)}
-                      >
-                        <FontAwesomeIcon icon={faPenToSquare} />
-                      </button>
+                      <EditButton onClick={() => onEditAccountClick(a.id)} />
                     </td>
                   </tr>
                 ))}

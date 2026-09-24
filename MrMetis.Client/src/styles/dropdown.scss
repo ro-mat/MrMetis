@@ -1,0 +1,63 @@
+// List of choices under a text field (QuickAdd, filterable SelectBox)
+.dropdown-wrapper {
+  position: absolute;
+  top: 100%;
+  width: 100%;
+  z-index: 100;
+  background-color: white;
+  border: 1px solid black;
+
+  & > div {
+    cursor: pointer;
+    padding: 0.3em;
+  }
+
+  .selected {
+    background-color: $primary-color-dark;
+  }
+}
+
+// Filterable select: a text field styled like a <select>
+.combobox {
+  position: relative;
+  margin-bottom: 10px;
+
+  input {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 0;
+    padding-right: 2.2em; // room for the arrow
+    cursor: pointer;
+    background-color: #fff;
+  }
+
+  &.open input {
+    cursor: text;
+  }
+
+  // chevron drawn with borders; clicks pass through to the input
+  .combobox-arrow {
+    position: absolute;
+    top: 50%;
+    right: 0.9em;
+    width: 0.45em;
+    height: 0.45em;
+    border-right: 2px solid #555;
+    border-bottom: 2px solid #555;
+    transform: translateY(-75%) rotate(45deg);
+    transition: transform 0.2s ease;
+    pointer-events: none;
+  }
+
+  &.open .combobox-arrow {
+    transform: translateY(-25%) rotate(-135deg);
+  }
+
+  input:disabled {
+    cursor: default;
+  }
+
+  input:disabled + .combobox-arrow {
+    opacity: 0.4;
+  }
+}

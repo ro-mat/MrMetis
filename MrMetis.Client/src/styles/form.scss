@@ -71,13 +71,15 @@ form {
   align-items: start;
   position: relative;
 
-  &.horisontal {
+  &.horizontal {
     flex-direction: row;
     align-items: center;
     gap: 1em;
   }
 
-  &.has-error input {
+  &.has-error input,
+  &.has-error select,
+  &.has-error textarea {
     border-color: red;
   }
 
