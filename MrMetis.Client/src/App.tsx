@@ -89,33 +89,36 @@ const App: FunctionComponent = () => {
         <ToastMessages />
         <RawDataEditor />
         <Header />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/privacy" element={<Privacy />} />
+        {/* everything between header and footer; scrolls on its own */}
+        <div className="page">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/privacy" element={<Privacy />} />
 
-          <Route element={<Authenticated />}>
-            <Route element={<SideNavLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route element={<FilterLayout />}>
-                <Route path="/planning" element={<Planning />}>
-                  <Route path="/planning/all" element={<PlanningAll />} />
-                  <Route
-                    path="/planning/accounts"
-                    element={<PlanningAccounts />}
-                  />
+            <Route element={<Authenticated />}>
+              <Route element={<SideNavLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route element={<FilterLayout />}>
+                  <Route path="/planning" element={<Planning />}>
+                    <Route path="/planning/all" element={<PlanningAll />} />
+                    <Route
+                      path="/planning/accounts"
+                      element={<PlanningAccounts />}
+                    />
+                  </Route>
                 </Route>
+                <Route path="/list" element={<StatementsPage />} />
+                <Route path="/budget" element={<BudgetPage />} />
+                <Route path="/accounts" element={<AccountsPage />} />
               </Route>
-              <Route path="/list" element={<StatementsPage />} />
-              <Route path="/budget" element={<BudgetPage />} />
-              <Route path="/accounts" element={<AccountsPage />} />
             </Route>
-          </Route>
 
-          <Route element={<UnAuthenticated />}>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-          </Route>
-        </Routes>
+            <Route element={<UnAuthenticated />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+            </Route>
+          </Routes>
+        </div>
         <Footer />
       </Router>
     </>

@@ -49,10 +49,26 @@ h5 {
   font-size: 1.1rem;
 }
 
+// App frame: header and footer always visible, the page in between scrolls.
 #root {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh; // mobile browsers: exclude the address bar
+  overflow: hidden;
+}
+
+header,
+footer {
+  flex-shrink: 0;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0; // allow shrinking below the content height, so it scrolls
+  overflow-y: auto;
 }
 
 @import "header";

@@ -4,16 +4,20 @@ main {
   flex: 1;
 }
 
+// Pages with the side menu fill the frame exactly: the menu stays put and
+// only .content scrolls.
 main {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin: 20px 1em;
+  min-height: 0;
+  padding: 20px 1em;
   gap: 1em;
 
   // Side panel with links
   .side-panel {
     width: 200px;
+    flex-shrink: 0;
 
     ul {
       list-style: none;
@@ -42,6 +46,9 @@ main {
   // Content container
   .content {
     flex: 1;
+    align-self: stretch;
+    min-width: 0;
+    overflow: auto;
 
     h1,
     h2,

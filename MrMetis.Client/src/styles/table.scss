@@ -1,11 +1,7 @@
+// Tables don't scroll on their own: they scroll with the page content, and
+// the header row (and first column) stick to it.
 table {
-  // width: 100%;
   border-collapse: collapse;
-  display: block;
-  overflow: auto;
-  max-height: 80vh;
-  max-width: 85vw;
-  padding-right: 17px;
 
   tr {
     &.sticky {
