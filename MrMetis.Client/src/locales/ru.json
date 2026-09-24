@@ -158,7 +158,16 @@
     "nameEmpty": "Имя не может быть пустым",
     "monthEmpty": "Месяц не может быть пустым",
     "amountEmpty": "Сумма не может быть пустой",
-    "NaN": "Не номер"
+    "NaN": "Не номер",
+    "amountZero": "Сумма не может быть 0",
+    "dateEmpty": "Дата не может быть пустой",
+    "budgetEmpty": "Выберите бюджет",
+    "accountEmpty": "Выберите счёт",
+    "typeEmpty": "Выберите тип",
+    "fromAccountEmpty": "Выберите счёт",
+    "toAccountEmpty": "Выберите счёт для перевода",
+    "frequencyEmpty": "Частота не может быть пустой",
+    "frequencyInvalid": "Частота должна быть целым числом не меньше 1"
   },
   "landingPage": {
     "welcome": {

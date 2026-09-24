@@ -14,7 +14,7 @@ import Hint from "components/Hint";
 import useBudget from "hooks/useBudget";
 import { budgetAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
-import { requiredError } from "helpers/zodHelper";
+import { requiredError, requiredText } from "helpers/zodHelper";
 import { useFieldArray, useWatch } from "react-hook-form";
 import useAppForm from "hooks/useAppForm";
 import AddOrEditControls from "components/AddOrEditControls";
@@ -35,7 +35,7 @@ import { getEnumArray } from "helpers/enumHelper";
 const schema = z
   .object({
     id: z.number().optional(),
-    name: z.string(requiredError("errors.nameEmpty")),
+    name: requiredText("errors.nameEmpty"),
     type: z.number(requiredError("errors.typeEmpty")),
     fromAccountId: z.number().optional(),
     toAccountId: z.number().optional(),
@@ -47,23 +47,27 @@ const schema = z
         startDate: z.date(requiredError("errors.dateEmpty")),
         endDate: z.date().nullish(),
         fromAccountId: z.number(requiredError("errors.fromAccountEmpty")),
-        frequency: z.number(requiredError("errors.frequencyEmpty")),
-        amount: z.string(),
+        frequency: z
+          .number(requiredError("errors.frequencyEmpty", "errors.NaN"))
+          .int("errors.frequencyInvalid")
+          .min(1, "errors.frequencyInvalid"),
+        // a formula, see the amount hint
+        amount: requiredText("errors.amountEmpty"),
       })
     ),
     overrides: z.array(
       z.object({
         month: z.date(requiredError("errors.monthEmpty")),
         accountId: z.number(requiredError("errors.fromAccountEmpty")),
-        amount: z.number(),
+        amount: z.number(requiredError("errors.amountEmpty", "errors.NaN")),
       })
     ),
   })
-  .refine((input) => {
-    return (
-      input.type !== BudgetTypeUser.transferToAccount || input.toAccountId !== 0
-    );
-  })
+  .refine(
+    (input) =>
+      input.type !== BudgetTypeUser.transferToAccount || !!input.toAccountId,
+    { path: ["toAccountId"], message: "errors.toAccountEmpty" }
+  )
   // a budget-level account wins over the account chosen on each row
   .transform((budget) =>
     budget.fromAccountId

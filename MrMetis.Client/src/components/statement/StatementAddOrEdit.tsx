@@ -12,7 +12,7 @@ import { DATE_FORMAT } from "helpers/dateHelper";
 import useStatement from "hooks/useStatement";
 import { statementAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
-import { requiredError } from "helpers/zodHelper";
+import { requiredError, requiredId } from "helpers/zodHelper";
 import useAppForm from "hooks/useAppForm";
 import AddOrEditControls from "components/AddOrEditControls";
 import AccountSelect from "components/AccountSelect";
@@ -21,10 +21,12 @@ import { DateInput, TextArea, TextInput } from "components/ui";
 
 const schema = z.object({
   id: z.number().optional(),
-  amount: z.coerce.number(requiredError("errors.amountEmpty", "errors.NaN")),
+  amount: z.coerce
+    .number(requiredError("errors.amountEmpty", "errors.NaN"))
+    .refine((amount) => amount !== 0, "errors.amountZero"),
   date: z.date(requiredError("errors.dateEmpty")),
-  budgetId: z.coerce.number(requiredError("errors.budgetEmpty")).int(),
-  accountId: z.coerce.number(requiredError("errors.accountEmpty")).int(),
+  budgetId: requiredId("errors.budgetEmpty"),
+  accountId: requiredId("errors.accountEmpty"),
   comment: z.string().optional(),
 });
 

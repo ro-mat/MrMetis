@@ -17,7 +17,7 @@ import {
 import useAccount from "hooks/useAccount";
 import { accountAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
-import { requiredError } from "helpers/zodHelper";
+import { requiredError, requiredText } from "helpers/zodHelper";
 import useAppForm from "hooks/useAppForm";
 import { useFieldArray } from "react-hook-form";
 import { DATE_FORMAT } from "helpers/dateHelper";
@@ -26,7 +26,7 @@ import AddOrEditControls from "components/AddOrEditControls";
 
 const schema = z.object({
   id: z.number().optional(),
-  name: z.string(requiredError("errors.nameEmpty")),
+  name: requiredText("errors.nameEmpty"),
   leftFromPrevMonth: z.array(
     z.object({
       month: z.date(requiredError("errors.monthEmpty")),

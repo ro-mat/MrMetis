@@ -158,7 +158,16 @@
     "nameEmpty": "Name cannot be empty",
     "monthEmpty": "Month cannot be empty",
     "amountEmpty": "Amount cannot be empty",
-    "NaN": "Not a number"
+    "NaN": "Not a number",
+    "amountZero": "Amount cannot be 0",
+    "dateEmpty": "Date cannot be empty",
+    "budgetEmpty": "Choose a budget",
+    "accountEmpty": "Choose an account",
+    "typeEmpty": "Choose a type",
+    "fromAccountEmpty": "Choose an account",
+    "toAccountEmpty": "Choose the account to transfer to",
+    "frequencyEmpty": "Frequency cannot be empty",
+    "frequencyInvalid": "Frequency must be a whole number of at least 1"
   },
   "landingPage": {
     "welcome": {
