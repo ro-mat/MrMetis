@@ -6,6 +6,8 @@ MrMetis.Core/bin/
 MrMetis.Core/obj/
 MrMetis.Infrastructure/bin/
 MrMetis.Infrastructure/obj/
+MrMetis.Test/bin/
+MrMetis.Test/obj/
 packages/
 MrMetis.Client/node_modules/
 app/node_modules/

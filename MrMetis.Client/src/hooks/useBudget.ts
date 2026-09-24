@@ -1,73 +1,68 @@
-import moment from "moment";
 import { useSelector } from "react-redux";
 import { AppState } from "store/store";
-import { BudgetMonth } from "types/BudgetMonth";
-import useBudgetAggregate from "./useBudgetAggregate";
-import {
-  BudgetType,
-  BudgetTypeExtra,
-  BudgetTypeUser,
-} from "store/userdata/userdata.types";
-import { isActive, toActiveBudget } from "types/BudgetItems";
-import { range } from "helpers/arrayHelper";
-import { getById } from "helpers/userdata";
+import useAccount from "./useAccount";
+import { BudgetTypeUser, IBudget } from "store/userdata/userdata.types";
+import { useCallback } from "react";
 
-export const useBudget = (start: number, end: number) => {
-  const relativeMonths = range(start, end);
-  const {
-    budgets: budgetList,
-    statements: statementList,
-    accounts: accountList,
-  } = useSelector((state: AppState) => state.data.userdata);
+const useBudget = () => {
+  const { budgets, statements } = useSelector(
+    (state: AppState) => state.data.userdata
+  );
+  const { getById: getAccountById } = useAccount();
 
-  const beforeFirstMonth = moment().add(start - 1, "M");
-
-  let { budgetMonth: prevMonth } = useBudgetAggregate(
-    beforeFirstMonth.toDate()
+  const getById = useCallback(
+    (budgetId?: number) => {
+      return budgets.find((b) => b.id === budgetId);
+    },
+    [budgets]
   );
 
-  const activeBudgets: IActiveBudget[] = [];
+  const getNextId = useCallback(() => {
+    const maxExistingId =
+      budgets.length > 0 ? Math.max(...budgets.map((i) => i.id)) : 0;
+    return maxExistingId + 1;
+  }, [budgets]);
 
-  const budgetMonths = relativeMonths.map((rm) => {
-    const budget = new BudgetMonth(
-      moment().add(rm, "M").toDate(),
-      budgetList,
-      statementList,
-      accountList,
-      prevMonth
-    );
+  const getChildren = useCallback(
+    (budgetId: number) => {
+      return budgets.filter((b) => b.parentId === budgetId);
+    },
+    [budgets]
+  );
 
-    prevMonth = budget;
+  const filter = useCallback(
+    (list: IBudget[], str: string) => {
+      const normalizedStr = str.toLocaleLowerCase();
+      return list.filter(
+        (b) =>
+          b.id.toString().includes(normalizedStr) ||
+          b.name.toLowerCase().includes(normalizedStr) ||
+          BudgetTypeUser[b.type].toLowerCase().includes(normalizedStr) ||
+          getById(b.parentId)?.name.toLowerCase().includes(normalizedStr) ||
+          getAccountById(b.fromAccountId)
+            ?.name.toLowerCase()
+            .includes(normalizedStr) ||
+          getAccountById(b.toAccountId)
+            ?.name.toLowerCase()
+            .includes(normalizedStr)
+      );
+    },
+    [getAccountById, getById]
+  );
 
-    const activeItems = budget.list.filter((i) => isActive(i));
-    activeItems.forEach((item) => {
-      if (!activeBudgets.find((ab) => ab.budgetId === item.id)) {
-        activeBudgets.push(toActiveBudget(item));
-        if (item.type === BudgetTypeUser.transferToAccount) {
-          activeBudgets.push(
-            toActiveBudget(
-              item,
-              BudgetTypeExtra.transferFromAccount,
-              item.budget.toAccountId,
-              getById(accountList, item.budget.fromAccountId)?.name
-            )
-          );
-        }
-      }
-    });
+  const filtered = useCallback(
+    (str: string) => filter(budgets, str),
+    [budgets, filter]
+  );
 
-    return budget;
-  });
+  const isBudgetUsed = useCallback(
+    (budgetId: number) =>
+      budgets.some((b) => b.parentId === budgetId) ||
+      statements.some((s) => s.budgetId === budgetId),
+    [budgets, statements]
+  );
 
-  return { budgetMonths, activeBudgets };
+  return { budgets, getById, getNextId, getChildren, filtered, isBudgetUsed };
 };
 
 export default useBudget;
-
-export interface IActiveBudget {
-  budgetId: number;
-  type: BudgetType;
-  name: string;
-  accountId: number;
-  children: IActiveBudget[];
-}

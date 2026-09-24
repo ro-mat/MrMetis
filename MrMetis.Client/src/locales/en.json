@@ -21,6 +21,13 @@
     "date": "Date",
     "today": "today",
     "yesterday": "yesterday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
     "budget": "Budget",
     "account": "Account",
     "statementAdded": "Statement added!",
@@ -70,12 +77,7 @@
     "amount": "Amount",
     "budget": "Budget",
     "account": "Account",
-    "comment": "Comment",
-
-    "add": "Add",
-    "edit": "Edit",
-    "cancel": "Cancel",
-    "delete": "Delete"
+    "comment": "Comment"
   },
   "budget": {
     "header": "Budget list",
@@ -100,16 +102,9 @@
     "overrides": "Overrides",
     "month": "Month",
 
-    "hintDeleteDisabled": "This budget item is used, therefore cannot be deleted",
-
-    "add": "Add",
-    "edit": "Edit",
-    "cancel": "Cancel",
-    "delete": "Delete",
-
     "amountHint": {
       "label": "Advanced amount",
-      "description": "[cur_month | prev_month]: Current month or previous month\n[.account(<accountId>)]: Optional account specification using account id\n.[\nleftFromPrevMonth: Left from previous month\ntotalIncome: Total of type 'Income'\ntotalSpending: Total of type 'Spending'\ntotalLoanReturn: Total of type 'Loan return'\ntotalSavings: Total of type 'Savings'\ntotalToOtherAccount: Total of type 'Transfer to other account'\ntotalFromOtherAccount: Total of type 'Transfer from other account'\ntotalKeepOnAccount: Total of type 'Keep on account'\nopeningBalance: = leftFromPrevMonth + totalIncome + totalFromOtherAccount\ntotalSpendings: = totalSpending + totalLoanReturn + totalSavings\nclosingBalance: = openingBalance - totalSpendings - totalToOtherAccount\ngetItem(<budgetId>): Gets amount of a specific budget item\ngetDaysInMonth(): Gets total of calendar days in a month (1 - 31)\ngetWeekdaysInMonth([1..7]): Gets total of a certain weekday in a month (e.g. getWeekdaysInMonth(2) = Tuesdays in a month)\n]"
+      "description": "[cur_month | prev_month]: Current month or previous month\n.[\ngetLeftFromPrevMonth([accountId]): Left from previous month with optional account specification\ngetTotalIncome([accountId]): Total of type 'Income' with optional account specification\ngetTotalSpending([accountId]): Total of type 'Spending' with optional account specification\ngetTotalLoanReturn([accountId]): Total of type 'Loan return' with optional account specification\ngetTotalSavings([accountId]): Total of type 'Savings' with optional account specification\ngetTotalToOtherAccount([accountId]): Total of type 'Transfer to other account' with optional account specification\ngetTotalFromOtherAccount([accountId]): Total of type 'Transfer from other account' with optional account specification\ngetTotalKeepOnAccount([accountId]): Total of type 'Keep on account' with optional account specification\ngetOpeningBalance([accountId]): = (getLeftFromPrevMonth + getTotalIncome + getTotalFromOtherAccount) with optional account specification\ngetClosingBalance([accountId]): = (getOpeningBalance - getTotalSavings - getTotalLoanReturn - getTotalSpending - totalToOtherAccount)  with optional account specification\ngetItem(<budgetId>[, accountId]): Gets amount of a specific budget item with optional account specification\ngetDaysInMonth(): Gets total of calendar days in a month (1 - 31)\ngetWeekdaysInMonth([1..7]): Gets total of a certain weekday in a month (e.g. getWeekdaysInMonth(2) = Tuesdays in a month)\n]"
     }
   },
   "account": {
@@ -119,14 +114,14 @@
 
     "leftFromPrevMonth": "Left from prev month",
     "month": "Month",
-    "amount": "Amount",
-
-    "hintDeleteDisabled": "This account is used, therefore cannot be deleted",
-
+    "amount": "Amount"
+  },
+  "addOrEdit": {
     "add": "Add",
     "edit": "Edit",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "hintDeleteDisabled": "This item is used, therefore cannot be deleted"
   },
   "demo": {
     "topBarMessage": "You are using demo data! The data is not saved and may be lost. Feel free to play around and change anything.",
@@ -151,6 +146,7 @@
     "emailEmpty": "Email cannot be empty",
     "emailInvalid": "Email is invalid",
     "passwordEmpty": "Password cannot be empty",
+    "passwordTooShort": "Password is too short",
     "passwordInvalid": "Password cannot be less than 8 characters long",
     "codeEmpty": "Code cannot be empty",
     "codeInvalid": "Invalid code",
@@ -159,7 +155,9 @@
     "failedLogin": "Failed to login",
     "missingTransactionData": "Not enough data for statement",
     "nameEmpty": "Name cannot be empty",
-    "monthEmpty": "Month cannot be empty"
+    "monthEmpty": "Month cannot be empty",
+    "amountEmpty": "Amount cannot be empty",
+    "NaN": "Not a number"
   },
   "landingPage": {
     "welcome": {
@@ -236,6 +234,9 @@
     "cashWithdrawal": "Cash withdrawal",
     "main": "Main",
     "creditCard": "Credit card",
-    "cash": "Cash"
+    "cash": "Cash",
+    "unplanned": "Unplanned",
+    "borrow": "Filip borrowed",
+    "parking": "Parking"
   }
 }

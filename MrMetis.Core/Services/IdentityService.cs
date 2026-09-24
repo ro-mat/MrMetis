@@ -87,7 +87,8 @@ public class IdentityService : IIdentityService
             };
         }
 
-        if (HashHelper.HashString(password, userModel.Salt).Hash != userModel.Password)
+        var hash = HashHelper.HashString(password, userModel.Salt).Hash;
+        if (hash != userModel.Password)
         {
             return new AuthenticationResult
             {

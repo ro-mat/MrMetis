@@ -1,45 +1,44 @@
 import React, { FC } from "react";
-import moment from "moment";
-import { BudgetMonth } from "types/BudgetMonth";
+import moment, { Moment } from "moment";
 import { useTranslation } from "react-i18next";
 
 interface ITableHeaderProps {
-  budgetMonths: BudgetMonth[];
+  months: Moment[];
 }
 
-const TableHeader: FC<ITableHeaderProps> = ({ budgetMonths }) => {
+const TableHeader: FC<ITableHeaderProps> = ({ months }) => {
   const { t, i18n } = useTranslation();
 
   return (
     <>
       <tr>
         <th></th>
-        {budgetMonths.map((bm, index) => (
+        {months.map((month, index) => (
           <th
             key={index}
             colSpan={2}
             className={`bl br ${
-              moment(bm.month).isSame(moment(), "M") ? "current-month" : ""
+              month.isSame(moment(), "M") ? "current-month" : ""
             }`}
           >
-            {moment(bm.month).locale(i18n.language).format("YYYY-MM (MMM)")}
+            {month.locale(i18n.language).format("YYYY-MM (MMM)")}
           </th>
         ))}
       </tr>
       <tr>
         <th></th>
-        {budgetMonths.map((bm, index) => (
+        {months.map((month, index) => (
           <React.Fragment key={index}>
             <th
               className={`bl ${
-                moment(bm.month).isSame(moment(), "M") ? "current-month" : ""
+                moment(month).isSame(moment(), "M") ? "current-month" : ""
               }`}
             >
               {t("planning.planned")}
             </th>
             <th
               className={`br ${
-                moment(bm.month).isSame(moment(), "M") ? "current-month" : ""
+                moment(month).isSame(moment(), "M") ? "current-month" : ""
               }`}
             >
               {t("planning.actual")}

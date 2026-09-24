@@ -3,12 +3,12 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import Index from "pages/Index";
-import Statements from "pages/Statements";
-import Login from "pages/Login";
-import Budget from "pages/Budget";
-import Accounts from "pages/Accounts";
+import StatementsPage from "pages/StatementsPage";
+import LoginPage from "pages/LoginPage";
+import BudgetPage from "pages/BudgetPage";
+import AccountsPage from "pages/AccountsPage";
 import { attempt, logout } from "store/auth/auth.actions";
-import Register from "pages/Register";
+import RegisterPage from "pages/RegisterPage";
 import { fetchUserdata, saveUserData } from "store/userdata/userdata.actions";
 import { fetchUi } from "store/ui/ui.actions";
 import SideNavLayout from "components/Layouts/SideNavLayout";
@@ -122,15 +122,15 @@ const App: FunctionComponent = () => {
                   />
                 </Route>
               </Route>
-              <Route path="/list" element={<Statements />} />
-              <Route path="/budget" element={<Budget />} />
-              <Route path="/accounts" element={<Accounts />} />
+              <Route path="/list" element={<StatementsPage />} />
+              <Route path="/budget" element={<BudgetPage />} />
+              <Route path="/accounts" element={<AccountsPage />} />
             </Route>
           </Route>
 
           <Route element={<UnAuthenticated />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
           </Route>
         </Routes>
         <Footer />

@@ -1,80 +1,99 @@
-import React, { FC } from "react";
-import { BudgetType, BudgetTypeUser } from "store/userdata/userdata.types";
+import React, { useMemo } from "react";
+import {
+  BudgetType,
+  BudgetTypeExtra,
+  BudgetTypeUser,
+  IBudget,
+} from "store/userdata/userdata.types";
 import TableRow from "./TableRow";
-import TableCellPair from "./TableCellPair";
-import { BudgetItems } from "types/BudgetItems";
-import { IActiveBudget } from "hooks/useBudget";
 import { useTranslation } from "react-i18next";
+import { BudgetPairArray } from "services/budgetBuilder";
+import { Moment } from "moment";
+import useBudget from "hooks/useBudget";
+import TableRowTotal from "./TableRowTotal";
 
 export interface ITableRowsByTypeProps {
-  types: BudgetType[];
-  activeBudgets: IActiveBudget[];
-  budgetItems: BudgetItems[];
+  type: BudgetType;
+  months: Moment[];
+  budgetPairArray: BudgetPairArray;
   moreIsGood: boolean;
   totalLabel?: string;
   showTotal?: boolean;
   highlight?: boolean;
+  accountId?: number;
 }
 
-const TableRowsByType: FC<ITableRowsByTypeProps> = ({
-  types,
-  activeBudgets,
-  budgetItems,
+const TableRowsByType = ({
+  type,
+  months,
+  budgetPairArray,
   moreIsGood,
   totalLabel,
-  showTotal = true,
+  showTotal = false,
   highlight = false,
-}) => {
+  accountId,
+}: ITableRowsByTypeProps) => {
   const { t } = useTranslation();
+  const { budgets } = useBudget();
 
-  const filteredActiveBudgets = activeBudgets.filter((b) =>
-    types.includes(b.type)
+  const filteredBudgets = useMemo(
+    () =>
+      budgets.filter((b) => filterFactory(type)(b, budgetPairArray, accountId)),
+    [budgets, type, budgetPairArray, accountId]
   );
+
   return (
     <>
-      {filteredActiveBudgets.length > 0 && (
-        <>
-          {filteredActiveBudgets.map((b) => (
-            <TableRow
-              key={b.budgetId}
-              budgetId={b.budgetId}
-              name={b.name}
-              budgetItems={budgetItems}
-              moreIsGood={moreIsGood}
-              children={b.children}
-              highlight={highlight}
-            />
-          ))}
-          {showTotal && (
-            <tr className={highlight ? "highlight" : ""}>
-              <td>
-                <strong>
-                  {totalLabel ??
-                    `${t("planning.total")} ${t(
-                      `budgetType.${BudgetTypeUser[types[0]]}`
-                    )}`}
-                </strong>
-              </td>
-              {budgetItems.map((bm, index) => {
-                const typeTotal = bm.filterByTypes(types);
-                const hasIncome = types.includes(BudgetTypeUser.income);
-                return (
-                  <React.Fragment key={index}>
-                    <TableCellPair
-                      valuePlanned={typeTotal.getTotalPlanned()}
-                      valueActual={typeTotal.getTotalActual()}
-                      isStrong={true}
-                      moreIsGood={hasIncome}
-                    />
-                  </React.Fragment>
-                );
-              })}
-            </tr>
-          )}
-        </>
+      {filteredBudgets.map((b) => (
+        <TableRow
+          key={b.id}
+          budget={b}
+          months={months}
+          budgetPairArray={budgetPairArray}
+          moreIsGood={moreIsGood}
+          highlight={highlight}
+          accountId={accountId}
+        />
+      ))}
+      {showTotal && (
+        <TableRowTotal
+          types={[type]}
+          months={months}
+          budgetPairArray={budgetPairArray}
+          highlight={highlight}
+          totalLabel={totalLabel}
+          accountId={accountId}
+        />
       )}
     </>
   );
+};
+
+const filterFactory = (budgetType: BudgetType) => {
+  switch (budgetType) {
+    case BudgetTypeExtra.transferFromAccount:
+      return (
+        b: IBudget,
+        budgetPairArray: BudgetPairArray,
+        accountId?: number
+      ) =>
+        b.type === BudgetTypeUser.transferToAccount &&
+        b.toAccountId === accountId &&
+        budgetPairArray.isBudgetActive(b.id, accountId);
+
+    default:
+      return (
+        b: IBudget,
+        budgetPairArray: BudgetPairArray,
+        accountId?: number
+      ) =>
+        b.type === budgetType &&
+        !b.parentId &&
+        (accountId === undefined ||
+          b.fromAccountId === 0 ||
+          b.fromAccountId === accountId) &&
+        budgetPairArray.isBudgetActive(b.id, accountId);
+  }
 };
 
 export default TableRowsByType;

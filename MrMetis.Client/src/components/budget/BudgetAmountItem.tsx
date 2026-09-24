@@ -4,8 +4,7 @@ import { Select, MenuItem } from "@mui/material";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { ChangeEvent, FC } from "react";
-import { AmountType, IAmount } from "types/IAmount";
-import { getEnumArray } from "helpers/enumHelper";
+import { IAmount } from "types/IAmount";
 import { IAccount } from "store/userdata/userdata.types";
 
 export interface IBudgetAmountItemProps {
@@ -59,20 +58,6 @@ const BudgetAmountItem: FC<IBudgetAmountItemProps> = ({
           {accounts.map((a) => (
             <MenuItem key={a.id} value={a.id}>
               {a.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </Labeled>
-      <Labeled labelKey="budget.amountType" required>
-        <Select
-          name={`amounts[${index}].amountType`}
-          value={item.amountType ?? AmountType.Basic}
-          onChange={handleChange}
-          onBlur={handleBlur}
-        >
-          {getEnumArray(AmountType).map((id) => (
-            <MenuItem key={id} value={id}>
-              {AmountType[id]}
             </MenuItem>
           ))}
         </Select>

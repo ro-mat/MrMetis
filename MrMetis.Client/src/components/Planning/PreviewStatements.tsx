@@ -2,12 +2,12 @@ import { DATE_FORMAT } from "helpers/dateHelper";
 import moment from "moment";
 import React from "react";
 import { useDispatch } from "react-redux";
+import { BudgetStatement } from "services/budgetBuilder";
 import { TAppDispatch } from "store/store";
 import { SET_PREVIEW_STATEMENTS } from "store/ui/ui.slice";
-import { IStatement } from "store/userdata/userdata.types";
 
 interface IPreviewStatementsProps {
-  statements: IStatement[];
+  statements: BudgetStatement[];
 }
 
 const PreviewStatements = ({ statements }: IPreviewStatementsProps) => {
