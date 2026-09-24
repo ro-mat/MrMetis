@@ -8,8 +8,8 @@ import "styles/register.scss";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { requiredError } from "helpers/zodHelper";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { SubmitHandler } from "react-hook-form";
+import useAppForm from "hooks/useAppForm";
 import { registerFormDefault } from "helpers/constants/defaults";
 
 const schema: z.ZodType<ICredentials, ICredentials> = z.object({
@@ -31,14 +31,10 @@ const RegisterForm = () => {
   const { isFetching } = useSelector((state: AppState) => state.auth);
 
   const {
-    register,
+    control,
     handleSubmit,
-    formState: { errors, isValid },
-  } = useForm<FormFields>({
-    defaultValues: registerFormDefault,
-    resolver: zodResolver(schema),
-    mode: "onTouched",
-  });
+    formState: { isValid },
+  } = useAppForm(schema, registerFormDefault);
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     dispatch(registerUser(data));
@@ -47,25 +43,25 @@ const RegisterForm = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <TextInput
-        {...register("email")}
+        name="email"
+        control={control}
         label="register.email"
         required
-        error={errors.email?.message}
         disabled={isFetching}
       />
       <TextInput
-        {...register("password")}
+        name="password"
+        control={control}
         type="password"
         label="register.password"
         required
-        error={errors.password?.message}
         disabled={isFetching}
       />
       <TextInput
-        {...register("invitationCode")}
+        name="invitationCode"
+        control={control}
         label="register.code"
         required
-        error={errors.invitationCode?.message}
         disabled={isFetching}
       />
       <CtaButton

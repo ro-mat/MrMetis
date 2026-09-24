@@ -15,8 +15,8 @@ import useBudget from "hooks/useBudget";
 import { budgetAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
 import { requiredError } from "helpers/zodHelper";
-import { useFieldArray, useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useFieldArray, useWatch } from "react-hook-form";
+import useAppForm from "hooks/useAppForm";
 import AddOrEditControls from "components/AddOrEditControls";
 import AccountSelect from "components/AccountSelect";
 import BudgetSelect from "components/BudgetSelect";
@@ -63,27 +63,36 @@ const schema = z
     return (
       input.type !== BudgetTypeUser.transferToAccount || input.toAccountId !== 0
     );
-  });
+  })
+  // a budget-level account wins over the account chosen on each row
+  .transform((budget) =>
+    budget.fromAccountId
+      ? {
+          ...budget,
+          amounts: budget.amounts.map((a) => ({
+            ...a,
+            fromAccountId: budget.fromAccountId!,
+          })),
+          overrides: budget.overrides.map((o) => ({
+            ...o,
+            accountId: budget.fromAccountId!,
+          })),
+        }
+      : budget
+  );
 
-export type FormFields = z.infer<typeof schema>;
+export type FormFields = z.output<typeof schema>;
 
 const BudgetAddOrEdit = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch<TAppDispatch>();
 
   const {
-    register,
     handleSubmit,
     reset,
     control,
-    getValues,
-    setValue,
-    formState: { errors, isValid },
-  } = useForm<FormFields>({
-    defaultValues: budgetAddOrEditFormDefault,
-    resolver: zodResolver(schema),
-    mode: "onTouched",
-  });
+    formState: { isValid },
+  } = useAppForm(schema, budgetAddOrEditFormDefault);
 
   const {
     fields: amountFields,
@@ -150,24 +159,11 @@ const BudgetAddOrEdit = () => {
     label: t(`budgetType.${BudgetTypeUser[i]}`),
   }));
 
-  // A budget-level account is forced on every amount/override row
-  // (existing and new ones); the row selects are disabled meanwhile.
-  useEffect(() => {
-    if (!fromAccountId) return;
-
-    getValues("amounts").forEach((_, i) =>
-      setValue(`amounts.${i}.fromAccountId`, fromAccountId)
-    );
-    getValues("overrides").forEach((_, i) =>
-      setValue(`overrides.${i}.accountId`, fromAccountId)
-    );
-  }, [
-    fromAccountId,
-    amountFields.length,
-    overrideFields.length,
-    getValues,
-    setValue,
-  ]);
+  // While the budget has its own account, the row account selects show it
+  // and are locked (the schema applies it on save).
+  const rowAccountProps = fromAccountId
+    ? { value: fromAccountId, disabled: true }
+    : { control };
 
   const disableDelete =
     selectedBudgetId !== undefined && isBudgetUsed(selectedBudgetId);
@@ -227,13 +223,14 @@ const BudgetAddOrEdit = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="crud">
           <TextInput
-            {...register("name")}
+            name="name"
+            control={control}
             label="budget.name"
             required
-            error={errors.name?.message}
           />
           <SelectBox
-            {...register("type", { valueAsNumber: true })}
+            name="type"
+            control={control}
             label="budget.type"
             required
             options={budgetTypeOptions}
@@ -266,7 +263,8 @@ const BudgetAddOrEdit = () => {
             />
           )}
           <Checkbox
-            {...register("expectOneStatement")}
+            name="expectOneStatement"
+            control={control}
             label="budget.expectOneStatement"
             horizontal={false}
           />
@@ -308,21 +306,19 @@ const BudgetAddOrEdit = () => {
                   label="budget.endDate"
                 />
                 <AccountSelect
-                  {...register(`amounts.${index}.fromAccountId`, {
-                    valueAsNumber: true,
-                  })}
+                  name={`amounts.${index}.fromAccountId`}
+                  {...rowAccountProps}
                   label="budget.fromAccount"
                   required
-                  disabled={!!fromAccountId}
                 />
                 <TextInput
-                  {...register(`amounts.${index}.amount`)}
+                  name={`amounts.${index}.amount`}
+                  control={control}
                   label="budget.amount"
                 />
                 <TextInput
-                  {...register(`amounts.${index}.frequency`, {
-                    valueAsNumber: true,
-                  })}
+                  name={`amounts.${index}.frequency`}
+                  control={control}
                   type="number"
                   label="budget.frequency"
                   required
@@ -357,17 +353,14 @@ const BudgetAddOrEdit = () => {
                   required
                 />
                 <AccountSelect
-                  {...register(`overrides.${index}.accountId`, {
-                    valueAsNumber: true,
-                  })}
+                  name={`overrides.${index}.accountId`}
+                  {...rowAccountProps}
                   label="budget.fromAccount"
                   required
-                  disabled={!!fromAccountId}
                 />
                 <TextInput
-                  {...register(`overrides.${index}.amount`, {
-                    valueAsNumber: true,
-                  })}
+                  name={`overrides.${index}.amount`}
+                  control={control}
                   type="number"
                   label="budget.amount"
                 />

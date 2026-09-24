@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { store } from "store/store";
 import { SET_USERDATA } from "store/userdata/userdata.slice";
@@ -13,7 +13,7 @@ const account = (id: number, name: string) => ({
 });
 
 describe("BudgetAddOrEdit", () => {
-  it("forces the budget account on existing and new amount/override rows", () => {
+  it("forces the budget account on existing and new amount/override rows", async () => {
     store.dispatch(
       SET_USERDATA({ accounts: [account(1, "Cash"), account(2, "Bank")] })
     );
@@ -50,5 +50,19 @@ describe("BudgetAddOrEdit", () => {
     fireEvent.click(addAmount);
     expect(rowSelect("amounts.0.fromAccountId")).toHaveValue("2");
     expect(rowSelect("amounts.1.fromAccountId")).toHaveValue("2");
+
+    // and it is what gets saved for every row
+    const name =
+      container.querySelector<HTMLInputElement>('input[name="name"]')!;
+    fireEvent.change(name, { target: { value: "Rent" } });
+    fireEvent.blur(name);
+    fireEvent.click(await screen.findByText("addOrEdit.add"));
+
+    await waitFor(() =>
+      expect(store.getState().data.userdata.budgets).toHaveLength(1)
+    );
+    const [saved] = store.getState().data.userdata.budgets;
+    expect(saved.amounts.map((a) => a.fromAccountId)).toEqual([2, 2]);
+    expect(saved.overrides.map((o) => o.accountId)).toEqual([2]);
   });
 });

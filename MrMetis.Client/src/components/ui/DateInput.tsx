@@ -1,13 +1,13 @@
 import React from "react";
 import DatePicker from "react-datepicker";
 import { useTranslation } from "react-i18next";
-import { Control, Controller, FieldPath, FieldValues } from "react-hook-form";
+import { FieldValues } from "react-hook-form";
 import "react-datepicker/dist/react-datepicker.css";
 import Field, { IFieldProps } from "./Field";
+import Bound, { IBindProps } from "./Bound";
 
-interface IDateInputProps<T extends FieldValues> extends IFieldProps {
-  name: FieldPath<T>;
-  control: Control<T, unknown, FieldValues>;
+interface IDateInputProps<T extends FieldValues>
+  extends IFieldProps, Required<IBindProps<T>> {
   // "month" picks a whole month (used for budgets and balances)
   mode?: "day" | "month";
 }
@@ -16,6 +16,7 @@ const DateInput = <T extends FieldValues>({
   name,
   control,
   mode = "day",
+  error,
   ...fieldProps
 }: IDateInputProps<T>) => {
   const { i18n } = useTranslation();
@@ -29,23 +30,21 @@ const DateInput = <T extends FieldValues>({
       : {};
 
   return (
-    <Field {...fieldProps}>
-      <Controller
-        control={control}
-        name={name}
-        render={({ field }) => (
+    <Bound name={name} control={control}>
+      {(field, fieldError) => (
+        <Field {...fieldProps} error={error ?? fieldError}>
           <DatePicker
-            name={field.name}
-            ref={field.ref}
-            onBlur={field.onBlur}
+            name={field?.name}
+            ref={field?.ref}
+            onBlur={field?.onBlur}
             locale={i18n.language}
-            selected={field.value ? new Date(field.value) : null}
-            onChange={(date: Date | null) => field.onChange(date)}
+            selected={field?.value ? new Date(field.value) : null}
+            onChange={(date: Date | null) => field?.onChange(date)}
             {...monthProps}
           />
-        )}
-      />
-    </Field>
+        </Field>
+      )}
+    </Bound>
   );
 };
 

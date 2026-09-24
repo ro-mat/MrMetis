@@ -13,8 +13,7 @@ import useStatement from "hooks/useStatement";
 import { statementAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
 import { requiredError } from "helpers/zodHelper";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import useAppForm from "hooks/useAppForm";
 import AddOrEditControls from "components/AddOrEditControls";
 import AccountSelect from "components/AccountSelect";
 import BudgetSelect from "components/BudgetSelect";
@@ -29,7 +28,6 @@ const schema = z.object({
   comment: z.string().optional(),
 });
 
-type FormInput = z.input<typeof schema>;
 type FormFields = z.output<typeof schema>;
 
 const StatementAddOrEdit = () => {
@@ -38,16 +36,11 @@ const StatementAddOrEdit = () => {
   const { getById: getStatementById } = useStatement();
 
   const {
-    register,
     handleSubmit,
     reset,
     control,
-    formState: { errors, isValid },
-  } = useForm<FormInput, unknown, FormFields>({
-    defaultValues: statementAddOrEditFormDefault,
-    resolver: zodResolver(schema),
-    mode: "onTouched",
-  });
+    formState: { isValid },
+  } = useAppForm(schema, statementAddOrEditFormDefault);
 
   const onSubmit = (data: FormFields) => {
     const statement = getStatementById(selectedStatementId)!;
@@ -101,19 +94,18 @@ const StatementAddOrEdit = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="crud">
           <TextInput
-            {...register("amount")}
+            name="amount"
+            control={control}
             type="number"
             step="0.01"
             label="statement.amount"
             required
-            error={errors.amount?.message}
           />
           <DateInput
             name="date"
             control={control}
             label="statement.date"
             required
-            error={errors.date?.message}
           />
           <BudgetSelect
             name="budgetId"
@@ -121,7 +113,6 @@ const StatementAddOrEdit = () => {
             filterable
             label="statement.budget"
             required
-            error={errors.budgetId?.message}
           />
           <AccountSelect
             name="accountId"
@@ -129,12 +120,11 @@ const StatementAddOrEdit = () => {
             filterable
             label="statement.account"
             required
-            error={errors.accountId?.message}
           />
           <TextArea
-            {...register("comment")}
+            name="comment"
+            control={control}
             label="statement.comment"
-            error={errors.comment?.message}
           />
         </div>
         <AddOrEditControls

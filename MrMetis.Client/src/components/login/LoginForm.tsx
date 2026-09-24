@@ -7,8 +7,8 @@ import { CtaButton, TextInput } from "components/ui";
 import "styles/login.scss";
 import { useTranslation } from "react-i18next";
 import { loginFormDefault } from "helpers/constants/defaults";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { SubmitHandler } from "react-hook-form";
+import useAppForm from "hooks/useAppForm";
 import { z } from "zod";
 import { requiredError } from "helpers/zodHelper";
 
@@ -30,14 +30,10 @@ const LoginForm = () => {
   const { isFetching } = useSelector((state: AppState) => state.auth);
 
   const {
-    register,
+    control,
     handleSubmit,
-    formState: { errors, isValid },
-  } = useForm<FormFields>({
-    defaultValues: loginFormDefault,
-    resolver: zodResolver(schema),
-    mode: "onTouched",
-  });
+    formState: { isValid },
+  } = useAppForm(schema, loginFormDefault);
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     dispatch(login(data));
@@ -46,18 +42,18 @@ const LoginForm = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <TextInput
-        {...register("email")}
+        name="email"
+        control={control}
         label="login.email"
         required
-        error={errors.email?.message}
         disabled={isFetching}
       />
       <TextInput
-        {...register("password")}
+        name="password"
+        control={control}
         type="password"
         label="login.password"
         required
-        error={errors.password?.message}
         disabled={isFetching}
       />
       <CtaButton

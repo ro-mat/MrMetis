@@ -1,6 +1,7 @@
 import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
-import { useForm } from "react-hook-form";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { z } from "zod";
+import useAppForm from "hooks/useAppForm";
 import { Button, CtaButton, SelectBox, TextInput } from "components/ui";
 
 describe("ui components", () => {
@@ -17,6 +18,32 @@ describe("ui components", () => {
     expect(container.querySelector(".labeled")).toHaveClass("has-error");
   });
 
+  it("bound fields show their own validation error and keep numbers", async () => {
+    const onSubmit = vi.fn();
+    const schema = z.object({ amount: z.number("errors.amountEmpty") });
+    const Form = () => {
+      const { control, handleSubmit } = useAppForm(schema, {});
+      return (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <TextInput name="amount" control={control} type="number" label="a" />
+          <CtaButton>save</CtaButton>
+        </form>
+      );
+    };
+    render(<Form />);
+    const input = screen.getByRole("spinbutton");
+
+    fireEvent.blur(input);
+    expect(await screen.findByText("errors.amountEmpty")).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: "12.5" } });
+    fireEvent.click(screen.getByText("save"));
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith({ amount: 12.5 }, expect.anything())
+    );
+    expect(screen.queryByText("errors.amountEmpty")).toBeNull();
+  });
+
   it("Button does not submit by default, CtaButton does", () => {
     render(
       <>
@@ -31,9 +58,10 @@ describe("ui components", () => {
   it("filterable SelectBox narrows options and sends the picked value", () => {
     const onSubmit = vi.fn();
     const Form = () => {
-      const { control, handleSubmit } = useForm({
-        defaultValues: { accountId: 0 },
-      });
+      const { control, handleSubmit } = useAppForm(
+        z.object({ accountId: z.number() }),
+        { accountId: 0 }
+      );
       return (
         <form onSubmit={handleSubmit(onSubmit)}>
           <SelectBox

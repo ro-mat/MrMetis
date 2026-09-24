@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import {
@@ -18,8 +18,8 @@ import useAccount from "hooks/useAccount";
 import { accountAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
 import { requiredError } from "helpers/zodHelper";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useFieldArray, useForm } from "react-hook-form";
+import useAppForm from "hooks/useAppForm";
+import { useFieldArray } from "react-hook-form";
 import { DATE_FORMAT } from "helpers/dateHelper";
 import moment from "moment";
 import AddOrEditControls from "components/AddOrEditControls";
@@ -37,23 +37,17 @@ const schema = z.object({
   ),
 });
 
-type FormInput = z.input<typeof schema>;
 type FormFields = z.output<typeof schema>;
 
 const AccountAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
 
   const {
-    register,
     handleSubmit,
     reset,
     control,
-    formState: { errors, isValid },
-  } = useForm<FormInput, unknown, FormFields>({
-    defaultValues: accountAddOrEditFormDefault,
-    resolver: zodResolver(schema),
-    mode: "onTouched",
-  });
+    formState: { isValid },
+  } = useAppForm(schema, accountAddOrEditFormDefault);
 
   const { fields, prepend, remove } = useFieldArray({
     control,
@@ -88,10 +82,8 @@ const AccountAddOrEdit = () => {
 
   const { getById: getAccountById, isAccountUsed } = useAccount();
 
-  const disableDelete = useMemo(
-    () => selectedAccountId !== undefined && isAccountUsed(selectedAccountId),
-    [selectedAccountId, isAccountUsed]
-  );
+  const disableDelete =
+    selectedAccountId !== undefined && isAccountUsed(selectedAccountId);
 
   const onCancelEditClick = () => {
     dispatch(SET_SELECTED_ACCOUNT(undefined));
@@ -128,10 +120,10 @@ const AccountAddOrEdit = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="crud">
           <TextInput
-            {...register("name")}
+            name="name"
+            control={control}
             label="account.name"
             required
-            error={errors.name?.message}
           />
         </div>
         <div className="list-wrapper">
@@ -141,22 +133,21 @@ const AccountAddOrEdit = () => {
             </Button>
           </Field>
           <div className="list">
-            {fields.map((amount, index) => (
-              <div key={index}>
+            {fields.map((field, index) => (
+              <div key={field.id}>
                 <DateInput
                   name={`leftFromPrevMonth.${index}.month`}
                   control={control}
                   mode="month"
                   label="account.month"
                   required
-                  error={errors.leftFromPrevMonth?.[index]?.month?.message}
                 />
                 <TextInput
-                  {...register(`leftFromPrevMonth.${index}.amount`)}
+                  name={`leftFromPrevMonth.${index}.amount`}
+                  control={control}
                   type="number"
                   step="0.01"
                   label="account.amount"
-                  error={errors.leftFromPrevMonth?.[index]?.amount?.message}
                 />
                 <RemoveButton onClick={() => remove(index)} />
               </div>
