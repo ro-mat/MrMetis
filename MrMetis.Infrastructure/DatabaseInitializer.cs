@@ -18,6 +18,7 @@ public class DatabaseInitializer(
     MrMetisContext context,
     IOptions<DatabaseOptions> databaseOptions,
     IHostEnvironment environment,
+    TimeProvider timeProvider,
     ILogger<DatabaseInitializer> logger)
 {
     private const int ServerUpAttempts = 30;
@@ -83,7 +84,14 @@ public class DatabaseInitializer(
         }
 
         logger.LogInformation("Seeding invitation code '{InvitationCode}'", LocalInvitationCode);
-        context.InvitationCodes.Add(new InvitationCode { Code = LocalInvitationCode });
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+        context.InvitationCodes.Add(new InvitationCode
+        {
+            Code = LocalInvitationCode,
+            IsActive = true,
+            Created = now,
+            Modified = now
+        });
         await context.SaveChangesAsync(ct);
     }
 

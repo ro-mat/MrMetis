@@ -1,9 +1,8 @@
-using MrMetis.Core.Entities.Base;
-
 namespace MrMetis.Core.Entities;
 
-public class User : BaseEntity
+public class User
 {
+    public int Id { get; set; }
     public required string Email { get; set; }
     public required string Password { get; set; }
 
@@ -12,6 +11,9 @@ public class User : BaseEntity
     /// </summary>
     public string? Salt { get; set; }
 
-    public int UserDataId { get; set; }
-    public UserData UserData { get; set; } = null!;
+    public virtual UserData UserData { get; set; } = null!;
+
+    public bool IsActive { get; set; }
+    public DateTime Created { get; set; }
+    public DateTime? Modified { get; set; }
 }

@@ -36,16 +36,28 @@ public class IdentityService(
             return AuthenticationResult.Failed("emailExists");
         }
 
+        var now = timeProvider.GetUtcNow().UtcDateTime;
         var user = new User
         {
             Email = email,
             Password = string.Empty,
-            UserData = new UserData()
+            UserData = new UserData
+            {
+                IsActive = true,
+                Created = now,
+                Modified = now
+            },
+            IsActive = true,
+            Created = now,
+            Modified = now
         };
         user.Password = passwordHasher.HashPassword(user, password);
-
         db.Users.Add(user);
-        db.InvitationCodes.Remove(code);
+
+        // soft delete, the code can be used only once
+        code.IsActive = false;
+        code.Modified = now;
+
         await db.SaveChangesAsync(ct);
 
         return AuthenticationResult.Succeeded(CreateToken(user));
@@ -89,6 +101,7 @@ public class IdentityService(
         {
             user.Password = passwordHasher.HashPassword(user, password);
             user.Salt = null;
+            user.Modified = timeProvider.GetUtcNow().UtcDateTime;
             await db.SaveChangesAsync(ct);
         }
 

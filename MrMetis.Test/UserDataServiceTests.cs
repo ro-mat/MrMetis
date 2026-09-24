@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using MrMetis.Core.Dtos;
 using MrMetis.Core.Entities;
 using MrMetis.Core.Exceptions;
@@ -13,13 +14,21 @@ public class UserDataServiceTests : DbTestBase
     [SetUp]
     public async Task Setup()
     {
-        var user = new User { Email = "email@email.com", Password = "hash", UserData = new UserData() };
+        var created = DateTime.UtcNow.AddDays(-1);
+        var user = new User
+        {
+            Email = "email@email.com",
+            Password = "hash",
+            UserData = new UserData { IsActive = true, Created = created },
+            IsActive = true,
+            Created = created
+        };
         Db.Users.Add(user);
         await Db.SaveChangesAsync();
         Db.ChangeTracker.Clear();
 
         _userId = user.Id;
-        _service = new UserDataService(Db);
+        _service = new UserDataService(Db, TimeProvider.System);
     }
 
     [Test]
@@ -37,7 +46,9 @@ public class UserDataServiceTests : DbTestBase
 
         Assert.That(result.Data, Is.EqualTo("encrypted"));
         await using var db = CreateContext();
-        Assert.That((await new UserDataService(db).GetAsync(_userId)).Data, Is.EqualTo("encrypted"));
+        Assert.That((await new UserDataService(db, TimeProvider.System).GetAsync(_userId)).Data, Is.EqualTo("encrypted"));
+        var userData = await db.UserDatas.SingleAsync();
+        Assert.That(userData.Modified, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromMinutes(1)));
     }
 
     [Test]
@@ -50,7 +61,8 @@ public class UserDataServiceTests : DbTestBase
     [Test]
     public async Task Get_SoftDeletedUser_ShouldThrow()
     {
-        Db.Users.Remove(await Db.Users.FindAsync(_userId) ?? throw new InvalidOperationException());
+        var user = await Db.Users.FindAsync(_userId) ?? throw new InvalidOperationException();
+        user.IsActive = false;
         await Db.SaveChangesAsync();
 
         Assert.ThrowsAsync<MrMetisException>(() => _service.GetAsync(_userId));

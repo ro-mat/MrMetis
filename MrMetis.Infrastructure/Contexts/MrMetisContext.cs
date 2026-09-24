@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MrMetis.Core.Entities;
 using MrMetis.Core.Options;
-using MrMetis.Infrastructure.Helpers;
 
 namespace MrMetis.Infrastructure.Contexts;
 
@@ -23,6 +22,7 @@ public class MrMetisContext(DbContextOptions<MrMetisContext> options, IOptions<D
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasQueryFilter(e => e.IsActive);
 
             entity.ToTable(nameof(Users), _schema);
         });
@@ -30,10 +30,11 @@ public class MrMetisContext(DbContextOptions<MrMetisContext> options, IOptions<D
         builder.Entity<UserData>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.HasQueryFilter(e => e.IsActive);
 
             entity.HasOne(e => e.User)
-                .WithOne(d => d.UserData)
-                .HasForeignKey<User>(e => e.UserDataId)
+                .WithOne(u => u.UserData)
+                .HasForeignKey<UserData>(e => e.UserId)
                 .IsRequired();
 
             entity.ToTable(nameof(UserDatas), _schema);
@@ -42,10 +43,9 @@ public class MrMetisContext(DbContextOptions<MrMetisContext> options, IOptions<D
         builder.Entity<InvitationCode>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.HasQueryFilter(e => e.IsActive);
 
             entity.ToTable(nameof(InvitationCodes), _schema);
         });
-
-        builder.ApplySoftDeleteQueryFilter();
     }
 }

@@ -8,7 +8,6 @@ using MrMetis.Core.Interfaces;
 using MrMetis.Core.Options;
 using MrMetis.Infrastructure.Contexts;
 using MrMetis.Infrastructure.Extensions;
-using MrMetis.Infrastructure.Interceptors;
 using MrMetis.Infrastructure.Services;
 
 namespace MrMetis.Infrastructure;
@@ -29,7 +28,6 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddSingleton(TimeProvider.System);
-        services.AddSingleton<AuditInterceptor>();
 
         var enableSensitiveDataLogging = builder.Environment.IsDevelopmentOrTest();
         services.AddDbContext<MrMetisContext>((sp, options) =>
@@ -37,7 +35,6 @@ public static class DependencyInjection
             var database = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             options
                 .UseSqlServer(database.ConnectionString, sql => sql.CommandTimeout(database.CommandTimeout))
-                .AddInterceptors(sp.GetRequiredService<AuditInterceptor>())
                 .EnableSensitiveDataLogging(enableSensitiveDataLogging);
         });
 

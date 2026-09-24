@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MrMetis.Core.Options;
 using MrMetis.Infrastructure.Contexts;
-using MrMetis.Infrastructure.Interceptors;
 
 namespace MrMetis.Test;
 
@@ -25,7 +24,6 @@ public abstract class DbTestBase
 
         _options = new DbContextOptionsBuilder<MrMetisContext>()
             .UseSqlite(_connection)
-            .AddInterceptors(new AuditInterceptor(TimeProvider.System))
             .Options;
 
         Db = CreateContext();

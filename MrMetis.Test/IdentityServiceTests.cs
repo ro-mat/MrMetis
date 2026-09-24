@@ -54,6 +54,7 @@ public class IdentityServiceTests : DbTestBase
         var user = await db.Users.SingleAsync();
         Assert.That(user.Salt, Is.Null);
         Assert.That(user.Password, Is.Not.EqualTo(LegacyHash));
+        Assert.That(user.Modified, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromMinutes(1)));
         Assert.That((await _service.LoginAsync(Email, LegacyPassword)).Success, Is.True);
         Assert.That((await _service.LoginAsync(Email, "bad")).Success, Is.False);
     }
@@ -114,12 +115,15 @@ public class IdentityServiceTests : DbTestBase
         Assert.That(user.Email, Is.EqualTo(Email));
         Assert.That(user.Password, Is.Not.EqualTo("password"));
         Assert.That(user.Salt, Is.Null);
-        Assert.That(user.UserData, Is.Not.Null);
-        Assert.That(user.IsActive, Is.True);
+        Assert.That(user.UserData.UserId, Is.EqualTo(user.Id));
+        AssertCreatedNow(user.IsActive, user.Created, user.Modified);
+        AssertCreatedNow(user.UserData.IsActive, user.UserData.Created, user.UserData.Modified);
 
         // invitation code is soft deleted
         Assert.That(await db.InvitationCodes.AnyAsync(), Is.False);
-        Assert.That((await db.InvitationCodes.IgnoreQueryFilters().SingleAsync()).IsActive, Is.False);
+        var code = await db.InvitationCodes.IgnoreQueryFilters().SingleAsync();
+        Assert.That(code.IsActive, Is.False);
+        Assert.That(code.Modified, Is.GreaterThan(code.Created));
 
         Assert.That((await _service.LoginAsync(Email, "password")).Success, Is.True);
         Assert.That((await _service.RegisterAsync("other@email.com", "password", InvitationCode)).Errors, Is.EqualTo(new[] { "codeInvalid" }));
@@ -140,6 +144,13 @@ public class IdentityServiceTests : DbTestBase
         Assert.That(token.ValidTo, Is.EqualTo(DateTime.UtcNow.AddMinutes(120)).Within(TimeSpan.FromMinutes(1)));
     }
 
+    private static void AssertCreatedNow(bool isActive, DateTime created, DateTime? modified)
+    {
+        Assert.That(isActive, Is.True);
+        Assert.That(created, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromMinutes(1)));
+        Assert.That(modified, Is.EqualTo(created));
+    }
+
     private static void AssertFailed(bool success, string? token, IReadOnlyList<string> errors, string error)
     {
         Assert.That(success, Is.False);
@@ -149,14 +160,23 @@ public class IdentityServiceTests : DbTestBase
 
     private async Task AddLegacyUser(string hash, string salt)
     {
-        Db.Users.Add(new User { Email = Email, Password = hash, Salt = salt, UserData = new UserData() });
+        var created = DateTime.UtcNow.AddDays(-1);
+        Db.Users.Add(new User
+        {
+            Email = Email,
+            Password = hash,
+            Salt = salt,
+            UserData = new UserData { IsActive = true, Created = created },
+            IsActive = true,
+            Created = created
+        });
         await Db.SaveChangesAsync();
         Db.ChangeTracker.Clear();
     }
 
     private async Task AddInvitationCode()
     {
-        Db.InvitationCodes.Add(new InvitationCode { Code = InvitationCode });
+        Db.InvitationCodes.Add(new InvitationCode { Code = InvitationCode, IsActive = true, Created = DateTime.UtcNow.AddDays(-1) });
         await Db.SaveChangesAsync();
         Db.ChangeTracker.Clear();
     }

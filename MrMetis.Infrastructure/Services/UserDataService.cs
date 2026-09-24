@@ -7,29 +7,30 @@ using MrMetis.Infrastructure.Contexts;
 
 namespace MrMetis.Infrastructure.Services;
 
-public class UserDataService(MrMetisContext db) : IUserDataService
+public class UserDataService(MrMetisContext db, TimeProvider timeProvider) : IUserDataService
 {
     public async Task<UserDataDto> GetAsync(int userId, CancellationToken ct = default)
     {
-        var user = await GetUserAsync(userId, ct);
-        return new UserDataDto(user.UserData.Data);
+        var userData = await GetUserDataAsync(userId, ct);
+        return new UserDataDto(userData.Data);
     }
 
     public async Task<UserDataDto> SetAsync(int userId, UserDataDto model, CancellationToken ct = default)
     {
-        var user = await GetUserAsync(userId, ct);
-        user.UserData.Data = model.Data;
+        var userData = await GetUserDataAsync(userId, ct);
+        userData.Data = model.Data;
+        userData.Modified = timeProvider.GetUtcNow().UtcDateTime;
         await db.SaveChangesAsync(ct);
 
-        return new UserDataDto(user.UserData.Data);
+        return new UserDataDto(userData.Data);
     }
 
-    private async Task<User> GetUserAsync(int userId, CancellationToken ct)
+    private async Task<UserData> GetUserDataAsync(int userId, CancellationToken ct)
     {
-        var user = await db.Users
-            .Include(u => u.UserData)
-            .FirstOrDefaultAsync(u => u.Id == userId, ct);
+        // a deactivated user keeps a valid token until it expires, so check the user too
+        var userData = await db.UserDatas
+            .FirstOrDefaultAsync(d => d.UserId == userId && d.User.IsActive, ct);
 
-        return user ?? throw new MrMetisException("userNotFound");
+        return userData ?? throw new MrMetisException("userNotFound");
     }
 }
