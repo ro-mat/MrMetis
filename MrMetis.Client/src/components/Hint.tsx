@@ -1,6 +1,7 @@
-import { FC } from "react";
+import { FC, ReactNode } from "react";
 
 export interface IHintProps {
+  children?: ReactNode;
   label: string;
   labelClass?: string;
 }

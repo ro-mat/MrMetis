@@ -19,7 +19,7 @@ namespace MrMetis.Test
         private IConfiguration _configuration;
         private IAsyncRepository<User> _userRepository;
         private IAsyncRepository<InvitationCode> _invitationCodeRepository;
-        private readonly Dictionary<string, string> configSettings = new() { { "Authentication:Jwt:Secret", "BudgetYourLife999" } };
+        private readonly Dictionary<string, string> configSettings = new() { { "Authentication:Jwt:Secret", "BudgetYourLife999-unit-test-secret-at-least-32-bytes" } };
 
         [SetUp]
         public void Setup()

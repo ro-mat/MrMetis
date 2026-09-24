@@ -8,7 +8,7 @@ import { SET_FILTER } from "store/ui/ui.slice";
 
 export interface ISideNavProps {}
 
-const FilterLayout: FC<ISideNavProps> = ({ children }) => {
+const FilterLayout: FC<ISideNavProps> = () => {
   const dispatch = useDispatch<TAppDispatch>();
 
   const minThreshHold = 0;

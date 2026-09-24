@@ -23,7 +23,7 @@ public static class CustomDataSeeder
     public static async Task CreateDummyDatabaseAndSchema(this IApplicationBuilder app, string setupCs, string connectionString, string envName)
     {
         envName = "Test";
-        _logger = NLogBuilder.ConfigureNLog($"nlog.{envName}.config").GetCurrentClassLogger();
+        _logger = LogManager.Setup().LoadConfigurationFromFile($"nlog.{envName}.config").GetCurrentClassLogger();
 
         if (string.IsNullOrEmpty(setupCs))
         {

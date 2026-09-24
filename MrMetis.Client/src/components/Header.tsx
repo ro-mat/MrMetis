@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import Logo from "styles/img/logo.png";
 import moment from "moment";
 
-const Header = (): JSX.Element => {
+const Header = (): React.JSX.Element => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t, i18n } = useTranslation();
   moment.locale(i18n.language);

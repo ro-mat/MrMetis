@@ -6,11 +6,11 @@ const vaultKey =
 describe("encryptor", () => {
   beforeEach(() => {
     window.sessionStorage.clear();
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("should hash properly", async () => {
-    const setStorageItemSpy = jest.spyOn(
+    const setStorageItemSpy = vi.spyOn(
       Object.getPrototypeOf(window.sessionStorage),
       "setItem"
     );
@@ -26,7 +26,7 @@ describe("encryptor", () => {
   it.each([{ something: "here", other: "there", and: 83 }, null, {}])(
     "should encrypt and decrypt correctly",
     (obj: any) => {
-      const getSessionItemSpy = jest.spyOn(
+      const getSessionItemSpy = vi.spyOn(
         Object.getPrototypeOf(window.sessionStorage),
         "getItem"
       );
@@ -44,7 +44,7 @@ describe("encryptor", () => {
   );
 
   it("should return empty object when decrypting empty string", () => {
-    const getSessionItemSpy = jest.spyOn(
+    const getSessionItemSpy = vi.spyOn(
       Object.getPrototypeOf(window.sessionStorage),
       "getItem"
     );

@@ -10,5 +10,6 @@ MrMetis.Test/bin/
 MrMetis.Test/obj/
 packages/
 MrMetis.Client/node_modules/
+MrMetis.Client/build/
 app/node_modules/
 logs/

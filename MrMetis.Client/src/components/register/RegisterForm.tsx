@@ -7,18 +7,19 @@ import Labeled from "components/Labeled";
 import "styles/register.scss";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
+import { requiredError } from "helpers/zodHelper";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerFormDefault } from "helpers/constants/defaults";
 
-const schema: z.ZodType<ICredentials> = z.object({
+const schema: z.ZodType<ICredentials, ICredentials> = z.object({
   email: z
-    .string({ required_error: "errors.emailEmpty" })
+    .string(requiredError("errors.emailEmpty"))
     .email("errors.emailInvalid"),
   password: z
-    .string({ required_error: "errors.passwordEmpty" })
+    .string(requiredError("errors.passwordEmpty"))
     .min(8, "errors.passwordTooShort"),
-  invitationCode: z.string({ required_error: "errors.codeEmpty" }),
+  invitationCode: z.string(requiredError("errors.codeEmpty")),
 });
 
 type FormFields = z.infer<typeof schema>;

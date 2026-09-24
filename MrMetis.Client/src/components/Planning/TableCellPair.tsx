@@ -1,9 +1,8 @@
-import { FC, useMemo } from "react";
+import { FC, useId, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import { SET_PREVIEW_STATEMENTS } from "store/ui/ui.slice";
 import PreviewStatements from "./PreviewStatements";
-import useId from "@mui/material/utils/useId";
 import { BudgetPair } from "services/budgetBuilder";
 import { BudgetType, BudgetTypeExtra } from "store/userdata/userdata.types";
 

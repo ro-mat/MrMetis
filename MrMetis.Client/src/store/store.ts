@@ -1,6 +1,10 @@
-import { configureStore, ThunkAction } from "@reduxjs/toolkit";
+import {
+  Action,
+  combineReducers,
+  configureStore,
+  ThunkAction,
+} from "@reduxjs/toolkit";
 import { enableMapSet } from "immer";
-import { Action, combineReducers } from "redux";
 import authReducer from "store/auth/auth.slice";
 import userdataReducer from "store/userdata/userdata.slice";
 import uiReducer from "store/ui/ui.slice";

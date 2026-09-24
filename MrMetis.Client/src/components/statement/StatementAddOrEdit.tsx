@@ -16,23 +16,22 @@ import { DATE_FORMAT } from "helpers/dateHelper";
 import useStatement from "hooks/useStatement";
 import { statementAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
+import { requiredError } from "helpers/zodHelper";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddOrEditControls from "components/AddOrEditControls";
 
 const schema = z.object({
   id: z.number().optional(),
-  amount: z.coerce.number({
-    invalid_type_error: "errors.NaN",
-    required_error: "errors.amountEmpty",
-  }),
-  date: z.date({ required_error: "errors.dateEmpty" }),
-  budgetId: z.coerce.number({ required_error: "errors.budgetEmpty" }).int(),
-  accountId: z.coerce.number({ required_error: "errors.accountEmpty" }).int(),
+  amount: z.coerce.number(requiredError("errors.amountEmpty", "errors.NaN")),
+  date: z.date(requiredError("errors.dateEmpty")),
+  budgetId: z.coerce.number(requiredError("errors.budgetEmpty")).int(),
+  accountId: z.coerce.number(requiredError("errors.accountEmpty")).int(),
   comment: z.string().optional(),
 });
 
-type FormFields = z.infer<typeof schema>;
+type FormInput = z.input<typeof schema>;
+type FormFields = z.output<typeof schema>;
 
 const StatementAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -51,7 +50,7 @@ const StatementAddOrEdit = () => {
     reset,
     control,
     formState: { errors, isValid },
-  } = useForm<FormFields>({
+  } = useForm<FormInput, unknown, FormFields>({
     defaultValues: statementAddOrEditFormDefault,
     resolver: zodResolver(schema),
     mode: "onTouched",
@@ -129,7 +128,7 @@ const StatementAddOrEdit = () => {
                   {...field}
                   locale={i18n.language}
                   selected={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
+                  onChange={(date: Date | null) => field.onChange(date)}
                 />
               )}
             />

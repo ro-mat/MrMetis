@@ -22,7 +22,7 @@ export const DatePickerField = ({ name, control }: IDatePickerFieldProps) => {
           locale={i18n.language}
           dateFormat="MM-yyyy"
           selected={field.value ? new Date(field.value) : null}
-          onChange={(date) => field.onChange(date)}
+          onChange={(date: Date | null) => field.onChange(date)}
           showMonthYearPicker
           showTwoColumnMonthYearPicker
         />

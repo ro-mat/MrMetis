@@ -17,6 +17,17 @@ variables:
 
 steps:
 
+- task: UseDotNet@2
+  displayName: 'Use .NET 10'
+  inputs:
+    packageType: 'sdk'
+    version: '10.x'
+
+- task: NodeTool@0
+  displayName: 'Use Node 24'
+  inputs:
+    versionSpec: '24.x'
+
 - task: DotNetCoreCLI@2
   displayName: Restore
   inputs:
@@ -24,16 +35,9 @@ steps:
     projects: '$(solution)'
 
 - task: Npm@1
-  displayName: 'npm latest'
+  displayName: 'npm ci'
   inputs:
-    command: custom
-    workingDir: MrMetis.Client
-    customCommand: 'install -g npm@latest'
-
-- task: Npm@1
-  displayName: 'npm install'
-  inputs:
-    command: install
+    command: ci
     workingDir: MrMetis.Client
 
 # - task: Cache@2

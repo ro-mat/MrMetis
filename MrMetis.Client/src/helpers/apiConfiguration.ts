@@ -5,7 +5,7 @@ const headers: any = {
 };
 
 export const axiosConf = {
-  baseURL: `${process.env.REACT_APP_API_ROOT}`,
+  baseURL: `${import.meta.env.VITE_API_ROOT}`,
   headers: headers,
 };
 
@@ -25,7 +25,7 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     const typedError = error as AxiosError;
-    if (typedError.config.url === "identity/me") {
+    if (typedError.config?.url === "identity/me") {
       return Promise.reject(error.message);
     }
 

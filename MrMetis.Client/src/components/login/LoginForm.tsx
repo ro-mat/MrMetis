@@ -10,13 +10,14 @@ import { loginFormDefault } from "helpers/constants/defaults";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { requiredError } from "helpers/zodHelper";
 
-const schema: z.ZodType<ICredentials> = z.object({
+const schema: z.ZodType<ICredentials, ICredentials> = z.object({
   email: z
-    .string({ required_error: "errors.emailEmpty" })
+    .string(requiredError("errors.emailEmpty"))
     .email("errors.emailInvalid"),
   password: z
-    .string({ required_error: "errors.passwordEmpty" })
+    .string(requiredError("errors.passwordEmpty"))
     .min(8, "errors.passwordTooShort"),
 });
 

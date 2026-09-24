@@ -15,6 +15,7 @@ import Hint from "components/Hint";
 import useBudget from "hooks/useBudget";
 import { budgetAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
+import { requiredError } from "helpers/zodHelper";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddOrEditControls from "components/AddOrEditControls";
@@ -28,8 +29,8 @@ import { DATE_FORMAT } from "helpers/dateHelper";
 const schema = z
   .object({
     id: z.number().optional(),
-    name: z.string({ required_error: "errors.nameEmpty" }),
-    type: z.number({ required_error: "errors.typeEmpty" }),
+    name: z.string(requiredError("errors.nameEmpty")),
+    type: z.number(requiredError("errors.typeEmpty")),
     fromAccountId: z.number().optional(),
     toAccountId: z.number().optional(),
     expectOneStatement: z.boolean(),
@@ -37,19 +38,17 @@ const schema = z
     isEssential: z.boolean(),
     amounts: z.array(
       z.object({
-        startDate: z.date({ required_error: "errors.dateEmpty" }),
+        startDate: z.date(requiredError("errors.dateEmpty")),
         endDate: z.date().nullish(),
-        fromAccountId: z.number({
-          required_error: "errors.fromAccountEmpty",
-        }),
-        frequency: z.number({ required_error: "errors.frequencyEmpty" }),
+        fromAccountId: z.number(requiredError("errors.fromAccountEmpty")),
+        frequency: z.number(requiredError("errors.frequencyEmpty")),
         amount: z.string(),
       })
     ),
     overrides: z.array(
       z.object({
-        month: z.date({ required_error: "errors.monthEmpty" }),
-        accountId: z.number({ required_error: "errors.fromAccountEmpty" }),
+        month: z.date(requiredError("errors.monthEmpty")),
+        accountId: z.number(requiredError("errors.fromAccountEmpty")),
         amount: z.number(),
       })
     ),
@@ -293,7 +292,7 @@ const BudgetAddOrEdit = () => {
                         locale={i18n.language}
                         dateFormat="MM-yyyy"
                         selected={field.value ? new Date(field.value) : null}
-                        onChange={(date) => field.onChange(date)}
+                        onChange={(date: Date | null) => field.onChange(date)}
                         showTimeSelect={false}
                         showMonthYearPicker
                         showTwoColumnMonthYearPicker
@@ -310,7 +309,7 @@ const BudgetAddOrEdit = () => {
                         locale={i18n.language}
                         dateFormat="MM-yyyy"
                         selected={field.value ? new Date(field.value) : null}
-                        onChange={(date) => field.onChange(date)}
+                        onChange={(date: Date | null) => field.onChange(date)}
                         showTimeSelect={false}
                         showMonthYearPicker
                         showTwoColumnMonthYearPicker
@@ -393,7 +392,7 @@ const BudgetAddOrEdit = () => {
                         selected={
                           field.value ? moment(field.value).toDate() : null
                         }
-                        onChange={(date) => field.onChange(date)}
+                        onChange={(date: Date | null) => field.onChange(date)}
                         showTimeSelect={false}
                         showMonthYearPicker
                         showTwoColumnMonthYearPicker

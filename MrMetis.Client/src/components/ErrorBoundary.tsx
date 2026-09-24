@@ -1,7 +1,8 @@
-import { Component, ErrorInfo } from "react";
+import { Component, ErrorInfo, JSX, ReactNode } from "react";
 
 export interface IErrorBoundaryProps {
   fallback?: JSX.Element | string;
+  children?: ReactNode;
 }
 
 export interface IErrorBoundaryState {

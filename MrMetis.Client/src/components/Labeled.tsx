@@ -1,7 +1,8 @@
-import React, { FC } from "react";
+import React, { FC, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 export interface ILabeledProps {
+  children?: ReactNode;
   labelKey: string;
   className?: string;
   labelClassName?: string;

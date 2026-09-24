@@ -15,6 +15,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import useAccount from "hooks/useAccount";
 import { accountAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
+import { requiredError } from "helpers/zodHelper";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { DATE_FORMAT } from "helpers/dateHelper";
@@ -23,19 +24,19 @@ import AddOrEditControls from "components/AddOrEditControls";
 
 const schema = z.object({
   id: z.number().optional(),
-  name: z.string({ required_error: "errors.nameEmpty" }),
+  name: z.string(requiredError("errors.nameEmpty")),
   leftFromPrevMonth: z.array(
     z.object({
-      month: z.date({ required_error: "errors.monthEmpty" }),
-      amount: z.coerce.number({
-        invalid_type_error: "errors.NaN",
-        required_error: "errors.amountEmpty",
-      }),
+      month: z.date(requiredError("errors.monthEmpty")),
+      amount: z.coerce.number(
+        requiredError("errors.amountEmpty", "errors.NaN")
+      ),
     })
   ),
 });
 
-type FormFields = z.infer<typeof schema>;
+type FormInput = z.input<typeof schema>;
+type FormFields = z.output<typeof schema>;
 
 const AccountAddOrEdit = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -46,7 +47,7 @@ const AccountAddOrEdit = () => {
     reset,
     control,
     formState: { errors, isValid },
-  } = useForm<FormFields>({
+  } = useForm<FormInput, unknown, FormFields>({
     defaultValues: accountAddOrEditFormDefault,
     resolver: zodResolver(schema),
     mode: "onTouched",
