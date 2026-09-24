@@ -23,19 +23,13 @@ export type TAppThunk = ThunkAction<void, AppState, undefined, Action<string>>;
 
 export const store = configureStore({
   reducer: rootReducer,
-  middleware: (getDefaultMiddleware) => {
-    const middleware = getDefaultMiddleware({ immutableCheck: false });
-    return middleware;
-  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({ immutableCheck: false }),
 });
 
 export interface IBaseState {
   err: string | null;
   isFetching: boolean;
-}
-
-export interface IBaseListState<T> extends IBaseState {
-  list: T[];
 }
 
 export default store;

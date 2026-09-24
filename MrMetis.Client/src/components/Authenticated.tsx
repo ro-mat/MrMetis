@@ -1,18 +1,17 @@
 import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Outlet, useNavigate } from "react-router-dom";
-import { AppState } from "store/store";
+import { selectHasSession } from "store/auth/auth.selectors";
 
 const Authenticated = () => {
   const navigate = useNavigate();
-
-  const { token, isDemo } = useSelector((state: AppState) => state.auth);
+  const hasSession = useSelector(selectHasSession);
 
   useEffect(() => {
-    if (!token && !isDemo) {
+    if (!hasSession) {
       navigate("/login");
     }
-  }, [token, isDemo, navigate]);
+  }, [hasSession, navigate]);
 
   return <Outlet />;
 };

@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect, useMemo } from "react";
+import React, { FunctionComponent, useEffect } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
@@ -9,7 +9,7 @@ import BudgetPage from "pages/BudgetPage";
 import AccountsPage from "pages/AccountsPage";
 import { attempt, logout } from "store/auth/auth.actions";
 import RegisterPage from "pages/RegisterPage";
-import { fetchUserdata, saveUserData } from "store/userdata/userdata.actions";
+import { loadUserdata, saveUserData } from "store/userdata/userdata.actions";
 import { fetchUi } from "store/ui/ui.actions";
 import SideNavLayout from "components/Layouts/SideNavLayout";
 import FilterLayout from "components/Layouts/FilterLayout";
@@ -22,13 +22,7 @@ import PlanningAccounts from "pages/planning/PlanningAccounts";
 import Authenticated from "components/Authenticated";
 import { useIdleTimer } from "react-idle-timer";
 import UnAuthenticated from "components/UnAuthenticated";
-import { DemoDataKey, getDemoData } from "helpers/demoHelper";
-import {
-  SET_ACCOUNTS,
-  SET_BUDGETS,
-  SET_STATEMENTS,
-} from "store/userdata/userdata.slice";
-import { SET_ISDEMO } from "store/auth/auth.slice";
+import { selectIsAuthenticated } from "store/auth/auth.selectors";
 import "moment/locale/ru";
 import ToastMessages from "components/ToastMessages";
 import RawDataEditor from "components/RawDataEditor";
@@ -38,9 +32,8 @@ const App: FunctionComponent = () => {
   const dispatch = useDispatch<TAppDispatch>();
 
   const { savePending } = useSelector((state: AppState) => state.data);
-  const { token, user, isDemo } = useSelector((state: AppState) => state.auth);
-
-  const authenticated = useMemo(() => !!token && !!user, [token, user]);
+  const { isDemo } = useSelector((state: AppState) => state.auth);
+  const authenticated = useSelector(selectIsAuthenticated);
 
   const onIdle = () => {
     if (authenticated) {
@@ -70,29 +63,19 @@ const App: FunctionComponent = () => {
     if (storageToken) {
       dispatch(attempt(storageToken));
     }
-
-    const demoData = localStorage.getItem(DemoDataKey);
-    if (demoData) {
-      dispatch(SET_ISDEMO(!!demoData));
-    }
   }, [dispatch]);
 
   useEffect(() => {
+    if (authenticated || isDemo) {
+      dispatch(loadUserdata());
+    }
+  }, [dispatch, authenticated, isDemo]);
+
+  useEffect(() => {
     if (authenticated) {
-      dispatch(fetchUserdata());
       dispatch(fetchUi());
     }
   }, [dispatch, authenticated]);
-
-  useEffect(() => {
-    if (isDemo) {
-      const data = getDemoData();
-
-      dispatch(SET_STATEMENTS(data.statements));
-      dispatch(SET_BUDGETS(data.budgets));
-      dispatch(SET_ACCOUNTS(data.accounts));
-    }
-  }, [dispatch, isDemo]);
 
   useEffect(() => {
     if (savePending) {

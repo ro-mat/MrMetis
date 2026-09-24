@@ -1,6 +1,6 @@
 import api from "../../helpers/apiConfiguration";
 import { clearKeys, hashPassword } from "services/encryptor";
-import { TAppThunk } from "store/store";
+import { TAppDispatch, TAppThunk } from "store/store";
 import {
   AUTH_ERROR,
   AUTH_FETCHING,
@@ -9,73 +9,40 @@ import {
   SET_USER,
 } from "./auth.slice";
 import { ICredentials, IUser } from "./auth.types";
-import { fetchUserdata, saveUserData } from "store/userdata/userdata.actions";
 import { CLEAR_USERDATA } from "store/userdata/userdata.slice";
-import { DemoDataKey } from "helpers/demoHelper";
+import { clearDemoData } from "helpers/demoHelper";
+
+const authError = (err: any) => AUTH_ERROR(err?.data?.errors?.join(", "));
+
+// Shared by login and register. Userdata is loaded by App once the user is set.
+const authenticate = async (
+  dispatch: TAppDispatch,
+  url: string,
+  { email, password, invitationCode }: ICredentials
+) => {
+  dispatch(AUTH_FETCHING());
+  dispatch(CLEAR_USERDATA());
+  clearDemoData();
+  dispatch(SET_ISDEMO(false));
+
+  const hashPass = await hashPassword(email, password);
+
+  await api
+    .post<IUser>(url, { email, password: hashPass, invitationCode })
+    .then((res) => dispatch(attempt(res.data.token)))
+    .catch((err) => dispatch(authError(err)));
+};
 
 export const login =
   (credentials: ICredentials): TAppThunk =>
-  async (dispatch) => {
-    dispatch(AUTH_FETCHING());
+  (dispatch) =>
+    authenticate(dispatch, "identity/login", credentials);
 
-    dispatch(CLEAR_USERDATA());
-    localStorage.removeItem(DemoDataKey);
-    dispatch(SET_ISDEMO(false));
-
-    const hashPass = await hashPassword(
-      credentials.email,
-      credentials.password
-    );
-
-    await api
-      .post<IUser>("identity/login", {
-        email: credentials.email,
-        password: hashPass,
-      })
-      .then((res) => dispatch(attempt(res.data.token)))
-      .then(() => dispatch(fetchUserdata()))
-      .catch((err) => {
-        dispatch(
-          AUTH_ERROR(
-            err?.data?.errors?.reduce(
-              (prev: string, cur: string) => (prev ? `${prev}, ${cur}` : cur),
-              ""
-            )
-          )
-        );
-      });
-  };
 export const register =
   (credentials: ICredentials): TAppThunk =>
-  async (dispatch) => {
-    dispatch(AUTH_FETCHING());
+  (dispatch) =>
+    authenticate(dispatch, "identity/register", credentials);
 
-    localStorage.removeItem(DemoDataKey);
-    dispatch(SET_ISDEMO(false));
-
-    const hashPass = await hashPassword(
-      credentials.email,
-      credentials.password
-    );
-    await api
-      .post<IUser>("identity/register", {
-        email: credentials.email,
-        password: hashPass,
-        invitationCode: credentials.invitationCode,
-      })
-      .then((res) => dispatch(attempt(res.data.token)))
-      .then(() => dispatch(fetchUserdata()))
-      .catch((err) => {
-        dispatch(
-          AUTH_ERROR(
-            err?.data?.errors?.reduce(
-              (prev: string, cur: string) => (prev ? `${prev}, ${cur}` : cur),
-              ""
-            )
-          )
-        );
-      });
-  };
 export const attempt =
   (token?: string | null): TAppThunk =>
   async (dispatch): Promise<void> => {
@@ -87,17 +54,9 @@ export const attempt =
     await api
       .get<IUser>("identity/me")
       .then((res) => dispatch(SET_USER(res.data as string)))
-      .catch((err) => {
-        dispatch(
-          AUTH_ERROR(
-            err?.data?.errors?.reduce(
-              (prev: string, cur: string) => (prev ? `${prev}, ${cur}` : cur),
-              ""
-            )
-          )
-        );
-      });
+      .catch((err) => dispatch(authError(err)));
   };
+
 export const logout = (): TAppThunk => (dispatch) => {
   dispatch(AUTH_FETCHING());
   clearKeys();
@@ -109,14 +68,5 @@ export const logout = (): TAppThunk => (dispatch) => {
       dispatch(SET_USER(null));
       dispatch(CLEAR_USERDATA());
     })
-    .catch((err) => {
-      dispatch(
-        AUTH_ERROR(
-          err?.data?.errors?.reduce(
-            (prev: string, cur: string) => (prev ? `${prev}, ${cur}` : cur),
-            ""
-          )
-        )
-      );
-    });
+    .catch((err) => dispatch(authError(err)));
 };

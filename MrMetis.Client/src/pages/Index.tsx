@@ -2,13 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { TAppDispatch } from "store/store";
-import { SET_ISDEMO } from "store/auth/auth.slice";
-import { initDemoData } from "helpers/demoHelper";
-import {
-  SET_ACCOUNTS,
-  SET_BUDGETS,
-  SET_STATEMENTS,
-} from "store/userdata/userdata.slice";
+import { startDemo } from "store/userdata/userdata.actions";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
@@ -20,13 +14,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   const handleDemoClick = () => {
-    const data = initDemoData();
-    dispatch(SET_STATEMENTS(data.statements));
-    dispatch(SET_BUDGETS(data.budgets));
-    dispatch(SET_ACCOUNTS(data.accounts));
-
-    dispatch(SET_ISDEMO(true));
-
+    dispatch(startDemo());
     navigate("/dashboard");
   };
 

@@ -4,10 +4,10 @@ import DatePicker from "react-datepicker";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import {
-  addStatement,
-  deleteStatement,
-  updateStatement,
-} from "store/userdata/userdata.actions";
+  ADD_STATEMENT,
+  DELETE_STATEMENT,
+  UPDATE_STATEMENT,
+} from "store/userdata/userdata.slice";
 import { SET_SELECTED_STATEMENT } from "store/ui/ui.slice";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
@@ -41,8 +41,7 @@ const StatementAddOrEdit = () => {
     (state: AppState) => state.data.userdata
   );
   const { selectedStatementId } = useSelector((state: AppState) => state.ui.ui);
-  const { getById: getStatementById, getNextId: getNextStatementId } =
-    useStatement();
+  const { getById: getStatementById } = useStatement();
 
   const {
     register,
@@ -65,10 +64,9 @@ const StatementAddOrEdit = () => {
     };
 
     if (st.id) {
-      dispatch(updateStatement(st));
+      dispatch(UPDATE_STATEMENT(st));
     } else {
-      st.id = getNextStatementId();
-      dispatch(addStatement(st));
+      dispatch(ADD_STATEMENT(st));
     }
 
     reset(statementAddOrEditFormDefault);
@@ -81,7 +79,7 @@ const StatementAddOrEdit = () => {
 
   const onDeleteClick = () => {
     if (selectedStatementId) {
-      dispatch(deleteStatement(selectedStatementId));
+      dispatch(DELETE_STATEMENT(selectedStatementId));
       dispatch(SET_SELECTED_STATEMENT(undefined));
     }
   };

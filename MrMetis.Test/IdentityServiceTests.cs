@@ -158,26 +158,8 @@ public class IdentityServiceTests : DbTestBase
         Assert.That(errors, Is.EqualTo(new[] { error }));
     }
 
-    private async Task AddLegacyUser(string hash, string salt)
-    {
-        var created = DateTime.UtcNow.AddDays(-1);
-        Db.Users.Add(new User
-        {
-            Email = Email,
-            Password = hash,
-            Salt = salt,
-            UserData = new UserData { IsActive = true, Created = created },
-            IsActive = true,
-            Created = created
-        });
-        await Db.SaveChangesAsync();
-        Db.ChangeTracker.Clear();
-    }
+    private Task AddLegacyUser(string hash, string salt) => AddUserAsync(Email, hash, salt);
 
-    private async Task AddInvitationCode()
-    {
-        Db.InvitationCodes.Add(new InvitationCode { Code = InvitationCode, IsActive = true, Created = DateTime.UtcNow.AddDays(-1) });
-        await Db.SaveChangesAsync();
-        Db.ChangeTracker.Clear();
-    }
+    private Task AddInvitationCode() =>
+        SeedAsync(new InvitationCode { Code = InvitationCode, IsActive = true, Created = DateTime.UtcNow.AddDays(-1) });
 }

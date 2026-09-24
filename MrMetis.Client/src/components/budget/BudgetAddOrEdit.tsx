@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo } from "react";
 import Labeled from "components/Labeled";
-import { BudgetTypeUser } from "store/userdata/userdata.types";
+import { BudgetTypeUser, IAccount } from "store/userdata/userdata.types";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import {
-  addBudget,
-  deleteBudget,
-  updateBudget,
-} from "store/userdata/userdata.actions";
+  ADD_BUDGET,
+  DELETE_BUDGET,
+  UPDATE_BUDGET,
+} from "store/userdata/userdata.slice";
 import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
@@ -16,15 +16,15 @@ import useBudget from "hooks/useBudget";
 import { budgetAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
 import { requiredError } from "helpers/zodHelper";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddOrEditControls from "components/AddOrEditControls";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import useAccount from "hooks/useAccount";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { DatePickerField } from "components/DatePickerField";
 import { DATE_FORMAT } from "helpers/dateHelper";
+import { getEnumArray } from "helpers/enumHelper";
 
 const schema = z
   .object({
@@ -61,8 +61,15 @@ const schema = z
 
 export type FormFields = z.infer<typeof schema>;
 
+const AccountOptions = ({ accounts }: { accounts: IAccount[] }) =>
+  accounts.map((a) => (
+    <option key={a.id} value={a.id}>
+      {a.name}
+    </option>
+  ));
+
 const BudgetAddOrEdit = () => {
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
   const dispatch = useDispatch<TAppDispatch>();
 
   const {
@@ -119,10 +126,9 @@ const BudgetAddOrEdit = () => {
     };
 
     if (data.id) {
-      dispatch(updateBudget(budget));
+      dispatch(UPDATE_BUDGET(budget));
     } else {
-      budget.id = getNextBudgetId();
-      dispatch(addBudget(budget));
+      dispatch(ADD_BUDGET(budget));
     }
 
     reset();
@@ -131,13 +137,12 @@ const BudgetAddOrEdit = () => {
 
   const { selectedBudgetId } = useSelector((state: AppState) => state.ui.ui);
 
-  const {
-    budgets,
-    getById: getBudgetById,
-    getNextId: getNextBudgetId,
-    isBudgetUsed,
-  } = useBudget();
+  const { budgets, getById: getBudgetById, isBudgetUsed } = useBudget();
   const { accounts } = useAccount();
+
+  // A budget-level account overrides the account of each amount/override row.
+  const defaultAccountId = (rowAccountId?: number) =>
+    getValues().fromAccountId || rowAccountId || 1;
 
   const disableDelete = useMemo(
     () => selectedBudgetId !== undefined && isBudgetUsed(selectedBudgetId),
@@ -150,7 +155,7 @@ const BudgetAddOrEdit = () => {
 
   const onDeleteClick = () => {
     if (selectedBudgetId && !disableDelete) {
-      dispatch(deleteBudget(selectedBudgetId));
+      dispatch(DELETE_BUDGET(selectedBudgetId));
       dispatch(SET_SELECTED_BUDGET(undefined));
     }
   };
@@ -203,7 +208,7 @@ const BudgetAddOrEdit = () => {
           </Labeled>
           <Labeled labelKey="budget.type" required>
             <select {...register("type", { valueAsNumber: true })}>
-              {[10, 20, 30, 40, 50, 60].map((i: number) => (
+              {getEnumArray(BudgetTypeUser).map((i) => (
                 <option key={i} value={i}>
                   {t(`budgetType.${BudgetTypeUser[i]}`)}
                 </option>
@@ -230,24 +235,18 @@ const BudgetAddOrEdit = () => {
               disabled={!!getBudgetById(selectedBudgetId)?.fromAccountId}
             >
               <option value={0}>{t("general.no")}</option>
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
+              <AccountOptions accounts={accounts} />
             </select>
           </Labeled>
           {getValues().type === BudgetTypeUser.transferToAccount && (
             <Labeled labelKey="budget.toAccount" required>
               <select {...register("toAccountId", { valueAsNumber: true })}>
                 <option value={0}>{t("general.no")}</option>
-                {accounts
-                  .filter((a) => a.id !== getValues().fromAccountId)
-                  .map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name}
-                    </option>
-                  ))}
+                <AccountOptions
+                  accounts={accounts.filter(
+                    (a) => a.id !== getValues().fromAccountId
+                  )}
+                />
               </select>
             </Labeled>
           )}
@@ -263,10 +262,7 @@ const BudgetAddOrEdit = () => {
               onClick={() =>
                 prependAmount({
                   amount: "0",
-                  fromAccountId:
-                    getValues().fromAccountId !== undefined
-                      ? getValues().fromAccountId!
-                      : 1,
+                  fromAccountId: getValues().fromAccountId ?? 1,
                   frequency: 1,
                   startDate: new Date(),
                 })
@@ -284,37 +280,15 @@ const BudgetAddOrEdit = () => {
             {amountFields.map((amount, index) => (
               <div key={index}>
                 <Labeled labelKey="budget.startDate" required>
-                  <Controller
+                  <DatePickerField
                     name={`amounts.${index}.startDate`}
                     control={control}
-                    render={({ field }) => (
-                      <DatePicker
-                        locale={i18n.language}
-                        dateFormat="MM-yyyy"
-                        selected={field.value ? new Date(field.value) : null}
-                        onChange={(date: Date | null) => field.onChange(date)}
-                        showTimeSelect={false}
-                        showMonthYearPicker
-                        showTwoColumnMonthYearPicker
-                      />
-                    )}
                   />
                 </Labeled>
                 <Labeled labelKey="budget.endDate">
-                  <Controller
+                  <DatePickerField
                     name={`amounts.${index}.endDate`}
                     control={control}
-                    render={({ field }) => (
-                      <DatePicker
-                        locale={i18n.language}
-                        dateFormat="MM-yyyy"
-                        selected={field.value ? new Date(field.value) : null}
-                        onChange={(date: Date | null) => field.onChange(date)}
-                        showTimeSelect={false}
-                        showMonthYearPicker
-                        showTwoColumnMonthYearPicker
-                      />
-                    )}
                   />
                 </Labeled>
                 <Labeled labelKey="budget.fromAccount" required>
@@ -322,20 +296,10 @@ const BudgetAddOrEdit = () => {
                     {...register(`amounts.${index}.fromAccountId`, {
                       valueAsNumber: true,
                     })}
-                    defaultValue={
-                      getValues().fromAccountId
-                        ? getValues().fromAccountId!
-                        : amount.fromAccountId
-                        ? amount.fromAccountId
-                        : 1
-                    }
+                    defaultValue={defaultAccountId(amount.fromAccountId)}
                     disabled={!!getValues().fromAccountId}
                   >
-                    {accounts.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name}
-                      </option>
-                    ))}
+                    <AccountOptions accounts={accounts} />
                   </select>
                 </Labeled>
                 <Labeled labelKey="budget.amount">
@@ -382,22 +346,9 @@ const BudgetAddOrEdit = () => {
             {overrideFields.map((ovr, index) => (
               <div key={index}>
                 <Labeled labelKey="budget.month" required>
-                  <Controller
+                  <DatePickerField
                     name={`overrides.${index}.month`}
                     control={control}
-                    render={({ field }) => (
-                      <DatePicker
-                        locale={i18n.language}
-                        dateFormat="MM-yyyy"
-                        selected={
-                          field.value ? moment(field.value).toDate() : null
-                        }
-                        onChange={(date: Date | null) => field.onChange(date)}
-                        showTimeSelect={false}
-                        showMonthYearPicker
-                        showTwoColumnMonthYearPicker
-                      />
-                    )}
                   />
                 </Labeled>
                 <Labeled labelKey="budget.fromAccount" required>
@@ -405,20 +356,10 @@ const BudgetAddOrEdit = () => {
                     {...register(`overrides.${index}.accountId`, {
                       valueAsNumber: true,
                     })}
-                    defaultValue={
-                      getValues().fromAccountId
-                        ? getValues().fromAccountId!
-                        : ovr.accountId
-                        ? ovr.accountId
-                        : 1
-                    }
+                    defaultValue={defaultAccountId(ovr.accountId)}
                     disabled={!!getValues().fromAccountId}
                   >
-                    {accounts.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name}
-                      </option>
-                    ))}
+                    <AccountOptions accounts={accounts} />
                   </select>
                 </Labeled>
                 <Labeled labelKey="budget.amount">

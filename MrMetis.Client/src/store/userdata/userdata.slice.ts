@@ -1,22 +1,59 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { add, remove, update } from "helpers/userdata";
+import moment from "moment";
+import { add, nextId, remove, update } from "helpers/userdata";
+import { DATE_TIME_FORMAT } from "helpers/dateHelper";
 import {
   IAccount,
   IBudget,
   IStatement,
+  IUserdata,
+  IUserdataDto,
   IUserdataState,
 } from "./userdata.types";
 import { IAction } from "types/IAction";
+import { IHaveMetadata } from "types/IHaveMetadata";
+
+const emptyUserdata = (): IUserdata => ({
+  statements: [],
+  budgets: [],
+  accounts: [],
+});
 
 const initialState: IUserdataState = {
   err: null,
   isFetching: false,
   savePending: false,
-  userdata: {
-    statements: [],
-    budgets: [],
-    accounts: [],
-  },
+  userdata: emptyUserdata(),
+};
+
+const now = () => moment().format(DATE_TIME_FORMAT);
+
+// Every add/update/delete marks the data as changed so App saves it.
+const addItem = <T extends IHaveMetadata>(
+  state: IUserdataState,
+  list: T[],
+  item: T
+) => {
+  add(list, { ...item, id: nextId(list), dateCreated: now() });
+  state.savePending = true;
+};
+
+const updateItem = <T extends IHaveMetadata>(
+  state: IUserdataState,
+  list: T[],
+  item: T
+) => {
+  update(list, { ...item, dateModified: now() });
+  state.savePending = true;
+};
+
+const removeItem = (
+  state: IUserdataState,
+  list: IHaveMetadata[],
+  id: number
+) => {
+  remove(list, id);
+  state.savePending = true;
 };
 
 const userdataSlice = createSlice({
@@ -37,74 +74,40 @@ const userdataSlice = createSlice({
       state.savePending = false;
     },
 
-    CLEAR_USERDATA: (state) => {
+    SET_USERDATA: (state, action: IAction<Partial<IUserdataDto>>) => {
+      const { statements, budgets, accounts } = action.payload;
       state.userdata = {
-        statements: [],
-        budgets: [],
-        accounts: [],
+        statements: statements ?? [],
+        budgets: budgets ?? [],
+        accounts: accounts ?? [],
       };
       state.isFetching = false;
     },
-
-    SET_STATEMENTS: (state, action: IAction<IStatement[] | undefined>) => {
-      state.userdata.statements = action.payload ?? [];
+    CLEAR_USERDATA: (state) => {
+      state.userdata = emptyUserdata();
       state.isFetching = false;
-    },
-    ADD_STATEMENT: (state, action: IAction<IStatement>) => {
-      add(state.userdata.statements, action.payload);
-      state.isFetching = false;
-      state.savePending = true;
-    },
-    UPDATE_STATEMENT: (state, action: IAction<IStatement>) => {
-      update(state.userdata.statements, action.payload);
-      state.isFetching = false;
-      state.savePending = true;
-    },
-    DELETE_STATEMENT: (state, action: IAction<number>) => {
-      remove(state.userdata.statements, action.payload);
-      state.isFetching = false;
-      state.savePending = true;
     },
 
-    SET_BUDGETS: (state, action: IAction<IBudget[] | undefined>) => {
-      state.userdata.budgets = action.payload ?? [];
-      state.isFetching = false;
-    },
-    ADD_BUDGET: (state, action: IAction<IBudget>) => {
-      add(state.userdata.budgets, action.payload);
-      state.isFetching = false;
-      state.savePending = true;
-    },
-    UPDATE_BUDGET: (state, action: IAction<IBudget>) => {
-      update(state.userdata.budgets, action.payload);
-      state.isFetching = false;
-      state.savePending = true;
-    },
-    DELETE_BUDGET: (state, action: IAction<number>) => {
-      remove(state.userdata.budgets, action.payload);
-      state.isFetching = false;
-      state.savePending = true;
-    },
+    ADD_STATEMENT: (state, action: IAction<IStatement>) =>
+      addItem(state, state.userdata.statements, action.payload),
+    UPDATE_STATEMENT: (state, action: IAction<IStatement>) =>
+      updateItem(state, state.userdata.statements, action.payload),
+    DELETE_STATEMENT: (state, action: IAction<number>) =>
+      removeItem(state, state.userdata.statements, action.payload),
 
-    SET_ACCOUNTS: (state, action: IAction<IAccount[] | undefined>) => {
-      state.userdata.accounts = action.payload ?? [];
-      state.isFetching = false;
-    },
-    ADD_ACCOUNT: (state, action: IAction<IAccount>) => {
-      add(state.userdata.accounts, action.payload);
-      state.isFetching = false;
-      state.savePending = true;
-    },
-    UPDATE_ACCOUNT: (state, action: IAction<IAccount>) => {
-      update(state.userdata.accounts, action.payload);
-      state.isFetching = false;
-      state.savePending = true;
-    },
-    DELETE_ACCOUNT: (state, action: IAction<number>) => {
-      remove(state.userdata.accounts, action.payload);
-      state.isFetching = false;
-      state.savePending = true;
-    },
+    ADD_BUDGET: (state, action: IAction<IBudget>) =>
+      addItem(state, state.userdata.budgets, action.payload),
+    UPDATE_BUDGET: (state, action: IAction<IBudget>) =>
+      updateItem(state, state.userdata.budgets, action.payload),
+    DELETE_BUDGET: (state, action: IAction<number>) =>
+      removeItem(state, state.userdata.budgets, action.payload),
+
+    ADD_ACCOUNT: (state, action: IAction<IAccount>) =>
+      addItem(state, state.userdata.accounts, action.payload),
+    UPDATE_ACCOUNT: (state, action: IAction<IAccount>) =>
+      updateItem(state, state.userdata.accounts, action.payload),
+    DELETE_ACCOUNT: (state, action: IAction<number>) =>
+      removeItem(state, state.userdata.accounts, action.payload),
   },
 });
 
@@ -113,16 +116,14 @@ export const {
   ERROR,
   SAVE_CHANGES,
   SAVED,
+  SET_USERDATA,
   CLEAR_USERDATA,
-  SET_STATEMENTS,
   ADD_STATEMENT,
   UPDATE_STATEMENT,
   DELETE_STATEMENT,
-  SET_BUDGETS,
   ADD_BUDGET,
   UPDATE_BUDGET,
   DELETE_BUDGET,
-  SET_ACCOUNTS,
   ADD_ACCOUNT,
   UPDATE_ACCOUNT,
   DELETE_ACCOUNT,

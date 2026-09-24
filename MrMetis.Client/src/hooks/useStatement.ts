@@ -15,12 +15,6 @@ const useStatement = () => {
     [statements]
   );
 
-  const getNextId = useCallback(() => {
-    const maxExistingId =
-      statements.length > 0 ? Math.max(...statements.map((i) => i.id)) : 0;
-    return maxExistingId + 1;
-  }, [statements]);
-
   const filter = useCallback(
     (list: IStatement[], str: string) => {
       const normalizedStr = str.toLocaleLowerCase();
@@ -46,7 +40,7 @@ const useStatement = () => {
     [statements, filter]
   );
 
-  return { statements, getById, getNextId, filter, filtered };
+  return { statements, getById, filter, filtered };
 };
 
 export default useStatement;

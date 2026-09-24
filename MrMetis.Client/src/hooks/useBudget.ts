@@ -17,12 +17,6 @@ const useBudget = () => {
     [budgets]
   );
 
-  const getNextId = useCallback(() => {
-    const maxExistingId =
-      budgets.length > 0 ? Math.max(...budgets.map((i) => i.id)) : 0;
-    return maxExistingId + 1;
-  }, [budgets]);
-
   const getChildren = useCallback(
     (budgetId: number) => {
       return budgets.filter((b) => b.parentId === budgetId);
@@ -62,7 +56,7 @@ const useBudget = () => {
     [budgets, statements]
   );
 
-  return { budgets, getById, getNextId, getChildren, filtered, isBudgetUsed };
+  return { budgets, getById, getChildren, filtered, isBudgetUsed };
 };
 
 export default useBudget;

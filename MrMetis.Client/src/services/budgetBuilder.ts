@@ -10,7 +10,6 @@ import {
 import {
   BudgetCalculatedList,
   Calculate,
-  RelevantFormula,
   calculate,
   calculateForNextMonth,
   getExtraTotals,
@@ -31,11 +30,25 @@ export type BudgetStatement = {
 export class BudgetPairArray {
   list: BudgetPair[] = [];
   flatList: BudgetPair[] = [];
+  // flatList grouped by budget id, for fast per-budget lookups while rendering
+  private byBudgetId = new Map<number, BudgetPair[]>();
 
   constructor(list?: BudgetPair[]) {
     if (!list) return;
     this.list = list;
     this.flatList = flattenBudgetPairs(list);
+    for (const pair of this.flatList) {
+      const pairs = this.byBudgetId.get(pair.budgetId);
+      if (pairs) {
+        pairs.push(pair);
+      } else {
+        this.byBudgetId.set(pair.budgetId, [pair]);
+      }
+    }
+  }
+
+  private pairsOf(budgetId: number) {
+    return this.byBudgetId.get(budgetId) ?? [];
   }
 
   tryAddBudgetPair(budgetPair: BudgetPair) {
@@ -52,24 +65,15 @@ export class BudgetPairArray {
   }
 
   isBudgetActive(budgetId: number, accountId?: number) {
-    for (let item of this.flatList.filter((l) => l.budgetId === budgetId)) {
-      if (
+    return this.pairsOf(budgetId).some(
+      (item) =>
         item.isActive(accountId) ||
-        item.children.find((c) => c.isActive(accountId))
-      ) {
-        return true;
-      }
-    }
-    return false;
+        item.children.some((c) => c.isActive(accountId))
+    );
   }
 
   isBudgetRemaining(budgetId: number, accountId?: number) {
-    for (let item of this.flatList.filter((l) => l.budgetId === budgetId)) {
-      if (item.isRemaining(accountId)) {
-        return true;
-      }
-    }
-    return false;
+    return this.pairsOf(budgetId).some((item) => item.isRemaining(accountId));
   }
 
   getActiveMonths() {
@@ -88,9 +92,8 @@ export class BudgetPairArray {
     month: Moment,
     accountId?: number
   ): BudgetPair | undefined {
-    const budgetPairs = this.flatList.filter(
+    const budgetPairs = this.pairsOf(budgetId).filter(
       (i) =>
-        i.budgetId === budgetId &&
         i.month.isSame(month, "M") &&
         (accountId === undefined ||
           i.accountId === accountId ||
@@ -113,14 +116,13 @@ export class BudgetPairArray {
     );
     init.children = [...budgetPairs[0].children];
 
-    const pair = budgetPairs.reduce((prev, cur) => {
-      prev.planned += cur.planned;
-      prev.actual += cur.actual;
-      prev.statements = [...prev.statements, ...cur.statements];
-      return prev;
-    }, init);
+    for (const cur of budgetPairs) {
+      init.planned += cur.planned;
+      init.actual += cur.actual;
+      init.statements.push(...cur.statements);
+    }
 
-    return pair;
+    return init;
   }
 
   getTotalPair(budgetTypes: BudgetType[], month: Moment, accountId?: number) {
@@ -185,6 +187,26 @@ export class BudgetPair {
     this.parentId = parentId;
   }
 
+  // A calculated total (not tied to a budget), rounded to cents.
+  static total(
+    accountId: number,
+    month: Moment,
+    budgetType: BudgetType,
+    planned: number,
+    actual: number
+  ) {
+    return new BudgetPair(
+      0,
+      accountId,
+      month,
+      budgetType,
+      roundTo(planned, 2),
+      roundTo(actual, 2),
+      true,
+      []
+    );
+  }
+
   isActive(accountId?: number): boolean {
     return (
       (accountId === undefined || this.accountId === accountId) &&
@@ -237,14 +259,10 @@ export class BudgetPair {
   }
 
   getChildrenStatements(): BudgetStatement[] {
-    return this.children.reduce(
-      (prev: BudgetStatement[], cur) => [
-        ...prev,
-        ...cur.statements,
-        ...cur.getChildrenStatements(),
-      ],
-      []
-    );
+    return this.children.flatMap((cur) => [
+      ...cur.statements,
+      ...cur.getChildrenStatements(),
+    ]);
   }
 
   isRemaining(accountId?: number): boolean {
@@ -253,7 +271,7 @@ export class BudgetPair {
       ((this.planned > 0 &&
         ((this.expectOneStatement && this.actual === 0) ||
           (!this.expectOneStatement && this.actual < this.planned))) ||
-        this.children.filter((c) => c.isRemaining()).length > 0)
+        this.children.some((c) => c.isRemaining()))
     );
   }
 }
@@ -275,10 +293,7 @@ export const buildBudgetPairsForMonth = (
   );
 
   const relevantFormulas = budgets
-    .reduce((prev: RelevantFormula[], cur) => {
-      const formulas = getRelevantFormulas(month.toDate(), cur);
-      return [...prev, ...formulas];
-    }, [])
+    .flatMap((b) => getRelevantFormulas(month.toDate(), b))
     .sort((a, b) => (a.parentId ?? 0) - (b.parentId ?? 0)); // calculate all root parents first
 
   const budgetPairs: BudgetPair[] = [];
@@ -345,16 +360,13 @@ export const buildBudgetPairsForMonth = (
         curMonthCalculate,
         prevMonthCalculate
       );
-      if (
-        rawAmount === undefined ||
-        rawAmount === typeof "string" ||
-        isNaN(rawAmount as number)
-      ) {
+      if (typeof rawAmount !== "number" || isNaN(rawAmount)) {
+        // depends on something not calculated yet (or is broken), retry next pass
         relevantFormulas.push(f);
         continue;
       }
 
-      const planned = rawAmount as number;
+      const planned = rawAmount;
 
       const budgetAccountStatements = monthStatements.filter(
         (s) => s.budgetId === f.budgetId && s.accountId === f.accountId
@@ -391,17 +403,12 @@ export const buildBudgetPairsForMonth = (
         );
         budgetPairs.push(duplicatePair);
       }
-
-      getUserTotals(
-        month,
-        accounts,
-        [...budgetPairs],
-        relevantFormulas
-      ).forEach((t) => budgetPairs.push(t));
-      getExtraTotals(month, accounts, [...budgetPairs]).forEach((t) =>
-        budgetPairs.push(t)
-      );
     }
+
+    budgetPairs.push(
+      ...getUserTotals(month, accounts, budgetPairs, relevantFormulas)
+    );
+    budgetPairs.push(...getExtraTotals(month, accounts, budgetPairs));
 
     curMonthCalculate = new Calculate(
       month,

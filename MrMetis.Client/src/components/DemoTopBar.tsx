@@ -1,12 +1,7 @@
 import React from "react";
-import { initDemoData } from "helpers/demoHelper";
 import { useDispatch } from "react-redux";
 import { TAppDispatch } from "store/store";
-import {
-  SET_ACCOUNTS,
-  SET_BUDGETS,
-  SET_STATEMENTS,
-} from "store/userdata/userdata.slice";
+import { startDemo } from "store/userdata/userdata.actions";
 import { ADD_SUCCESS_TOAST } from "store/ui/ui.slice";
 import { useTranslation } from "react-i18next";
 
@@ -15,12 +10,7 @@ const DemoTopBar = () => {
   const { t } = useTranslation();
 
   const handleResetClick = () => {
-    const data = initDemoData();
-
-    dispatch(SET_STATEMENTS(data.statements));
-    dispatch(SET_BUDGETS(data.budgets));
-    dispatch(SET_ACCOUNTS(data.accounts));
-
+    dispatch(startDemo());
     dispatch(ADD_SUCCESS_TOAST(t("demo.resetSuccessful")));
   };
 

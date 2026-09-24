@@ -12,12 +12,6 @@ const useAccount = () => {
     [accounts]
   );
 
-  const getNextId = useCallback(() => {
-    const maxExistingId =
-      accounts.length > 0 ? Math.max(...accounts.map((i) => i.id)) : 0;
-    return maxExistingId + 1;
-  }, [accounts]);
-
   const isAccountUsed = useCallback(
     (accountId: number) =>
       budgets.some(
@@ -26,7 +20,7 @@ const useAccount = () => {
     [budgets, statements]
   );
 
-  return { accounts, getById, getNextId, isAccountUsed };
+  return { accounts, getById, isAccountUsed };
 };
 
 export default useAccount;

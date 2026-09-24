@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using MrMetis.Core.Dtos;
-using MrMetis.Core.Entities;
 using MrMetis.Core.Exceptions;
 using MrMetis.Infrastructure.Services;
 
@@ -14,18 +13,7 @@ public class UserDataServiceTests : DbTestBase
     [SetUp]
     public async Task Setup()
     {
-        var created = DateTime.UtcNow.AddDays(-1);
-        var user = new User
-        {
-            Email = "email@email.com",
-            Password = "hash",
-            UserData = new UserData { IsActive = true, Created = created },
-            IsActive = true,
-            Created = created
-        };
-        Db.Users.Add(user);
-        await Db.SaveChangesAsync();
-        Db.ChangeTracker.Clear();
+        var user = await AddUserAsync("email@email.com", "hash");
 
         _userId = user.Id;
         _service = new UserDataService(Db, TimeProvider.System);

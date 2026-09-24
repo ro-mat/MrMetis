@@ -1,14 +1,11 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Outlet, useNavigate } from "react-router-dom";
-import { AppState } from "store/store";
+import { selectIsAuthenticated } from "store/auth/auth.selectors";
 
 const UnAuthenticated = () => {
   const navigate = useNavigate();
-
-  const { token, user } = useSelector((state: AppState) => state.auth);
-
-  const authenticated = useMemo(() => !!token && !!user, [token, user]);
+  const authenticated = useSelector(selectIsAuthenticated);
 
   useEffect(() => {
     if (authenticated) {

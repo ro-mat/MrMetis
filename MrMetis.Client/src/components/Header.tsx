@@ -1,8 +1,9 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { logout } from "store/auth/auth.actions";
 import { AppState, TAppDispatch } from "store/store";
+import { selectIsAuthenticated } from "store/auth/auth.selectors";
 import QuickAdd from "./quick-add/QuickAdd";
 import { useTranslation } from "react-i18next";
 import Logo from "styles/img/logo.png";
@@ -15,9 +16,8 @@ const Header = (): React.JSX.Element => {
 
   const navigate = useNavigate();
 
-  const { token, user, isDemo } = useSelector((state: AppState) => state.auth);
-
-  const authenticated = useMemo(() => !!token && !!user, [token, user]);
+  const { isDemo } = useSelector((state: AppState) => state.auth);
+  const authenticated = useSelector(selectIsAuthenticated);
 
   const changeLang = (lang: string) => {
     i18n.changeLanguage(lang);

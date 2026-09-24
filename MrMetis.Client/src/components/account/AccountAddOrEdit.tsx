@@ -5,10 +5,10 @@ import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import {
-  addAccount,
-  deleteAccount,
-  updateAccount,
-} from "store/userdata/userdata.actions";
+  ADD_ACCOUNT,
+  DELETE_ACCOUNT,
+  UPDATE_ACCOUNT,
+} from "store/userdata/userdata.slice";
 import { SET_SELECTED_ACCOUNT } from "store/ui/ui.slice";
 import { DatePickerField } from "components/DatePickerField";
 import "react-datepicker/dist/react-datepicker.css";
@@ -73,10 +73,9 @@ const AccountAddOrEdit = () => {
     };
 
     if (account.id) {
-      dispatch(updateAccount(account));
+      dispatch(UPDATE_ACCOUNT(account));
     } else {
-      account.id = getNextAccountId();
-      dispatch(addAccount(account));
+      dispatch(ADD_ACCOUNT(account));
     }
 
     reset();
@@ -85,11 +84,7 @@ const AccountAddOrEdit = () => {
 
   const { selectedAccountId } = useSelector((state: AppState) => state.ui.ui);
 
-  const {
-    getById: getAccountById,
-    getNextId: getNextAccountId,
-    isAccountUsed,
-  } = useAccount();
+  const { getById: getAccountById, isAccountUsed } = useAccount();
 
   const disableDelete = useMemo(
     () => selectedAccountId !== undefined && isAccountUsed(selectedAccountId),
@@ -102,7 +97,7 @@ const AccountAddOrEdit = () => {
 
   const onDeleteClick = () => {
     if (selectedAccountId && !disableDelete) {
-      dispatch(deleteAccount(selectedAccountId));
+      dispatch(DELETE_ACCOUNT(selectedAccountId));
       dispatch(SET_SELECTED_ACCOUNT(undefined));
     }
   };

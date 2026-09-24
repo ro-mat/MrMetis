@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React from "react";
 import DemoTopBar from "components/DemoTopBar";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -6,69 +6,36 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { AppState } from "store/store";
 import ErrorBoundary from "components/ErrorBoundary";
 
-export interface ISideNavProps {}
+// `section` is the path prefix that marks the link as selected.
+const navItems = [
+  { to: "/dashboard", section: "/dashboard", labelKey: "nav.dashboard" },
+  { to: "/planning/accounts", section: "/planning", labelKey: "nav.planning" },
+  { to: "/list", section: "/list", labelKey: "nav.statements" },
+  { to: "/budget", section: "/budget", labelKey: "nav.budget" },
+  { to: "/accounts", section: "/accounts", labelKey: "nav.accounts" },
+];
 
-const SideNavLayout: FC<ISideNavProps> = () => {
+const SideNavLayout = () => {
   const location = useLocation();
-
   const { t } = useTranslation();
-
   const { isDemo } = useSelector((state: AppState) => state.auth);
 
   return (
     <main>
       <div className="side-panel">
         <ul>
-          <li>
-            <Link
-              to="/dashboard"
-              className={`${
-                location.pathname.startsWith("/dashboard") ? "selected" : ""
-              }`}
-            >
-              {t("nav.dashboard")}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/planning/accounts"
-              className={`${
-                location.pathname.startsWith("/planning") ? "selected" : ""
-              }`}
-            >
-              {t("nav.planning")}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/list"
-              className={`${
-                location.pathname.startsWith("/list") ? "selected" : ""
-              }`}
-            >
-              {t("nav.statements")}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/budget"
-              className={`${
-                location.pathname.startsWith("/budget") ? "selected" : ""
-              }`}
-            >
-              {t("nav.budget")}
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/accounts"
-              className={`${
-                location.pathname.startsWith("/accounts") ? "selected" : ""
-              }`}
-            >
-              {t("nav.accounts")}
-            </Link>
-          </li>
+          {navItems.map((item) => (
+            <li key={item.to}>
+              <Link
+                to={item.to}
+                className={
+                  location.pathname.startsWith(item.section) ? "selected" : ""
+                }
+              >
+                {t(item.labelKey)}
+              </Link>
+            </li>
+          ))}
         </ul>
       </div>
       <div className="content">
