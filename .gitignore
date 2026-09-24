@@ -13,3 +13,4 @@ MrMetis.Client/node_modules/
 MrMetis.Client/build/
 app/node_modules/
 logs/
+/.env

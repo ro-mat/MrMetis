@@ -7,13 +7,17 @@ using System.Data;
 using NLog;
 using System.Threading.Tasks;
 using System;
+using MrMetis.Core.Entities;
 using MrMetis.Core.Extensions;
-using NLog.Web;
 
 namespace MrMetis.Infrastructure.Helpers;
 
 public static class CustomDataSeeder
 {
+    private const int ServerUpAttempts = 30;
+    private const int MigrateAttempts = 10;
+    private const string LocalInvitationCode = "local-dev";
+
     private static Logger _logger;
     /// <summary>
     /// Creates local database, schema and users
@@ -22,7 +26,6 @@ public static class CustomDataSeeder
     /// <returns></returns>
     public static async Task CreateDummyDatabaseAndSchema(this IApplicationBuilder app, string setupCs, string connectionString, string envName)
     {
-        envName = "Test";
         _logger = LogManager.Setup().LoadConfigurationFromFile($"nlog.{envName}.config").GetCurrentClassLogger();
 
         if (string.IsNullOrEmpty(setupCs))
@@ -48,16 +51,13 @@ public static class CustomDataSeeder
             .Options;
 
         var masterSetupCs = setupCs.SetNewDatabase();
-        while (!await IsServerUp(masterSetupCs))
-        {
-            await Task.Delay(1000);
-        }
+        await WaitForServer(masterSetupCs);
 
         using var connection = new SqlConnection(setupCs);
         if (!await DbExists(connection))
         {
             _logger.Info("Creating db");
-            await CreateDB(setupCs, envName);
+            await CreateDB(masterSetupCs, setupCs.GetFieldValue("Initial Catalog"), envName);
 
             _logger.Info("Creating schema");
             await CreateSchema(setupCs, connectionString);
@@ -66,9 +66,51 @@ public static class CustomDataSeeder
         _logger.Info("Migrating");
 
         using var context = new MrMetisContext(contextOptions);
-        Migrate(context);
+        await Migrate(context);
+
+        if (envName == "Development")
+        {
+            await SeedInvitationCode(context);
+        }
 
         _logger.Info("Db setup completed!");
+    }
+
+    private static async Task WaitForServer(string connectionString)
+    {
+        for (var attempt = 1; attempt <= ServerUpAttempts; attempt++)
+        {
+            if (await IsServerUp(connectionString))
+            {
+                return;
+            }
+
+            await Task.Delay(1000);
+        }
+
+        throw new InvalidOperationException(
+            $"SQL Server at '{connectionString.GetFieldValue("Server")}' is not reachable. " +
+            "For local development start it with `podman compose up -d db` (or `docker compose up -d db`).");
+    }
+
+    private static async Task SeedInvitationCode(MrMetisContext context)
+    {
+        if (await context.InvitationCodes.AnyAsync())
+        {
+            return;
+        }
+
+        _logger.Info($"Seeding invitation code '{LocalInvitationCode}'");
+        // set the audit fields MrMetisRepository would, IsActive is used by the global query filter
+        var now = DateTime.UtcNow;
+        context.InvitationCodes.Add(new InvitationCode
+        {
+            Code = LocalInvitationCode,
+            IsActive = true,
+            Created = now,
+            Modified = now,
+        });
+        await context.SaveChangesAsync();
     }
 
     private static async Task<bool> IsServerUp(string connectionString)
@@ -81,7 +123,7 @@ public static class CustomDataSeeder
         }
         catch (Exception ex)
         {
-            _logger.Error(ex);
+            _logger.Warn($"Waiting for SQL Server: {ex.Message}");
             return false;
         }
         finally
@@ -101,6 +143,8 @@ public static class CustomDataSeeder
         }
         catch
         {
+            // the pool caches the failed open, which would break the setup commands that follow
+            SqlConnection.ClearPool(connection);
             return false;
         }
         finally
@@ -114,28 +158,19 @@ public static class CustomDataSeeder
         return true;
     }
 
-    private static async Task CreateDB(string connectionString, string envName)
+    private static async Task CreateDB(string masterConnectionString, string databaseName, string envName)
     {
         switch (envName)
         {
             case "Development":
                 await RunCommand(
-                    connectionString,
-                    @"
-                    create database [mrmetis-local]
-                    ON PRIMARY (
-                        NAME=Test_data,
-                        FILENAME = 'C:\localDB\mrmetis.mdf'
-                    )
-                    LOG ON (
-                        NAME=Test_log,
-                        FILENAME = 'C:\localDB\mrmetis_log.ldf'
-                    )"
+                    masterConnectionString,
+                    $"create database [{databaseName}]"
                 );
                 break;
             case "Test":
                 await RunCommand(
-                    connectionString,
+                    masterConnectionString,
                     "create database [mrmetis-test]"
                 );
                 break;
@@ -223,20 +258,20 @@ public static class CustomDataSeeder
         ");
     }
 
-    public static void Migrate(MrMetisContext context)
+    public static async Task Migrate(MrMetisContext context)
     {
-        while (true)
+        for (var attempt = 1; ; attempt++)
         {
             try
             {
-                context?.Database.Migrate();
-                break;
+                await context.Database.MigrateAsync();
+                return;
             }
-            catch (SqlException e)
+            catch (SqlException e) when (attempt < MigrateAttempts)
             {
                 _logger.Error(e);
+                await Task.Delay(2000);
             }
-
         }
     }
 }
