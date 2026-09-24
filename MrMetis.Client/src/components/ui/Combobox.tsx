@@ -43,6 +43,12 @@ const Combobox = ({
     String(value)
   );
 
+  const open = () => {
+    if (!isOpen) {
+      setSearchText("");
+    }
+  };
+
   // closing forgets the highlighted item, so reopening starts at the value
   const close = () => {
     setSearchText(null);
@@ -64,7 +70,7 @@ const Combobox = ({
         if (isOpen) {
           move(event.key === "ArrowDown" ? 1 : -1);
         } else {
-          setSearchText("");
+          open();
         }
         break;
       case "Enter":
@@ -94,7 +100,10 @@ const Combobox = ({
         disabled={disabled}
         placeholder={isOpen ? selectedLabel : undefined}
         value={isOpen ? searchText : selectedLabel}
-        onFocus={() => setSearchText("")}
+        // open on focus and on click, so it reopens while still focused
+        // (e.g. right after picking an option)
+        onFocus={open}
+        onClick={open}
         onChange={(e) => setSearchText(e.currentTarget.value)}
         onBlur={() => {
           close();

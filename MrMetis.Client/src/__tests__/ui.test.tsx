@@ -65,9 +65,14 @@ describe("ui components", () => {
     fireEvent.keyDown(input, { key: "Enter" });
     expect(input).toHaveValue("Savings joint");
 
+    // still focused after the pick: a click reopens the list
+    fireEvent.click(input);
+    fireEvent.mouseDown(screen.getByText("Cash"));
+    expect(input).toHaveValue("Cash");
+
     fireEvent.click(screen.getByText("save"));
     return vi.waitFor(() =>
-      expect(onSubmit).toHaveBeenCalledWith({ accountId: 3 }, expect.anything())
+      expect(onSubmit).toHaveBeenCalledWith({ accountId: 1 }, expect.anything())
     );
   });
 });
