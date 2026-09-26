@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 import { store } from "store/store";
 import { SET_USERDATA } from "store/userdata/userdata.slice";
 import BudgetAddOrEdit from "components/budget/BudgetAddOrEdit";
+import { IBudget } from "store/userdata/userdata.types";
 
 const account = (id: number, name: string) => ({
   id,
@@ -64,5 +65,38 @@ describe("BudgetAddOrEdit", () => {
     const [saved] = store.getState().data.userdata.budgets;
     expect(saved.amounts.map((a) => a.fromAccountId)).toEqual([2, 2]);
     expect(saved.overrides.map((o) => o.accountId)).toEqual([2]);
+  });
+
+  it("can save a budget whose rows rely on the budget account", async () => {
+    store.dispatch(
+      SET_USERDATA({
+        accounts: [account(1, "Cash"), account(2, "Bank")],
+        budgets: [
+          {
+            id: 17,
+            dateCreated: "2026-01-01",
+            name: "Send to CC",
+            fromAccountId: 1,
+            toAccountId: 2,
+            isEssential: true,
+            type: 50,
+            expectOneStatement: false,
+            // stored without a row account
+            amounts: [{ amount: "10", frequency: 1, startDate: "2026-01-01" }],
+            overrides: [{ month: "2026-02-01", amount: 5 }],
+          } as unknown as IBudget,
+        ],
+      })
+    );
+    render(
+      <Provider store={store}>
+        <BudgetAddOrEdit id={17} onClose={() => {}} />
+      </Provider>
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText("addOrEdit.edit")).toBeEnabled()
+    );
+    expect(screen.queryByText("errors.fromAccountEmpty")).toBeNull();
   });
 });

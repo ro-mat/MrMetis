@@ -205,6 +205,10 @@ const BudgetAddOrEdit = ({
       item = { ...item, fromAccountId: parent?.fromAccountId ?? 0 };
     }
 
+    // rows of a budget with its own account may not store one; they show
+    // (and are saved with) the budget account, so let them validate as such
+    const budgetAccountId = item.fromAccountId;
+
     reset({
       ...budgetAddOrEditFormDefault,
       ...item,
@@ -212,6 +216,7 @@ const BudgetAddOrEdit = ({
         .map((a) => {
           return {
             ...a,
+            fromAccountId: budgetAccountId || a.fromAccountId,
             startDate: moment(a.startDate).toDate(),
             endDate: a.endDate ? moment(a.endDate).toDate() : null,
           };
@@ -221,6 +226,7 @@ const BudgetAddOrEdit = ({
         .map((o) => {
           return {
             ...o,
+            accountId: budgetAccountId || o.accountId,
             month: moment(o.month).toDate(),
           };
         })
