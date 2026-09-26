@@ -7,9 +7,6 @@ export interface IUiState extends IBaseState {
 
 export interface IUi {
   filter: IFilter;
-  selectedBudgetId?: number;
-  selectedStatementId?: number;
-  selectedAccountId?: number;
   previewStatements: IStatementPreview;
 }
 

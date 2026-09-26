@@ -1,13 +1,12 @@
 import React, { useEffect } from "react";
 import { BudgetTypeUser } from "store/userdata/userdata.types";
-import { useDispatch, useSelector } from "react-redux";
-import { AppState, TAppDispatch } from "store/store";
+import { useDispatch } from "react-redux";
+import { TAppDispatch } from "store/store";
 import {
   ADD_BUDGET,
   DELETE_BUDGET,
   UPDATE_BUDGET,
 } from "store/userdata/userdata.slice";
-import { SET_SELECTED_BUDGET } from "store/ui/ui.slice";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 import Hint from "components/Hint";
@@ -87,7 +86,16 @@ const schema = z
 
 export type FormFields = z.output<typeof schema>;
 
-const BudgetAddOrEdit = () => {
+interface IBudgetAddOrEditProps {
+  // 0 for a new budget
+  id: number;
+  onClose: () => void;
+}
+
+const BudgetAddOrEdit = ({
+  id: selectedBudgetId,
+  onClose,
+}: IBudgetAddOrEditProps) => {
   const { t } = useTranslation();
   const dispatch = useDispatch<TAppDispatch>();
 
@@ -145,10 +153,8 @@ const BudgetAddOrEdit = () => {
     }
 
     reset();
-    dispatch(SET_SELECTED_BUDGET(undefined));
+    onClose();
   };
-
-  const { selectedBudgetId } = useSelector((state: AppState) => state.ui.ui);
 
   const { getById: getBudgetById, isBudgetUsed } = useBudget();
 
@@ -169,17 +175,16 @@ const BudgetAddOrEdit = () => {
     ? { value: fromAccountId, disabled: true }
     : { control };
 
-  const disableDelete =
-    selectedBudgetId !== undefined && isBudgetUsed(selectedBudgetId);
+  const disableDelete = isBudgetUsed(selectedBudgetId);
 
   const onCancelEditClick = () => {
-    dispatch(SET_SELECTED_BUDGET(undefined));
+    onClose();
   };
 
   const onDeleteClick = () => {
     if (selectedBudgetId && !disableDelete) {
       dispatch(DELETE_BUDGET(selectedBudgetId));
-      dispatch(SET_SELECTED_BUDGET(undefined));
+      onClose();
     }
   };
 

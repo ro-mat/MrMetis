@@ -1,40 +1,34 @@
-import React, { useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppState, TAppDispatch } from "store/store";
+import React from "react";
+import { useSelector } from "react-redux";
+import { AppState } from "store/store";
 import { EditButton, PageHeader } from "components/ui";
 import AccountAddOrEdit from "components/account/AccountAddOrEdit";
-import { SET_SELECTED_ACCOUNT } from "store/ui/ui.slice";
 import { useTranslation } from "react-i18next";
+import useAccount from "hooks/useAccount";
+import useEditRoute from "hooks/useEditRoute";
 
 const AccountsPage = () => {
-  const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
 
   const { isFetching } = useSelector((state: AppState) => state.data);
   const { accounts } = useSelector((state: AppState) => state.data.userdata);
-  const { selectedAccountId } = useSelector((state: AppState) => state.ui.ui);
+  const { getById } = useAccount();
+  const { selectedId, openNew, openEdit, close } = useEditRoute("/accounts");
 
-  const showAddOrEdit = useMemo(
-    () => selectedAccountId !== undefined,
-    [selectedAccountId]
-  );
-
-  const onEditAccountClick = (id: number) => {
-    dispatch(SET_SELECTED_ACCOUNT(id));
-  };
+  const showAddOrEdit = selectedId === 0 || !!getById(selectedId);
 
   return (
     <>
       <PageHeader
         title="account.header"
         isOpen={showAddOrEdit}
-        onToggle={() =>
-          dispatch(SET_SELECTED_ACCOUNT(showAddOrEdit ? undefined : 0))
-        }
+        onToggle={showAddOrEdit ? close : openNew}
       />
       {!isFetching && (
         <>
-          {showAddOrEdit && <AccountAddOrEdit />}
+          {showAddOrEdit && (
+            <AccountAddOrEdit id={selectedId!} onClose={close} />
+          )}
           <div>
             <table>
               <thead>
@@ -50,7 +44,7 @@ const AccountsPage = () => {
                     <td>{a.id}</td>
                     <td>{a.name}</td>
                     <td>
-                      <EditButton onClick={() => onEditAccountClick(a.id)} />
+                      <EditButton onClick={() => openEdit(a.id)} />
                     </td>
                   </tr>
                 ))}

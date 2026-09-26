@@ -1,44 +1,37 @@
-import React, { useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppState, TAppDispatch } from "store/store";
+import React from "react";
+import { useSelector } from "react-redux";
+import { AppState } from "store/store";
 import StatementAddOrEdit from "components/statement/StatementAddOrEdit";
-import { SET_SELECTED_STATEMENT } from "store/ui/ui.slice";
 import StatementTable from "components/StatementTable";
 import { PageHeader } from "components/ui";
+import useStatement from "hooks/useStatement";
+import useEditRoute from "hooks/useEditRoute";
 
 const StatementsPage = () => {
-  const dispatch = useDispatch<TAppDispatch>();
-
   const { isFetching } = useSelector((state: AppState) => state.data);
   const { statements } = useSelector((state: AppState) => state.data.userdata);
 
-  const { selectedStatementId } = useSelector((state: AppState) => state.ui.ui);
+  const { getById } = useStatement();
+  const { selectedId, openNew, openEdit, close } = useEditRoute("/list");
 
-  const showAddOrEdit = useMemo(
-    () => selectedStatementId !== undefined,
-    [selectedStatementId]
-  );
-
-  const onEditStatementClick = (id: number) => {
-    dispatch(SET_SELECTED_STATEMENT(id));
-  };
+  const showAddOrEdit = selectedId === 0 || !!getById(selectedId);
 
   return (
     <>
       <PageHeader
         title="statement.header"
         isOpen={showAddOrEdit}
-        onToggle={() =>
-          dispatch(SET_SELECTED_STATEMENT(showAddOrEdit ? undefined : 0))
-        }
+        onToggle={showAddOrEdit ? close : openNew}
       />
       {!isFetching && (
         <>
-          {showAddOrEdit && <StatementAddOrEdit />}
+          {showAddOrEdit && (
+            <StatementAddOrEdit id={selectedId!} onClose={close} />
+          )}
           <div>
             <StatementTable
               statements={statements}
-              editButtonHandler={onEditStatementClick}
+              editButtonHandler={openEdit}
             />
           </div>
         </>

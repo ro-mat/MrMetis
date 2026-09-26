@@ -111,9 +111,9 @@ const App: FunctionComponent = () => {
                     />
                   </Route>
                 </Route>
-                <Route path="/list" element={<StatementsPage />} />
-                <Route path="/budget" element={<BudgetPage />} />
-                <Route path="/accounts" element={<AccountsPage />} />
+                <Route path="/list/:id?" element={<StatementsPage />} />
+                <Route path="/budget/:id?" element={<BudgetPage />} />
+                <Route path="/accounts/:id?" element={<AccountsPage />} />
               </Route>
             </Route>
 

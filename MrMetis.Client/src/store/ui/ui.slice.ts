@@ -33,15 +33,6 @@ const uiSlice = createSlice({
 
       state.isFetching = false;
     },
-    SET_SELECTED_STATEMENT: (state, action: IAction<number | undefined>) => {
-      state.ui.selectedStatementId = action.payload;
-    },
-    SET_SELECTED_BUDGET: (state, action: IAction<number | undefined>) => {
-      state.ui.selectedBudgetId = action.payload;
-    },
-    SET_SELECTED_ACCOUNT: (state, action: IAction<number | undefined>) => {
-      state.ui.selectedAccountId = action.payload;
-    },
     SET_PREVIEW_STATEMENTS: (state, action: IAction<string | undefined>) => {
       state.ui.previewStatements.selectedPreviewStatements = action.payload;
     },
@@ -68,9 +59,6 @@ export const {
   FETCHING,
   ERROR,
   SET_FILTER,
-  SET_SELECTED_STATEMENT,
-  SET_SELECTED_BUDGET,
-  SET_SELECTED_ACCOUNT,
   SET_PREVIEW_STATEMENTS,
   ADD_SUCCESS_TOAST,
   ADD_ERROR_TOAST,

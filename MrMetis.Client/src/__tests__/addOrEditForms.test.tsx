@@ -7,10 +7,12 @@ import AccountAddOrEdit from "components/account/AccountAddOrEdit";
 import BudgetAddOrEdit from "components/budget/BudgetAddOrEdit";
 import StatementAddOrEdit from "components/statement/StatementAddOrEdit";
 
-const renderForm = (Form: React.ComponentType) =>
+const renderForm = (
+  Form: React.ComponentType<{ id: number; onClose: () => void }>
+) =>
   render(
     <Provider store={store}>
-      <Form />
+      <Form id={0} onClose={() => {}} />
     </Provider>
   );
 

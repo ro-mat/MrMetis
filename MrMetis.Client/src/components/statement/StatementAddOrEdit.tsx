@@ -1,12 +1,11 @@
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppState, TAppDispatch } from "store/store";
+import { useDispatch } from "react-redux";
+import { TAppDispatch } from "store/store";
 import {
   ADD_STATEMENT,
   DELETE_STATEMENT,
   UPDATE_STATEMENT,
 } from "store/userdata/userdata.slice";
-import { SET_SELECTED_STATEMENT } from "store/ui/ui.slice";
 import moment from "moment";
 import { DATE_FORMAT } from "helpers/dateHelper";
 import useStatement from "hooks/useStatement";
@@ -32,9 +31,17 @@ const schema = z.object({
 
 type FormFields = z.output<typeof schema>;
 
-const StatementAddOrEdit = () => {
+interface IStatementAddOrEditProps {
+  // 0 for a new statement
+  id: number;
+  onClose: () => void;
+}
+
+const StatementAddOrEdit = ({
+  id: selectedStatementId,
+  onClose,
+}: IStatementAddOrEditProps) => {
   const dispatch = useDispatch<TAppDispatch>();
-  const { selectedStatementId } = useSelector((state: AppState) => state.ui.ui);
   const { getById: getStatementById } = useStatement();
 
   const {
@@ -59,17 +66,17 @@ const StatementAddOrEdit = () => {
     }
 
     reset(statementAddOrEditFormDefault);
-    dispatch(SET_SELECTED_STATEMENT(undefined));
+    onClose();
   };
 
   const onCancelEditClick = () => {
-    dispatch(SET_SELECTED_STATEMENT(undefined));
+    onClose();
   };
 
   const onDeleteClick = () => {
     if (selectedStatementId) {
       dispatch(DELETE_STATEMENT(selectedStatementId));
-      dispatch(SET_SELECTED_STATEMENT(undefined));
+      onClose();
     }
   };
 

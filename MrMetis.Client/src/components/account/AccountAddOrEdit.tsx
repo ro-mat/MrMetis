@@ -1,12 +1,11 @@
 import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppState, TAppDispatch } from "store/store";
+import { useDispatch } from "react-redux";
+import { TAppDispatch } from "store/store";
 import {
   ADD_ACCOUNT,
   DELETE_ACCOUNT,
   UPDATE_ACCOUNT,
 } from "store/userdata/userdata.slice";
-import { SET_SELECTED_ACCOUNT } from "store/ui/ui.slice";
 import {
   Button,
   DateInput,
@@ -39,7 +38,16 @@ const schema = z.object({
 
 type FormFields = z.output<typeof schema>;
 
-const AccountAddOrEdit = () => {
+interface IAccountAddOrEditProps {
+  // 0 for a new account
+  id: number;
+  onClose: () => void;
+}
+
+const AccountAddOrEdit = ({
+  id: selectedAccountId,
+  onClose,
+}: IAccountAddOrEditProps) => {
   const dispatch = useDispatch<TAppDispatch>();
 
   const {
@@ -63,7 +71,7 @@ const AccountAddOrEdit = () => {
       leftFromPrevMonth: data.leftFromPrevMonth.map((l) => ({
         ...l,
         month: moment(l.month).format(DATE_FORMAT),
-        accountId: selectedAccountId ?? 0,
+        accountId: selectedAccountId,
         amount: l.amount ?? 0,
       })),
     };
@@ -75,24 +83,21 @@ const AccountAddOrEdit = () => {
     }
 
     reset();
-    dispatch(SET_SELECTED_ACCOUNT(undefined));
+    onClose();
   };
-
-  const { selectedAccountId } = useSelector((state: AppState) => state.ui.ui);
 
   const { getById: getAccountById, isAccountUsed } = useAccount();
 
-  const disableDelete =
-    selectedAccountId !== undefined && isAccountUsed(selectedAccountId);
+  const disableDelete = isAccountUsed(selectedAccountId);
 
   const onCancelEditClick = () => {
-    dispatch(SET_SELECTED_ACCOUNT(undefined));
+    onClose();
   };
 
   const onDeleteClick = () => {
     if (selectedAccountId && !disableDelete) {
       dispatch(DELETE_ACCOUNT(selectedAccountId));
-      dispatch(SET_SELECTED_ACCOUNT(undefined));
+      onClose();
     }
   };
 

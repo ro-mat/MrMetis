@@ -19,7 +19,7 @@ describe("BudgetAddOrEdit", () => {
     );
     const { container } = render(
       <Provider store={store}>
-        <BudgetAddOrEdit />
+        <BudgetAddOrEdit id={0} onClose={() => {}} />
       </Provider>
     );
     const [addAmount, addOverride] = screen.getAllByText("+");
