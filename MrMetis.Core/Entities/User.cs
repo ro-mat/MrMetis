@@ -7,9 +7,19 @@ public class User
     public required string Password { get; set; }
 
     /// <summary>
-    /// Only set for users whose password still uses the legacy <see cref="Helpers.HashHelper"/> hash
+    /// Client-side key derivation salt, base64
     /// </summary>
-    public string? Salt { get; set; }
+    public required string KdfSalt { get; set; }
+
+    /// <summary>
+    /// Client-side PBKDF2 iterations, see <see cref="Kdf"/>
+    /// </summary>
+    public int KdfIterations { get; set; }
+
+    /// <summary>
+    /// The data key, encrypted by the client with a key derived from the password
+    /// </summary>
+    public required string WrappedKey { get; set; }
 
     public virtual UserData UserData { get; set; } = null!;
 

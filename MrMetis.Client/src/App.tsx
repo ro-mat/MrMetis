@@ -27,6 +27,7 @@ import "moment/locale/ru";
 import ToastMessages from "components/ToastMessages";
 import RawDataEditor from "components/RawDataEditor";
 import Privacy from "pages/Privacy";
+import { clearKey } from "services/keyStore";
 
 const App: FunctionComponent = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -62,6 +63,9 @@ const App: FunctionComponent = () => {
     const storageToken = localStorage.getItem("token");
     if (storageToken) {
       dispatch(attempt(storageToken));
+    } else {
+      // a key without a session (e.g. the token expired) is only a liability
+      clearKey();
     }
   }, [dispatch]);
 

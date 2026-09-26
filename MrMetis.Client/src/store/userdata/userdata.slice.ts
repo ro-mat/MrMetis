@@ -23,6 +23,7 @@ const initialState: IUserdataState = {
   err: null,
   isFetching: false,
   savePending: false,
+  loaded: false,
   userdata: emptyUserdata(),
 };
 
@@ -81,10 +82,12 @@ const userdataSlice = createSlice({
         budgets: budgets ?? [],
         accounts: accounts ?? [],
       };
+      state.loaded = true;
       state.isFetching = false;
     },
     CLEAR_USERDATA: (state) => {
       state.userdata = emptyUserdata();
+      state.loaded = false;
       state.isFetching = false;
     },
 

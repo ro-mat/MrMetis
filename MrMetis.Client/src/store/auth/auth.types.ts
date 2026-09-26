@@ -14,3 +14,14 @@ export interface ICredentials {
   password?: string;
   invitationCode?: string;
 }
+
+// Key derivation settings of the account, see MrMetis.Core/Kdf.cs
+export interface IPrelogin {
+  salt: string;
+  iterations: number;
+}
+
+export interface IAuthResponse {
+  token: string;
+  wrappedKey: string;
+}

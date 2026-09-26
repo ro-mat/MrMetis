@@ -1,5 +1,12 @@
 import api from "../../helpers/apiConfiguration";
-import { clearKeys, hashPassword } from "services/encryptor";
+import {
+  createDataKey,
+  deriveKeys,
+  generateSalt,
+  KDF_ITERATIONS,
+  unwrapDataKey,
+} from "services/encryptor";
+import { clearKey, saveKey } from "services/keyStore";
 import { TAppDispatch, TAppThunk } from "store/store";
 import {
   AUTH_ERROR,
@@ -8,40 +15,87 @@ import {
   SET_TOKEN,
   SET_USER,
 } from "./auth.slice";
-import { ICredentials, IUser } from "./auth.types";
+import { IAuthResponse, ICredentials, IPrelogin, IUser } from "./auth.types";
 import { CLEAR_USERDATA } from "store/userdata/userdata.slice";
 import { clearDemoData } from "helpers/demoHelper";
 
 const authError = (err: any) => AUTH_ERROR(err?.data?.errors?.join(", "));
 
-// Shared by login and register. Userdata is loaded by App once the user is set.
+// crypto failures have no server error code
+const loginError = (err: any) => {
+  if (!err?.data?.errors) {
+    console.error(err);
+  }
+  return AUTH_ERROR(err?.data?.errors?.join(", ") ?? "failedLogin");
+};
+
+// Shared by login and register: resolves to the token once the data key is stored.
+// Userdata is loaded by App once the user is set.
 const authenticate = async (
   dispatch: TAppDispatch,
-  url: string,
-  { email, password, invitationCode }: ICredentials
+  getToken: () => Promise<string>
 ) => {
   dispatch(AUTH_FETCHING());
   dispatch(CLEAR_USERDATA());
   clearDemoData();
   dispatch(SET_ISDEMO(false));
+  await clearKey();
 
-  const hashPass = await hashPassword(email, password);
-
-  await api
-    .post<IUser>(url, { email, password: hashPass, invitationCode })
-    .then((res) => dispatch(attempt(res.data.token)))
-    .catch((err) => dispatch(authError(err)));
+  try {
+    const token = await getToken();
+    dispatch(attempt(token));
+  } catch (err) {
+    await clearKey();
+    dispatch(loginError(err));
+  }
 };
 
 export const login =
-  (credentials: ICredentials): TAppThunk =>
+  ({ email, password }: ICredentials): TAppThunk =>
   (dispatch) =>
-    authenticate(dispatch, "identity/login", credentials);
+    authenticate(dispatch, async () => {
+      const { data: kdf } = await api.post<IPrelogin>("identity/prelogin", {
+        email,
+      });
+      const { authKey, kek } = await deriveKeys(
+        password!,
+        kdf.salt,
+        kdf.iterations
+      );
+
+      const { data } = await api.post<IAuthResponse>("identity/login", {
+        email,
+        password: authKey,
+      });
+
+      await saveKey(await unwrapDataKey(data.wrappedKey, kek));
+      return data.token;
+    });
 
 export const register =
-  (credentials: ICredentials): TAppThunk =>
+  ({ email, password, invitationCode }: ICredentials): TAppThunk =>
   (dispatch) =>
-    authenticate(dispatch, "identity/register", credentials);
+    authenticate(dispatch, async () => {
+      const salt = generateSalt();
+      const { authKey, kek } = await deriveKeys(
+        password!,
+        salt,
+        KDF_ITERATIONS
+      );
+      const { wrappedKey, dataKey } = await createDataKey(kek);
+
+      const { data } = await api.post<IAuthResponse>("identity/register", {
+        email,
+        password: authKey,
+        invitationCode,
+        salt,
+        iterations: KDF_ITERATIONS,
+        wrappedKey,
+      });
+
+      await saveKey(dataKey);
+      return data.token;
+    });
 
 export const attempt =
   (token?: string | null): TAppThunk =>
@@ -54,12 +108,16 @@ export const attempt =
     await api
       .get<IUser>("identity/me")
       .then((res) => dispatch(SET_USER(res.data as string)))
-      .catch((err) => dispatch(authError(err)));
+      .catch((err) => {
+        // not logged in, so the stored key is of no use
+        clearKey();
+        dispatch(authError(err));
+      });
   };
 
 export const logout = (): TAppThunk => (dispatch) => {
   dispatch(AUTH_FETCHING());
-  clearKeys();
+  clearKey();
 
   api
     .post("identity/logout")

@@ -1,4 +1,5 @@
 import axios, { AxiosError } from "axios";
+import { clearKey } from "services/keyStore";
 
 const headers: any = {
   "Content-Type": "application/json",
@@ -32,7 +33,7 @@ axiosInstance.interceptors.response.use(
     if (typedError.response?.status === 401) {
       // Unauthorized
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      clearKey().finally(() => (window.location.href = "/login"));
     } else {
     }
 

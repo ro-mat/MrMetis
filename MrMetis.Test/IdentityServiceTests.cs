@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
+using MrMetis.Core;
+using MrMetis.Core.Dtos;
 using MrMetis.Core.Entities;
 using MrMetis.Core.Options;
+using MrMetis.Core.Responses;
 using MrMetis.Infrastructure.Services;
 
 namespace MrMetis.Test;
@@ -13,10 +16,9 @@ public class IdentityServiceTests : DbTestBase
     private const string Email = "email@email.com";
     private const string InvitationCode = "code";
 
-    // user created with the legacy HashHelper hash
-    private const string LegacyHash = "d7c8efc324bf9028757eb6c21c0f89e132ce05d520d4e52a70c0ed85dbaa0de3";
-    private const string LegacySalt = "aslqvigxjd6y2k30kud6i3a67g930yc1";
-    private const string LegacyPassword = "8570rglys6qtzb619yiweu9bhtg1o2hhu0qwyn22u52adbdmwkf25wkgf1mzt1ej";
+    private const string Password = "password";
+
+    private static readonly KeyMaterial Keys = new(Convert.ToBase64String(new byte[Kdf.SaltBytes]), Kdf.MinIterations, "wrapped");
 
     private IdentityService _service = null!;
 
@@ -33,44 +35,25 @@ public class IdentityServiceTests : DbTestBase
     }
 
     [Test]
-    public async Task Login_LegacyUserWithCorrectData_ShouldReturnToken()
+    public async Task Login_WithCorrectPassword_ShouldReturnTokenAndKey()
     {
-        await AddLegacyUser(LegacyHash, LegacySalt);
+        await AddUser();
 
-        var result = await _service.LoginAsync(Email, LegacyPassword);
+        var result = await _service.LoginAsync(Email, Password);
 
         Assert.That(result.Success, Is.True);
         Assert.That(result.Token, Is.Not.Empty);
+        Assert.That(result.WrappedKey, Is.EqualTo(Keys.WrappedKey));
     }
 
     [Test]
-    public async Task Login_LegacyUser_ShouldUpgradeHash()
+    public async Task Login_WithBadPassword_ShouldReturnError()
     {
-        await AddLegacyUser(LegacyHash, LegacySalt);
+        await AddUser();
 
-        await _service.LoginAsync(Email, LegacyPassword);
-
-        await using var db = CreateContext();
-        var user = await db.Users.SingleAsync();
-        Assert.That(user.Salt, Is.Null);
-        Assert.That(user.Password, Is.Not.EqualTo(LegacyHash));
-        Assert.That(user.Modified, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromMinutes(1)));
-        Assert.That((await _service.LoginAsync(Email, LegacyPassword)).Success, Is.True);
-        Assert.That((await _service.LoginAsync(Email, "bad")).Success, Is.False);
-    }
-
-    [TestCase("bad", LegacySalt, LegacyPassword)]
-    [TestCase(LegacyHash, "bad", LegacyPassword)]
-    [TestCase(LegacyHash, LegacySalt, "bad")]
-    public async Task Login_LegacyUserWithBadData_ShouldReturnError(string dbPass, string salt, string userPass)
-    {
-        await AddLegacyUser(dbPass, salt);
-
-        var result = await _service.LoginAsync(Email, userPass);
+        var result = await _service.LoginAsync(Email, "bad");
 
         AssertFailed(result.Success, result.Token, result.Errors, "failedLogin");
-        await using var db = CreateContext();
-        Assert.That((await db.Users.SingleAsync()).Salt, Is.EqualTo(salt));
     }
 
     [Test]
@@ -86,7 +69,7 @@ public class IdentityServiceTests : DbTestBase
     {
         await AddInvitationCode();
 
-        var result = await _service.RegisterAsync(Email, "password", "bad");
+        var result = await _service.RegisterAsync(Email, "password", "bad", Keys);
 
         AssertFailed(result.Success, result.Token, result.Errors, "codeInvalid");
     }
@@ -95,9 +78,9 @@ public class IdentityServiceTests : DbTestBase
     public async Task Register_WithExistingEmail_ShouldReturnError()
     {
         await AddInvitationCode();
-        await AddLegacyUser(LegacyHash, LegacySalt);
+        await AddUserAsync(Email, "hash");
 
-        var result = await _service.RegisterAsync(Email, "password", InvitationCode);
+        var result = await _service.RegisterAsync(Email, Password, InvitationCode, Keys);
 
         AssertFailed(result.Success, result.Token, result.Errors, "emailExists");
     }
@@ -107,14 +90,16 @@ public class IdentityServiceTests : DbTestBase
     {
         await AddInvitationCode();
 
-        var result = await _service.RegisterAsync(Email, "password", InvitationCode);
+        var result = await _service.RegisterAsync(Email, "password", InvitationCode, Keys);
 
         Assert.That(result.Success, Is.True);
         await using var db = CreateContext();
         var user = await db.Users.Include(u => u.UserData).SingleAsync();
         Assert.That(user.Email, Is.EqualTo(Email));
         Assert.That(user.Password, Is.Not.EqualTo("password"));
-        Assert.That(user.Salt, Is.Null);
+        Assert.That(user.KdfSalt, Is.EqualTo(Keys.Salt));
+        Assert.That(user.KdfIterations, Is.EqualTo(Keys.Iterations));
+        Assert.That(user.WrappedKey, Is.EqualTo(Keys.WrappedKey));
         Assert.That(user.UserData.UserId, Is.EqualTo(user.Id));
         AssertCreatedNow(user.IsActive, user.Created, user.Modified);
         AssertCreatedNow(user.UserData.IsActive, user.UserData.Created, user.UserData.Modified);
@@ -126,7 +111,7 @@ public class IdentityServiceTests : DbTestBase
         Assert.That(code.Modified, Is.GreaterThan(code.Created));
 
         Assert.That((await _service.LoginAsync(Email, "password")).Success, Is.True);
-        Assert.That((await _service.RegisterAsync("other@email.com", "password", InvitationCode)).Errors, Is.EqualTo(new[] { "codeInvalid" }));
+        Assert.That((await _service.RegisterAsync("other@email.com", "password", InvitationCode, Keys)).Errors, Is.EqualTo(new[] { "codeInvalid" }));
     }
 
     [Test]
@@ -134,7 +119,7 @@ public class IdentityServiceTests : DbTestBase
     {
         await AddInvitationCode();
 
-        var result = await _service.RegisterAsync(Email, "password", InvitationCode);
+        var result = await _service.RegisterAsync(Email, "password", InvitationCode, Keys);
 
         var token = new JsonWebTokenHandler().ReadJsonWebToken(result.Token);
         await using var db = CreateContext();
@@ -142,6 +127,43 @@ public class IdentityServiceTests : DbTestBase
         Assert.That(token.GetClaim(JwtRegisteredClaimNames.Email).Value, Is.EqualTo(Email));
         Assert.That(token.GetClaim("id").Value, Is.EqualTo(user.Id.ToString()));
         Assert.That(token.ValidTo, Is.EqualTo(DateTime.UtcNow.AddMinutes(120)).Within(TimeSpan.FromMinutes(1)));
+    }
+
+    [TestCase("AAAA", Kdf.MinIterations, "wrapped")]
+    [TestCase("not base64!", Kdf.MinIterations, "wrapped")]
+    [TestCase("AAAAAAAAAAAAAAAAAAAAAA==", Kdf.MinIterations - 1, "wrapped")]
+    [TestCase("AAAAAAAAAAAAAAAAAAAAAA==", Kdf.MinIterations, "")]
+    public async Task Register_WithBadKeyMaterial_ShouldReturnError(string salt, int iterations, string wrappedKey)
+    {
+        await AddInvitationCode();
+
+        var result = await _service.RegisterAsync(Email, "password", InvitationCode, new KeyMaterial(salt, iterations, wrappedKey));
+
+        AssertFailed(result.Success, result.Token, result.Errors, "kdfInvalid");
+        await using var db = CreateContext();
+        Assert.That(await db.Users.AnyAsync(), Is.False);
+    }
+
+    [Test]
+    public async Task Prelogin_KnownUser_ShouldReturnStoredKdf()
+    {
+        await AddInvitationCode();
+        await _service.RegisterAsync(Email, "password", InvitationCode, Keys);
+
+        var result = await _service.PreloginAsync(Email);
+
+        Assert.That(result, Is.EqualTo(new PreloginResponse(Keys.Salt, Keys.Iterations)));
+    }
+
+    [Test]
+    public async Task Prelogin_UnknownUser_ShouldReturnStableFakeSalt()
+    {
+        var result = await _service.PreloginAsync("nobody@email.com");
+
+        Assert.That(result.Iterations, Is.EqualTo(Kdf.MinIterations));
+        Assert.That(Convert.FromBase64String(result.Salt!), Has.Length.EqualTo(Kdf.SaltBytes));
+        Assert.That((await _service.PreloginAsync("nobody@email.com")).Salt, Is.EqualTo(result.Salt));
+        Assert.That((await _service.PreloginAsync("other@email.com")).Salt, Is.Not.EqualTo(result.Salt));
     }
 
     private static void AssertCreatedNow(bool isActive, DateTime created, DateTime? modified)
@@ -158,7 +180,12 @@ public class IdentityServiceTests : DbTestBase
         Assert.That(errors, Is.EqualTo(new[] { error }));
     }
 
-    private Task AddLegacyUser(string hash, string salt) => AddUserAsync(Email, hash, salt);
+    private async Task AddUser()
+    {
+        await AddInvitationCode();
+        await _service.RegisterAsync(Email, Password, InvitationCode, Keys);
+        Db.ChangeTracker.Clear();
+    }
 
     private Task AddInvitationCode() =>
         SeedAsync(new InvitationCode { Code = InvitationCode, IsActive = true, Created = DateTime.UtcNow.AddDays(-1) });

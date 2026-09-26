@@ -54,14 +54,15 @@ public abstract class DbTestBase
         Db.ChangeTracker.Clear();
     }
 
-    protected async Task<User> AddUserAsync(string email, string password, string? salt = null)
+    protected async Task<User> AddUserAsync(string email, string password)
     {
         var created = DateTime.UtcNow.AddDays(-1);
         var user = new User
         {
             Email = email,
             Password = password,
-            Salt = salt,
+            KdfSalt = "salt",
+            WrappedKey = "wrapped",
             UserData = new UserData { IsActive = true, Created = created },
             IsActive = true,
             Created = created

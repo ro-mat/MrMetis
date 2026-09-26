@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -6,8 +7,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using MrMetis.Core;
+using MrMetis.Core.Dtos;
 using MrMetis.Core.Entities;
-using MrMetis.Core.Helpers;
 using MrMetis.Core.Interfaces;
 using MrMetis.Core.Options;
 using MrMetis.Core.Responses;
@@ -23,8 +24,23 @@ public class IdentityService(
 {
     private readonly JwtOptions _jwt = jwtOptions.Value;
 
-    public async Task<AuthenticationResult> RegisterAsync(string email, string password, string invitationCode, CancellationToken ct = default)
+    public async Task<PreloginResponse> PreloginAsync(string email, CancellationToken ct = default)
     {
+        var user = await db.Users.FirstOrDefaultAsync(x => x.Email == email, ct);
+
+        // a stable made up salt for unknown emails, so the answer doesn't tell whether the email is registered
+        return user is null
+            ? new PreloginResponse(FakeSalt(email), Kdf.MinIterations)
+            : new PreloginResponse(user.KdfSalt, user.KdfIterations);
+    }
+
+    public async Task<AuthenticationResult> RegisterAsync(string email, string password, string invitationCode, KeyMaterial keys, CancellationToken ct = default)
+    {
+        if (!IsValid(keys))
+        {
+            return AuthenticationResult.Failed("kdfInvalid");
+        }
+
         var code = await db.InvitationCodes.FirstOrDefaultAsync(x => x.Code == invitationCode, ct);
         if (code is null)
         {
@@ -41,6 +57,9 @@ public class IdentityService(
         {
             Email = email,
             Password = string.Empty,
+            KdfSalt = keys.Salt,
+            KdfIterations = keys.Iterations,
+            WrappedKey = keys.WrappedKey,
             UserData = new UserData
             {
                 IsActive = true,
@@ -60,7 +79,7 @@ public class IdentityService(
 
         await db.SaveChangesAsync(ct);
 
-        return AuthenticationResult.Succeeded(CreateToken(user));
+        return AuthenticationResult.Succeeded(CreateToken(user), user.WrappedKey);
     }
 
     public async Task<AuthenticationResult> LoginAsync(string email, string password, CancellationToken ct = default)
@@ -71,36 +90,39 @@ public class IdentityService(
             return AuthenticationResult.Failed("failedLogin");
         }
 
-        return AuthenticationResult.Succeeded(CreateToken(user));
+        return AuthenticationResult.Succeeded(CreateToken(user), user.WrappedKey);
+    }
+
+    private static bool IsValid(KeyMaterial keys) =>
+        keys.Iterations >= Kdf.MinIterations
+        && !string.IsNullOrWhiteSpace(keys.WrappedKey)
+        && IsBase64OfLength(keys.Salt, Kdf.SaltBytes);
+
+    private static bool IsBase64OfLength(string value, int bytes)
+    {
+        var buffer = new byte[bytes + 1];
+        return Convert.TryFromBase64String(value, buffer, out var written) && written == bytes;
+    }
+
+    private string FakeSalt(string email)
+    {
+        var key = Encoding.UTF8.GetBytes(_jwt.Secret);
+        var hash = HMACSHA256.HashData(key, Encoding.UTF8.GetBytes($"prelogin:{email.Trim().ToLowerInvariant()}"));
+        return Convert.ToBase64String(hash, 0, Kdf.SaltBytes);
     }
 
     private async Task<bool> VerifyPasswordAsync(User user, string password, CancellationToken ct)
     {
-        bool rehash;
-        if (user.Salt is not null)
+        var result = passwordHasher.VerifyHashedPassword(user, user.Password, password);
+        if (result == PasswordVerificationResult.Failed)
         {
-            if (!HashHelper.Verify(password, user.Salt, user.Password))
-            {
-                return false;
-            }
-
-            rehash = true;
-        }
-        else
-        {
-            var result = passwordHasher.VerifyHashedPassword(user, user.Password, password);
-            if (result == PasswordVerificationResult.Failed)
-            {
-                return false;
-            }
-
-            rehash = result == PasswordVerificationResult.SuccessRehashNeeded;
+            return false;
         }
 
-        if (rehash)
+        // the hasher asks for this when its defaults get stronger
+        if (result == PasswordVerificationResult.SuccessRehashNeeded)
         {
             user.Password = passwordHasher.HashPassword(user, password);
-            user.Salt = null;
             user.Modified = timeProvider.GetUtcNow().UtcDateTime;
             await db.SaveChangesAsync(ct);
         }

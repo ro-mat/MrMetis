@@ -6,6 +6,8 @@ import { IMonthAmountPair } from "types/IMonthAmountPair";
 export interface IUserdataState extends IBaseState {
   userdata: IUserdata;
   savePending: boolean;
+  // stored data was loaded (and decrypted), so it's safe to save over it
+  loaded: boolean;
 }
 
 export interface IUserdata {

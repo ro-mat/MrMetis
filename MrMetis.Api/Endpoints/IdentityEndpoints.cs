@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http.HttpResults;
 using MrMetis.Api.Extensions;
+using MrMetis.Core.Dtos;
 using MrMetis.Core.Interfaces;
 using MrMetis.Core.Requests;
 using MrMetis.Core.Responses;
@@ -14,6 +15,7 @@ public static class IdentityEndpoints
         var group = app.MapGroup("/api/identity").WithTags("Identity");
 
         group.MapGet("/me", Me).RequireAuthorization();
+        group.MapPost("/prelogin", Prelogin);
         group.MapPost("/register", Register);
         group.MapPost("/login", Login);
         group.MapPost("/logout", Logout);
@@ -26,10 +28,15 @@ public static class IdentityEndpoints
             ? TypedResults.Text(email)
             : TypedResults.BadRequest("identity not found :(");
 
+    private static async Task<Ok<PreloginResponse>> Prelogin(
+        PreloginRequest request, IIdentityService identityService, CancellationToken ct) =>
+        TypedResults.Ok(await identityService.PreloginAsync(request.Email, ct));
+
     private static async Task<Results<Ok<AuthSuccessResponse>, BadRequest<AuthFailedResponse>>> Register(
         UserRegistrationRequest request, IIdentityService identityService, CancellationToken ct)
     {
-        var result = await identityService.RegisterAsync(request.Email, request.Password, request.InvitationCode, ct);
+        var keys = new KeyMaterial(request.Salt, request.Iterations, request.WrappedKey);
+        var result = await identityService.RegisterAsync(request.Email, request.Password, request.InvitationCode, keys, ct);
         return ToResponse(result);
     }
 
@@ -44,7 +51,7 @@ public static class IdentityEndpoints
     private static Ok Logout() => TypedResults.Ok();
 
     private static Results<Ok<AuthSuccessResponse>, BadRequest<AuthFailedResponse>> ToResponse(AuthenticationResult result) =>
-        result is { Success: true, Token: { } token }
-            ? TypedResults.Ok(new AuthSuccessResponse(token))
+        result is { Success: true, Token: { } token, WrappedKey: { } wrappedKey }
+            ? TypedResults.Ok(new AuthSuccessResponse(token, wrappedKey))
             : TypedResults.BadRequest(new AuthFailedResponse(result.Errors));
 }
