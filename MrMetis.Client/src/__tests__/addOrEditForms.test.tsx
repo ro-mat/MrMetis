@@ -6,6 +6,7 @@ import { SET_USERDATA } from "store/userdata/userdata.slice";
 import AccountAddOrEdit from "components/account/AccountAddOrEdit";
 import BudgetAddOrEdit from "components/budget/BudgetAddOrEdit";
 import StatementAddOrEdit from "components/statement/StatementAddOrEdit";
+import { IBudget } from "store/userdata/userdata.types";
 
 const renderForm = (
   Form: React.ComponentType<{ id: number; onClose: () => void }>
@@ -32,6 +33,13 @@ describe("add/edit forms", () => {
     expect(screen.getByText("addOrEdit.add")).toBeDisabled();
   });
 
+  it("lists the validation errors on the disabled button", async () => {
+    renderForm(AccountAddOrEdit);
+    await new Promise((r) => setTimeout(r, 20));
+    // shown even though the field wasn't touched yet
+    expect(screen.getByText("errors.nameEmpty")).toBeInTheDocument();
+  });
+
   it("enables the button once the form is valid", async () => {
     const { container } = renderForm(AccountAddOrEdit);
     const name = container.querySelector('input[name="name"]')!;
@@ -44,5 +52,31 @@ describe("add/edit forms", () => {
     await waitFor(() =>
       expect(screen.getByText("addOrEdit.add")).toBeEnabled()
     );
+    expect(screen.queryByRole("tooltip")).toBeNull();
+  });
+
+  it("explains why an account in use cannot be deleted", () => {
+    store.dispatch(
+      SET_USERDATA({
+        accounts: [
+          {
+            id: 1,
+            name: "Cash",
+            dateCreated: "2026-01-01",
+            leftFromPrevMonth: [],
+          },
+        ],
+        budgets: [{ id: 1, fromAccountId: 1 } as IBudget],
+      })
+    );
+    render(
+      <Provider store={store}>
+        <AccountAddOrEdit id={1} onClose={() => {}} />
+      </Provider>
+    );
+
+    expect(screen.getByText("addOrEdit.delete")).toBeDisabled();
+    expect(screen.getByText("addOrEdit.accountInUse")).toBeInTheDocument();
+    expect(screen.queryByText("?")).toBeNull();
   });
 });

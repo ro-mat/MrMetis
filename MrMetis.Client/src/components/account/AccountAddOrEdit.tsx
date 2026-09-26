@@ -22,6 +22,7 @@ import { useFieldArray } from "react-hook-form";
 import { DATE_FORMAT } from "helpers/dateHelper";
 import moment from "moment";
 import AddOrEditControls from "components/AddOrEditControls";
+import { useTranslation } from "react-i18next";
 
 const schema = z.object({
   id: z.number().optional(),
@@ -48,6 +49,7 @@ const AccountAddOrEdit = ({
   id: selectedAccountId,
   onClose,
 }: IAccountAddOrEditProps) => {
+  const { t } = useTranslation();
   const dispatch = useDispatch<TAppDispatch>();
 
   const {
@@ -55,6 +57,7 @@ const AccountAddOrEdit = ({
     reset,
     control,
     formState: { isValid },
+    validationErrors,
   } = useAppForm(schema, accountAddOrEditFormDefault);
 
   const { fields, prepend, remove } = useFieldArray({
@@ -162,9 +165,12 @@ const AccountAddOrEdit = ({
         <AddOrEditControls
           isNew={!selectedAccountId}
           isValid={isValid}
+          validationErrors={validationErrors}
           onCancelEditClick={onCancelEditClick}
           onDeleteClick={onDeleteClick}
-          disableDelete={disableDelete}
+          deleteDisabledReason={
+            disableDelete ? t("addOrEdit.accountInUse") : undefined
+          }
         />
       </form>
     </div>

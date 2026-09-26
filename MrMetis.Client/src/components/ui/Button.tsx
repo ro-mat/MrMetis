@@ -1,10 +1,12 @@
-import React, { ComponentProps } from "react";
+import React, { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { cx } from "./cx";
 
 export interface IButtonProps extends ComponentProps<"button"> {
   variant?: "primary" | "secondary" | "plain";
   size?: "small" | "normal" | "big";
+  // shown on hover while the button is disabled
+  disabledReason?: ReactNode;
 }
 
 // Defaults to type="button", so it never submits a form by accident.
@@ -13,19 +15,35 @@ const Button = ({
   size = "small",
   type = "button",
   className,
+  disabledReason,
   ...buttonProps
-}: IButtonProps) => (
-  <button
-    type={type}
-    className={cx(
-      variant !== "plain" && "btn",
-      variant !== "plain" && variant,
-      size !== "normal" && size,
-      className
-    )}
-    {...buttonProps}
-  />
-);
+}: IButtonProps) => {
+  const button = (
+    <button
+      type={type}
+      className={cx(
+        variant !== "plain" && "btn",
+        variant !== "plain" && variant,
+        size !== "normal" && size,
+        className
+      )}
+      {...buttonProps}
+    />
+  );
+
+  if (!disabledReason) {
+    return button;
+  }
+
+  // disabled buttons don't get mouse events, so the wrapper shows the reason;
+  // it stays while enabled so the button isn't remounted when that toggles
+  return (
+    <span className="disabled-reason">
+      {button}
+      {buttonProps.disabled && <span role="tooltip">{disabledReason}</span>}
+    </span>
+  );
+};
 
 interface ICtaButtonProps extends IButtonProps {
   // shows `loadingLabel` (i18n key) and disables the button

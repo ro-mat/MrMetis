@@ -49,6 +49,7 @@ const StatementAddOrEdit = ({
     reset,
     control,
     formState: { isValid },
+    validationErrors,
   } = useAppForm(schema, statementAddOrEditFormDefault);
 
   const onSubmit = (data: FormFields) => {
@@ -141,7 +142,7 @@ const StatementAddOrEdit = ({
           onCancelEditClick={onCancelEditClick}
           onDeleteClick={onDeleteClick}
           isValid={isValid}
-          disableDelete={false}
+          validationErrors={validationErrors}
         />
       </form>
     </div>

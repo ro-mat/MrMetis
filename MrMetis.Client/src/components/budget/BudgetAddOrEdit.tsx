@@ -104,6 +104,7 @@ const BudgetAddOrEdit = ({
     reset,
     control,
     formState: { isValid },
+    validationErrors,
   } = useAppForm(schema, budgetAddOrEditFormDefault);
 
   const {
@@ -381,9 +382,12 @@ const BudgetAddOrEdit = ({
         <AddOrEditControls
           isNew={!selectedBudgetId}
           isValid={isValid}
+          validationErrors={validationErrors}
           onCancelEditClick={onCancelEditClick}
           onDeleteClick={onDeleteClick}
-          disableDelete={disableDelete}
+          deleteDisabledReason={
+            disableDelete ? t("addOrEdit.budgetInUse") : undefined
+          }
         />
       </form>
     </div>

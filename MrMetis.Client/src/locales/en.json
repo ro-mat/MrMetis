@@ -122,7 +122,9 @@
     "edit": "Edit",
     "cancel": "Cancel",
     "delete": "Delete",
-    "hintDeleteDisabled": "This item is used, therefore cannot be deleted"
+    "invalidForm": "Some fields are missing or invalid",
+    "accountInUse": "This account is used by budgets or statements, so it can't be deleted",
+    "budgetInUse": "This budget has sub-budgets or statements, so it can't be deleted"
   },
   "demo": {
     "topBarMessage": "You are using demo data! The data is not saved and may be lost. Feel free to play around and change anything.",
