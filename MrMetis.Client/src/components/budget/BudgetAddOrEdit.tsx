@@ -103,6 +103,7 @@ const BudgetAddOrEdit = ({
     handleSubmit,
     reset,
     control,
+    setValue,
     formState: { isValid },
     validationErrors,
   } = useAppForm(schema, budgetAddOrEditFormDefault);
@@ -160,10 +161,18 @@ const BudgetAddOrEdit = ({
   const { getById: getBudgetById, isBudgetUsed } = useBudget();
 
   // fields the rest of the form depends on
-  const [id, type, fromAccountId] = useWatch({
+  const [id, type, fromAccountId, parentId] = useWatch({
     control,
-    name: ["id", "type", "fromAccountId"],
+    name: ["id", "type", "fromAccountId", "parentId"],
   });
+
+  // a child of a budget with an account uses (and is locked to) that account
+  const parentAccountId = getBudgetById(parentId)?.fromAccountId;
+  useEffect(() => {
+    if (parentAccountId && parentAccountId !== fromAccountId) {
+      setValue("fromAccountId", parentAccountId, { shouldValidate: true });
+    }
+  }, [parentAccountId, fromAccountId, setValue]);
 
   const budgetTypeOptions = getEnumArray(BudgetTypeUser).map((i) => ({
     value: i,
@@ -200,9 +209,9 @@ const BudgetAddOrEdit = ({
       return;
     }
 
-    if (item.parentId) {
-      const parent = getBudgetById(item.parentId);
-      item = { ...item, fromAccountId: parent?.fromAccountId ?? 0 };
+    const parent = getBudgetById(item.parentId);
+    if (parent?.fromAccountId) {
+      item = { ...item, fromAccountId: parent.fromAccountId };
     }
 
     // rows of a budget with its own account may not store one; they show
@@ -265,7 +274,7 @@ const BudgetAddOrEdit = ({
             filterable
             label="budget.fromAccount"
             emptyOption="general.no"
-            disabled={!!getBudgetById(selectedBudgetId)?.fromAccountId}
+            disabled={!!parentAccountId}
           />
           {type === BudgetTypeUser.transferToAccount && (
             <AccountSelect

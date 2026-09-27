@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { store } from "store/store";
 import { SET_USERDATA } from "store/userdata/userdata.slice";
 import BudgetAddOrEdit from "components/budget/BudgetAddOrEdit";
-import { IBudget } from "store/userdata/userdata.types";
+import { BudgetTypeUser, IBudget } from "store/userdata/userdata.types";
 
 const account = (id: number, name: string) => ({
   id,
@@ -12,6 +12,33 @@ const account = (id: number, name: string) => ({
   dateCreated: "2026-01-01",
   leftFromPrevMonth: [],
 });
+
+// loosely typed: stored data may miss fields the types require
+const budget = (id: number, props: Record<string, unknown> = {}) =>
+  ({
+    id,
+    dateCreated: "2026-01-01",
+    name: `Budget ${id}`,
+    toAccountId: 0,
+    isEssential: false,
+    type: BudgetTypeUser.spending,
+    expectOneStatement: false,
+    amounts: [],
+    overrides: [],
+    ...props,
+  }) as unknown as IBudget;
+
+const renderBudget = (id: number) =>
+  render(
+    <Provider store={store}>
+      <BudgetAddOrEdit id={id} onClose={() => {}} />
+    </Provider>
+  );
+
+// the filterable selects: parent, then from account
+const comboboxes = (container: HTMLElement) =>
+  container.querySelectorAll<HTMLInputElement>('input[role="combobox"]');
+const fromAccountInput = (container: HTMLElement) => comboboxes(container)[1];
 
 describe("BudgetAddOrEdit", () => {
   it("forces the budget account on existing and new amount/override rows", async () => {
@@ -72,31 +99,70 @@ describe("BudgetAddOrEdit", () => {
       SET_USERDATA({
         accounts: [account(1, "Cash"), account(2, "Bank")],
         budgets: [
-          {
-            id: 17,
-            dateCreated: "2026-01-01",
-            name: "Send to CC",
+          budget(17, {
             fromAccountId: 1,
-            toAccountId: 2,
-            isEssential: true,
-            type: 50,
-            expectOneStatement: false,
             // stored without a row account
             amounts: [{ amount: "10", frequency: 1, startDate: "2026-01-01" }],
             overrides: [{ month: "2026-02-01", amount: 5 }],
-          } as unknown as IBudget,
+          }),
         ],
       })
     );
-    render(
-      <Provider store={store}>
-        <BudgetAddOrEdit id={17} onClose={() => {}} />
-      </Provider>
-    );
+    const { container } = renderBudget(17);
 
     await waitFor(() =>
       expect(screen.getByText("addOrEdit.edit")).toBeEnabled()
     );
     expect(screen.queryByText("errors.fromAccountEmpty")).toBeNull();
+    // without a parent the budget account can be changed
+    expect(fromAccountInput(container)).not.toBeDisabled();
+  });
+
+  it("locks a child budget to its parent's account", async () => {
+    store.dispatch(
+      SET_USERDATA({
+        accounts: [account(1, "Cash"), account(2, "Bank")],
+        budgets: [
+          budget(1, { name: "Parent", fromAccountId: 2 }),
+          budget(2, { name: "Child", parentId: 1, fromAccountId: 1 }),
+        ],
+      })
+    );
+    const { container } = renderBudget(2);
+
+    await waitFor(() => expect(fromAccountInput(container)).toBeDisabled());
+    expect(fromAccountInput(container)).toHaveValue("Bank");
+
+    fireEvent.click(screen.getByText("addOrEdit.edit"));
+    await waitFor(() =>
+      expect(store.getState().data.userdata.budgets[1].fromAccountId).toBe(2)
+    );
+  });
+
+  it("takes the account of a newly picked parent", async () => {
+    store.dispatch(
+      SET_USERDATA({
+        accounts: [account(1, "Cash"), account(2, "Bank")],
+        budgets: [
+          budget(1, { name: "Parent", fromAccountId: 2 }),
+          budget(3, { name: "Loose", fromAccountId: 1 }),
+        ],
+      })
+    );
+    const { container } = renderBudget(3);
+    await waitFor(() =>
+      expect(fromAccountInput(container)).toHaveValue("Cash")
+    );
+    expect(fromAccountInput(container)).not.toBeDisabled();
+
+    const parent = comboboxes(container)[0];
+    fireEvent.focus(parent);
+    fireEvent.change(parent, { target: { value: "Parent" } });
+    fireEvent.keyDown(parent, { key: "Enter" });
+
+    await waitFor(() =>
+      expect(fromAccountInput(container)).toHaveValue("Bank")
+    );
+    expect(fromAccountInput(container)).toBeDisabled();
   });
 });
