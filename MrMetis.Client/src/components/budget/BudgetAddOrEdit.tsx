@@ -24,11 +24,13 @@ import {
   Checkbox,
   DateInput,
   Field,
+  OlderRowsToggle,
   RemoveButton,
   SelectBox,
   TextInput,
 } from "components/ui";
-import { DATE_FORMAT } from "helpers/dateHelper";
+import { DATE_FORMAT, isBeforePrevMonth } from "helpers/dateHelper";
+import useOlderRows from "hooks/useOlderRows";
 import { getEnumArray } from "helpers/enumHelper";
 
 const schema = z
@@ -126,6 +128,16 @@ const BudgetAddOrEdit = ({
     name: "overrides",
   });
 
+  // ended amounts and past overrides are hidden until asked for
+  const olderAmounts = useOlderRows(amountFields, (a) =>
+    isBeforePrevMonth(a.endDate)
+  );
+  const olderOverrides = useOlderRows(overrideFields, (o) =>
+    isBeforePrevMonth(o.month)
+  );
+  const { setShowOlder: setShowOlderAmounts } = olderAmounts;
+  const { setShowOlder: setShowOlderOverrides } = olderOverrides;
+
   const onSubmit = (data: FormFields) => {
     const oldBudget = getBudgetById(selectedBudgetId)!;
     const budget = {
@@ -199,6 +211,8 @@ const BudgetAddOrEdit = ({
   };
 
   useEffect(() => {
+    setShowOlderAmounts(false);
+    setShowOlderOverrides(false);
     if (!selectedBudgetId) {
       reset();
       return;
@@ -241,7 +255,13 @@ const BudgetAddOrEdit = ({
         })
         .sort((a, b) => moment(b.month).diff(moment(a.month))),
     });
-  }, [reset, selectedBudgetId, getBudgetById]);
+  }, [
+    reset,
+    selectedBudgetId,
+    getBudgetById,
+    setShowOlderAmounts,
+    setShowOlderOverrides,
+  ]);
 
   return (
     <div>
@@ -315,7 +335,7 @@ const BudgetAddOrEdit = ({
             </Hint>
           </div>
           <div className="list">
-            {amountFields.map((field, index) => (
+            {olderAmounts.visibleRows.map(({ field, index }) => (
               <div key={field.id}>
                 <DateInput
                   name={`amounts.${index}.startDate`}
@@ -352,6 +372,11 @@ const BudgetAddOrEdit = ({
               </div>
             ))}
           </div>
+          <OlderRowsToggle
+            hiddenCount={olderAmounts.hiddenCount}
+            showOlder={olderAmounts.showOlder}
+            onToggle={olderAmounts.toggleOlder}
+          />
         </div>
         <div className="list-wrapper">
           <Field label="budget.overrides" horizontal>
@@ -368,7 +393,7 @@ const BudgetAddOrEdit = ({
             </Button>
           </Field>
           <div className="list">
-            {overrideFields.map((field, index) => (
+            {olderOverrides.visibleRows.map(({ field, index }) => (
               <div key={field.id}>
                 <DateInput
                   name={`overrides.${index}.month`}
@@ -393,6 +418,11 @@ const BudgetAddOrEdit = ({
               </div>
             ))}
           </div>
+          <OlderRowsToggle
+            hiddenCount={olderOverrides.hiddenCount}
+            showOlder={olderOverrides.showOlder}
+            onToggle={olderOverrides.toggleOlder}
+          />
         </div>
         <AddOrEditControls
           isNew={!selectedBudgetId}

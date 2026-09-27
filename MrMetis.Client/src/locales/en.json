@@ -123,6 +123,8 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "invalidForm": "Some fields are missing or invalid",
+    "showOlder": "Show older items ({{count}})",
+    "hideOlder": "Hide older items",
     "accountInUse": "This account is used by budgets or statements, so it can't be deleted",
     "budgetInUse": "This budget has sub-budgets or statements, so it can't be deleted"
   },

@@ -49,6 +49,18 @@ form {
         align-items: center;
       }
     }
+
+    // "show older items" under a list
+    .link {
+      align-self: flex-start;
+      margin-left: 2em;
+      padding: 0;
+      border: none;
+      background: none;
+      font-weight: normal;
+      text-decoration: underline;
+      cursor: pointer;
+    }
   }
 
   .controls {

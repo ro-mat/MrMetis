@@ -11,3 +11,4 @@ export { default as Dropdown } from "./Dropdown";
 export { default as PageHeader } from "./PageHeader";
 export { default as FilterInput } from "./FilterInput";
 export { default as ToggleGroup } from "./ToggleGroup";
+export { default as OlderRowsToggle } from "./OlderRowsToggle";

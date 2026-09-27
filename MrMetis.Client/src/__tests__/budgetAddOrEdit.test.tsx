@@ -4,6 +4,8 @@ import { Provider } from "react-redux";
 import { store } from "store/store";
 import { SET_USERDATA } from "store/userdata/userdata.slice";
 import BudgetAddOrEdit from "components/budget/BudgetAddOrEdit";
+import moment from "moment";
+import { DATE_FORMAT } from "helpers/dateHelper";
 import { BudgetTypeUser, IBudget } from "store/userdata/userdata.types";
 
 const account = (id: number, name: string) => ({
@@ -164,5 +166,51 @@ describe("BudgetAddOrEdit", () => {
       expect(fromAccountInput(container)).toHaveValue("Bank")
     );
     expect(fromAccountInput(container)).toBeDisabled();
+  });
+
+  it("hides ended amounts and past overrides until asked", async () => {
+    const month = (offset: number) =>
+      moment().add(offset, "month").startOf("month").format(DATE_FORMAT);
+    store.dispatch(
+      SET_USERDATA({
+        accounts: [account(1, "Cash")],
+        budgets: [
+          budget(1, {
+            fromAccountId: 1,
+            amounts: [
+              // still in effect, however old
+              { amount: "1", frequency: 1, startDate: month(-12) },
+              // ended long ago
+              {
+                amount: "2",
+                frequency: 1,
+                startDate: month(-24),
+                endDate: month(-13),
+              },
+            ],
+            overrides: [
+              { month: month(-1), amount: 3 },
+              { month: month(-3), amount: 4 },
+            ],
+          }),
+        ],
+      })
+    );
+    const { container } = renderBudget(1);
+    const rows = (list: string) =>
+      container.querySelectorAll(`input[name^="${list}."][name$=".amount"]`);
+
+    await waitFor(() => expect(rows("amounts")).toHaveLength(1));
+    expect(rows("overrides")).toHaveLength(1);
+
+    // each list has its own link
+    const [showAmounts, showOverrides] = screen.getAllByText(
+      "addOrEdit.showOlder"
+    );
+    fireEvent.click(showAmounts);
+    expect(rows("amounts")).toHaveLength(2);
+    expect(rows("overrides")).toHaveLength(1);
+    fireEvent.click(showOverrides);
+    expect(rows("overrides")).toHaveLength(2);
   });
 });

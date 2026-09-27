@@ -10,6 +10,7 @@ import {
   Button,
   DateInput,
   Field,
+  OlderRowsToggle,
   RemoveButton,
   TextInput,
 } from "components/ui";
@@ -19,7 +20,8 @@ import { z } from "zod";
 import { requiredError, requiredText } from "helpers/zodHelper";
 import useAppForm from "hooks/useAppForm";
 import { useFieldArray } from "react-hook-form";
-import { DATE_FORMAT } from "helpers/dateHelper";
+import { DATE_FORMAT, isBeforePrevMonth } from "helpers/dateHelper";
+import useOlderRows from "hooks/useOlderRows";
 import moment from "moment";
 import AddOrEditControls from "components/AddOrEditControls";
 import { useTranslation } from "react-i18next";
@@ -64,6 +66,8 @@ const AccountAddOrEdit = ({
     control,
     name: "leftFromPrevMonth",
   });
+  const { visibleRows, hiddenCount, showOlder, toggleOlder, setShowOlder } =
+    useOlderRows(fields, (f) => isBeforePrevMonth(f.month));
 
   const onSubmit = async (data: FormFields) => {
     const oldAccount = getAccountById(selectedAccountId)!;
@@ -105,6 +109,7 @@ const AccountAddOrEdit = ({
   };
 
   useEffect(() => {
+    setShowOlder(false);
     if (!selectedAccountId) {
       reset();
       return;
@@ -115,13 +120,15 @@ const AccountAddOrEdit = ({
     reset({
       ...accountAddOrEditFormDefault,
       ...account,
-      leftFromPrevMonth: account?.leftFromPrevMonth.map((l) => ({
-        ...l,
-        month: new Date(l.month),
-        amount: l.amount ?? 0,
-      })),
+      leftFromPrevMonth: account?.leftFromPrevMonth
+        .map((l) => ({
+          ...l,
+          month: new Date(l.month),
+          amount: l.amount ?? 0,
+        }))
+        .sort((a, b) => moment(b.month).diff(moment(a.month))),
     });
-  }, [selectedAccountId, reset, getAccountById]);
+  }, [selectedAccountId, reset, getAccountById, setShowOlder]);
 
   return (
     <div>
@@ -141,7 +148,7 @@ const AccountAddOrEdit = ({
             </Button>
           </Field>
           <div className="list">
-            {fields.map((field, index) => (
+            {visibleRows.map(({ field, index }) => (
               <div key={field.id}>
                 <DateInput
                   name={`leftFromPrevMonth.${index}.month`}
@@ -161,6 +168,11 @@ const AccountAddOrEdit = ({
               </div>
             ))}
           </div>
+          <OlderRowsToggle
+            hiddenCount={hiddenCount}
+            showOlder={showOlder}
+            onToggle={toggleOlder}
+          />
         </div>
         <AddOrEditControls
           isNew={!selectedAccountId}

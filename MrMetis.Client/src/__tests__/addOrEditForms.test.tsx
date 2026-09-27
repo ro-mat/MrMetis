@@ -7,6 +7,8 @@ import AccountAddOrEdit from "components/account/AccountAddOrEdit";
 import BudgetAddOrEdit from "components/budget/BudgetAddOrEdit";
 import StatementAddOrEdit from "components/statement/StatementAddOrEdit";
 import { IBudget } from "store/userdata/userdata.types";
+import moment from "moment";
+import { DATE_FORMAT } from "helpers/dateHelper";
 
 const renderForm = (
   Form: React.ComponentType<{ id: number; onClose: () => void }>
@@ -78,5 +80,60 @@ describe("add/edit forms", () => {
     expect(screen.getByText("addOrEdit.delete")).toBeDisabled();
     expect(screen.getByText("addOrEdit.accountInUse")).toBeInTheDocument();
     expect(screen.queryByText("?")).toBeNull();
+  });
+
+  it("hides account rows older than the previous month until asked", async () => {
+    const month = (offset: number) =>
+      moment().add(offset, "month").startOf("month").format(DATE_FORMAT);
+    store.dispatch(
+      SET_USERDATA({
+        accounts: [
+          {
+            id: 1,
+            name: "Cash",
+            dateCreated: "2026-01-01",
+            leftFromPrevMonth: [
+              // stored out of order
+              { month: month(-1), amount: 20, accountId: 1 },
+              { month: month(-2), amount: 30, accountId: 1 },
+              { month: month(0), amount: 10, accountId: 1 },
+            ],
+          },
+        ],
+      })
+    );
+    const { container } = render(
+      <Provider store={store}>
+        <AccountAddOrEdit id={1} onClose={() => {}} />
+      </Provider>
+    );
+    const rows = () =>
+      container.querySelectorAll(
+        'input[name^="leftFromPrevMonth."][name$=".amount"]'
+      );
+
+    await waitFor(() => expect(rows()).toHaveLength(2));
+    fireEvent.click(screen.getByText("addOrEdit.showOlder"));
+    // latest month at the top
+    expect([...rows()].map((r) => (r as HTMLInputElement).value)).toEqual([
+      "10",
+      "20",
+      "30",
+    ]);
+    fireEvent.click(screen.getByText("addOrEdit.hideOlder"));
+    expect(rows()).toHaveLength(2);
+
+    // hidden rows are still saved
+    fireEvent.click(screen.getByText("addOrEdit.edit"));
+    await waitFor(() =>
+      expect(
+        store.getState().data.userdata.accounts[0].leftFromPrevMonth
+      ).toHaveLength(3)
+    );
+    expect(
+      store
+        .getState()
+        .data.userdata.accounts[0].leftFromPrevMonth.map((l) => l.amount)
+    ).toEqual(expect.arrayContaining([10, 20, 30]));
   });
 });
