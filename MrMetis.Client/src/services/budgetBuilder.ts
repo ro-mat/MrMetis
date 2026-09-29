@@ -92,29 +92,36 @@ export class BudgetPairArray {
     month: Moment,
     accountId?: number
   ): BudgetPair | undefined {
-    const budgetPairs = this.pairsOf(budgetId).filter(
-      (i) =>
-        i.month.isSame(month, "M") &&
-        (accountId === undefined ||
-          i.accountId === accountId ||
-          i.accountId === 0)
+    const monthPairs = this.pairsOf(budgetId).filter((i) =>
+      i.month.isSame(month, "M")
     );
 
-    if (budgetPairs.length === 0) {
+    if (monthPairs.length === 0) {
       return undefined;
     }
+
+    // may be empty when the budget itself is planned on another account only,
+    // its children can still belong to this account
+    const budgetPairs = monthPairs.filter(
+      (i) =>
+        accountId === undefined ||
+        i.accountId === accountId ||
+        i.accountId === 0
+    );
 
     const init = new BudgetPair(
       budgetId,
       accountId ?? 0,
       month,
-      budgetPairs[0].budgetType,
+      monthPairs[0].budgetType,
       0,
       0,
-      budgetPairs[0].expectOneStatement,
+      monthPairs[0].expectOneStatement,
       []
     );
-    init.children = [...budgetPairs[0].children];
+    // a child is attached to the first parent pair found, which may belong to
+    // another account, so collect children from every parent pair of the month
+    init.children = monthPairs.flatMap((i) => i.children);
 
     for (const cur of budgetPairs) {
       init.planned += cur.planned;
@@ -232,13 +239,15 @@ export class BudgetPair {
     return false;
   }
 
+  private matchesAccount(accountId?: number) {
+    return !accountId || this.accountId === accountId || this.accountId === 0;
+  }
+
   getChildrenPlanned(accountId?: number): number {
     const planned = this.children.reduce(
       (prev, cur) =>
         prev +
-        (!accountId || cur.accountId === accountId || cur.accountId === 0
-          ? cur.planned
-          : 0) +
+        (cur.matchesAccount(accountId) ? cur.planned : 0) +
         cur.getChildrenPlanned(accountId),
       0
     );
@@ -249,20 +258,31 @@ export class BudgetPair {
     const actual = this.children.reduce(
       (prev, cur) =>
         prev +
-        (!accountId || cur.accountId === accountId || cur.accountId === 0
-          ? cur.actual
-          : 0) +
+        (cur.matchesAccount(accountId) ? cur.actual : 0) +
         cur.getChildrenActual(accountId),
       0
     );
     return roundTo(actual, 2);
   }
 
-  getChildrenStatements(): BudgetStatement[] {
+  getChildrenStatements(accountId?: number): BudgetStatement[] {
     return this.children.flatMap((cur) => [
-      ...cur.statements,
-      ...cur.getChildrenStatements(),
+      ...(cur.matchesAccount(accountId) ? cur.statements : []),
+      ...cur.getChildrenStatements(accountId),
     ]);
+  }
+
+  hasOwnValues(): boolean {
+    return roundTo(this.planned, 2) !== 0 || roundTo(this.actual, 2) !== 0;
+  }
+
+  // checks each descendant separately, so opposite values can't cancel out
+  hasChildrenValues(accountId?: number): boolean {
+    return this.children.some(
+      (c) =>
+        (c.matchesAccount(accountId) && c.hasOwnValues()) ||
+        c.hasChildrenValues(accountId)
+    );
   }
 
   isRemaining(accountId?: number): boolean {
@@ -416,8 +436,9 @@ export const buildBudgetPairsForMonth = (
     );
   }
 
-  const result = new BudgetPairArray();
-  budgetPairs.forEach((bp) => result.tryAddBudgetPair(bp));
+  const tree = new BudgetPairArray();
+  budgetPairs.forEach((bp) => tree.tryAddBudgetPair(bp));
 
-  return result;
+  // rebuild so the flat list and lookup index cover the finished tree
+  return new BudgetPairArray(tree.list);
 };

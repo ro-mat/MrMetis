@@ -1,7 +1,17 @@
 import { getDemoData, initDemoData } from "helpers/demoHelper";
 import moment from "moment";
-import { buildBudgetPairsForMonth } from "services/budgetBuilder";
-import { BudgetTypeExtra } from "store/userdata/userdata.types";
+import {
+  BudgetPair,
+  BudgetPairArray,
+  BudgetStatement,
+  buildBudgetPairsForMonth,
+} from "services/budgetBuilder";
+import {
+  BudgetTypeExtra,
+  BudgetTypeUser,
+  IAccount,
+  IBudget,
+} from "store/userdata/userdata.types";
 
 describe("budgetBuilder", () => {
   beforeEach(() => {
@@ -421,5 +431,167 @@ describe("budgetBuilder", () => {
     expect(unplanned3.actual).toBe(9.6);
     expect(unplanned3.isActive()).toBe(true);
     expect(unplanned3.children).toHaveLength(0);
+  });
+});
+
+describe("BudgetPair children", () => {
+  const month = moment();
+
+  const statement = (id: number, accountId: number): BudgetStatement => ({
+    id,
+    accountId,
+    date: month.toISOString(),
+    amount: 1,
+  });
+
+  const makePair = (
+    budgetId: number,
+    accountId: number,
+    planned: number,
+    actual: number,
+    parentId?: number,
+    statements: BudgetStatement[] = []
+  ) =>
+    new BudgetPair(
+      budgetId,
+      accountId,
+      month,
+      BudgetTypeUser.spending,
+      planned,
+      actual,
+      false,
+      statements,
+      parentId
+    );
+
+  // parent 1 has pairs on accounts 1 and 2; children get attached to the first one
+  const buildArray = () => {
+    const parentAcc1 = makePair(1, 1, 0, 0);
+    const parentAcc2 = makePair(1, 2, 0, 0);
+    const childAcc1 = makePair(2, 1, 10, 5, 1, [statement(1, 1)]);
+    const childAcc2 = makePair(3, 2, 20, 0, 1, [statement(2, 2)]);
+    const grandChildAcc2 = makePair(4, 2, 0, 7, 3, [statement(3, 2)]);
+
+    const builder = new BudgetPairArray();
+    [parentAcc1, parentAcc2, childAcc1, childAcc2, grandChildAcc2].forEach(
+      (p) => builder.tryAddBudgetPair(p)
+    );
+    return new BudgetPairArray(builder.list);
+  };
+
+  it("getBudgetPair finds children attached to another account's parent pair", () => {
+    const parent = buildArray().getBudgetPair(1, month, 2)!;
+
+    expect(parent.children).toHaveLength(2);
+    expect(parent.getChildrenPlanned(2)).toBe(20);
+    expect(parent.getChildrenActual(2)).toBe(7);
+  });
+
+  it("hasOwnValues ignores rounding noise", () => {
+    expect(makePair(1, 1, 0, 0).hasOwnValues()).toBe(false);
+    expect(makePair(1, 1, 1e-9, 0).hasOwnValues()).toBe(false);
+    expect(makePair(1, 1, 0, 0.01).hasOwnValues()).toBe(true);
+    expect(makePair(1, 1, -5, 0).hasOwnValues()).toBe(true);
+  });
+
+  it("hasChildrenValues respects account and checks grandchildren", () => {
+    const array = buildArray();
+    const parent = array.getBudgetPair(1, month)!;
+    expect(parent.hasOwnValues()).toBe(false);
+    expect(parent.hasChildrenValues()).toBe(true);
+    expect(parent.hasChildrenValues(1)).toBe(true);
+    expect(parent.hasChildrenValues(3)).toBe(false);
+
+    // child on account 2 has no actual, only its grandchild does
+    const child = array.getBudgetPair(3, month, 2)!;
+    expect(child.hasChildrenValues(2)).toBe(true);
+    expect(child.hasChildrenValues(1)).toBe(false);
+  });
+
+  it("hasChildrenValues is not fooled by values cancelling out", () => {
+    const builder = new BudgetPairArray();
+    [makePair(1, 1, 0, 0), makePair(2, 1, 10, 0, 1), makePair(3, 1, -10, 0, 1)]
+      .forEach((p) => builder.tryAddBudgetPair(p));
+    const parent = new BudgetPairArray(builder.list).getBudgetPair(1, month)!;
+
+    expect(parent.getChildrenPlanned()).toBe(0);
+    expect(parent.hasChildrenValues()).toBe(true);
+  });
+
+  it("getChildrenStatements filters by account", () => {
+    const parent = buildArray().getBudgetPair(1, month)!;
+
+    const ids = (accountId?: number) =>
+      parent.getChildrenStatements(accountId).map((s) => s.id).sort();
+    expect(ids()).toEqual([1, 2, 3]);
+    expect(ids(1)).toEqual([1]);
+    expect(ids(2)).toEqual([2, 3]);
+  });
+});
+
+describe("parent and child on different accounts", () => {
+  const MAIN = 1;
+  const CARD = 2;
+  const start = moment().startOf("M");
+
+  const account = (id: number, name: string): IAccount => ({
+    id,
+    name,
+    dateCreated: start.toISOString(),
+    leftFromPrevMonth: [],
+  });
+
+  const budget = (
+    id: number,
+    amount: string,
+    fromAccountId: number,
+    frequency: number,
+    parentId?: number
+  ): IBudget => ({
+    id,
+    name: `budget ${id}`,
+    parentId,
+    fromAccountId: 0,
+    toAccountId: 0,
+    isEssential: false,
+    amounts: [
+      { amount, fromAccountId, frequency, startDate: start.toISOString() },
+    ],
+    overrides: [],
+    type: BudgetTypeUser.spending,
+    expectOneStatement: false,
+    dateCreated: start.toISOString(),
+  });
+
+  const build = (month: moment.Moment) =>
+    buildBudgetPairsForMonth(
+      month,
+      [budget(1, "0", CARD, 1), budget(2, "15", MAIN, 6, 1)],
+      [],
+      [account(MAIN, "Main"), account(CARD, "Card")],
+      []
+    );
+
+  it("collapsed parent in child's account includes child values", () => {
+    const array = build(start);
+    const parent = array.getBudgetPair(1, start, MAIN);
+
+    expect(parent).not.toBe(undefined);
+    expect(parent!.hasOwnValues()).toBe(false);
+    expect(parent!.hasChildrenValues(MAIN)).toBe(true);
+    expect(parent!.getChildrenPlanned(MAIN)).toBe(15);
+
+    // parent's own zero amount lives on the card, where the child has nothing
+    const cardParent = array.getBudgetPair(1, start, CARD)!;
+    expect(cardParent.hasOwnValues()).toBe(false);
+    expect(cardParent.hasChildrenValues(CARD)).toBe(false);
+  });
+
+  it("collapsed parent has no values in months the child is not planned", () => {
+    const month = start.clone().add(1, "M");
+    const parent = build(month).getBudgetPair(1, month, MAIN)!;
+
+    expect(parent.hasOwnValues()).toBe(false);
+    expect(parent.hasChildrenValues(MAIN)).toBe(false);
   });
 });

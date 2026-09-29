@@ -52,16 +52,16 @@ const TableRow = ({
       <tr className={highlight ? "highlight" : ""}>
         {filteredChildren.length > 0 ? (
           <td className="has-children" onClick={toggleShowChildren}>
-            {range(0, indent - 1).map(() => (
-              <>&nbsp;&nbsp;&nbsp;&nbsp;</>
+            {range(0, indent - 1).map((i) => (
+              <React.Fragment key={i}>&nbsp;&nbsp;&nbsp;&nbsp;</React.Fragment>
             ))}
             <span>{budget.name}</span>
             <span className={`arrow ${showChildren ? "open" : ""}`}>{">"}</span>
           </td>
         ) : (
           <td>
-            {range(0, indent - 1).map(() => (
-              <>&nbsp;&nbsp;&nbsp;&nbsp;</>
+            {range(0, indent - 1).map((i) => (
+              <React.Fragment key={i}>&nbsp;&nbsp;&nbsp;&nbsp;</React.Fragment>
             ))}
             {budget.name}
           </td>
@@ -71,7 +71,7 @@ const TableRow = ({
             <React.Fragment key={index}>
               <TableCellPair
                 pair={
-                  budgetPairArray.getBudgetPair(budget.id, month, accountId)!
+                  budgetPairArray.getBudgetPair(budget.id, month, accountId)
                 }
                 moreIsGood={moreIsGood}
                 includeChildren={filteredChildren.length > 0 && !showChildren}

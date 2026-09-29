@@ -4,6 +4,7 @@ import { AppState, TAppDispatch } from "store/store";
 import { SET_PREVIEW_STATEMENTS } from "store/ui/ui.slice";
 import PreviewStatements from "./PreviewStatements";
 import { BudgetPair } from "services/budgetBuilder";
+import { roundTo } from "services/budgetCalculator";
 import { BudgetType, BudgetTypeExtra } from "store/userdata/userdata.types";
 
 export interface ITableCellPairProps {
@@ -35,30 +36,25 @@ const TableCellPair: FC<ITableCellPairProps> = ({
     (state: AppState) => state.ui.ui.previewStatements
   );
 
-  const handleClick = () => {
-    if (selectedPreviewStatements === pairId) {
-      return;
-    }
-
-    dispatch(SET_PREVIEW_STATEMENTS(pairId));
-  };
-
+  // an expanded parent still shows its own (possibly zero) values while any
+  // child has values, so the group row doesn't look empty next to its children
   const show = useMemo<boolean>(
     () =>
       !!pair &&
       (forceShow(pair.budgetType) ||
-        !!pair.planned ||
-        !!pair.actual ||
-        !!pair.getChildrenPlanned(accountId) ||
-        !!pair.getChildrenActual(accountId)),
+        pair.hasOwnValues() ||
+        pair.hasChildrenValues(accountId)),
     [pair, accountId]
   );
 
   const planned = useMemo(
     () =>
       show
-        ? pair!.planned +
-          (includeChildren ? pair!.getChildrenPlanned(accountId) : 0)
+        ? roundTo(
+            pair!.planned +
+              (includeChildren ? pair!.getChildrenPlanned(accountId) : 0),
+            2
+          )
         : undefined,
     [show, pair, includeChildren, accountId]
   );
@@ -66,8 +62,11 @@ const TableCellPair: FC<ITableCellPairProps> = ({
   const actual = useMemo(
     () =>
       show
-        ? pair!.actual +
-          (includeChildren ? pair!.getChildrenActual(accountId) : 0)
+        ? roundTo(
+            pair!.actual +
+              (includeChildren ? pair!.getChildrenActual(accountId) : 0),
+            2
+          )
         : undefined,
     [show, pair, includeChildren, accountId]
   );
@@ -79,14 +78,24 @@ const TableCellPair: FC<ITableCellPairProps> = ({
 
   const statements = useMemo(() => {
     if (!pair) return [];
-    const childStatements = includeChildren ? pair.getChildrenStatements() : [];
+    const childStatements = includeChildren
+      ? pair.getChildrenStatements(accountId)
+      : [];
     return [...pair.statements, ...childStatements];
-  }, [pair, includeChildren]);
+  }, [pair, includeChildren, accountId]);
 
   const showStatementList = useMemo(
     () => statements.length > 0 && selectedPreviewStatements === pairId,
     [statements, selectedPreviewStatements, pairId]
   );
+
+  const handleClick = () => {
+    if (statements.length === 0 || selectedPreviewStatements === pairId) {
+      return;
+    }
+
+    dispatch(SET_PREVIEW_STATEMENTS(pairId));
+  };
 
   return (
     <>
