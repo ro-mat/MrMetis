@@ -129,3 +129,9 @@ form {
     }
   }
 }
+
+// above the sticky table header (z-index 52); nested so it outranks
+// react-datepicker.css, which loads after the global styles
+.labeled .react-datepicker-popper {
+  z-index: 100;
+}
