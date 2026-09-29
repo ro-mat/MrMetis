@@ -3,7 +3,7 @@ import useBudget from "hooks/useBudget";
 import { Moment } from "moment";
 import { FC, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { BudgetPairArray } from "services/budgetBuilder";
+import { BudgetPairArray } from "services/budgetPairArray";
 import { BudgetTypeUser } from "store/userdata/userdata.types";
 
 export interface IRemainingPlannedExpencesProps {

@@ -1,7 +1,7 @@
 import { FC } from "react";
 import TableCellPair from "./TableCellPair";
 import { useTranslation } from "react-i18next";
-import { BudgetPairArray } from "services/budgetBuilder";
+import { BudgetPairArray } from "services/budgetPairArray";
 import { BudgetTypeExtra } from "store/userdata/userdata.types";
 import { Moment } from "moment";
 

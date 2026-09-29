@@ -2,11 +2,9 @@ import moment from "moment";
 import { useSelector } from "react-redux";
 import { AppState } from "store/store";
 import { range } from "helpers/arrayHelper";
-import {
-  BudgetPair,
-  BudgetPairArray,
-  buildBudgetPairsForMonth,
-} from "services/budgetBuilder";
+import { buildBudgetPairsForMonth } from "services/budgetBuilder";
+import { BudgetPair } from "services/budgetPair";
+import { BudgetPairArray } from "services/budgetPairArray";
 import { useMemo } from "react";
 
 // Builds budget pairs for months [start, end] relative to the current month.

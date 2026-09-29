@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppState, TAppDispatch } from "store/store";
 import { SET_PREVIEW_STATEMENTS } from "store/ui/ui.slice";
 import PreviewStatements from "./PreviewStatements";
-import { BudgetPair } from "services/budgetBuilder";
-import { roundTo } from "services/budgetCalculator";
+import { BudgetPair } from "services/budgetPair";
+import { roundTo } from "helpers/numberHelper";
 import { BudgetType, BudgetTypeExtra } from "store/userdata/userdata.types";
 
 export interface ITableCellPairProps {

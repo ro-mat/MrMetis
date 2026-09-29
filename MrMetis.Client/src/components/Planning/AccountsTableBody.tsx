@@ -2,7 +2,7 @@ import React, { FC, useMemo } from "react";
 import { BudgetTypeExtra, BudgetTypeUser } from "store/userdata/userdata.types";
 import TableRowsByType from "./TableRowsByType";
 import { useTranslation } from "react-i18next";
-import { BudgetPairArray } from "services/budgetBuilder";
+import { BudgetPairArray } from "services/budgetPairArray";
 import TableRowsExtra from "./TableRowsExtra";
 import { Moment } from "moment";
 import TableRowTotal from "./TableRowTotal";

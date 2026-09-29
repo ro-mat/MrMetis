@@ -2,7 +2,7 @@ import { DATE_FORMAT } from "helpers/dateHelper";
 import moment from "moment";
 import React from "react";
 import { useDispatch } from "react-redux";
-import { BudgetStatement } from "services/budgetBuilder";
+import { BudgetStatement } from "services/budgetPair";
 import { TAppDispatch } from "store/store";
 import { SET_PREVIEW_STATEMENTS } from "store/ui/ui.slice";
 import { CloseButton } from "components/ui";

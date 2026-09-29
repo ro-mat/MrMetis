@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 import { AppState } from "store/store";
 import useBudgetCalculate from "hooks/useBudgetCalculate";
 import { Moment } from "moment";
-import { BudgetPairArray } from "services/budgetBuilder";
+import { BudgetPairArray } from "services/budgetPairArray";
 
 export type IPlanningProps = {
   months: Moment[];

@@ -1,18 +1,20 @@
 import { flattenBudgetPairs } from "helpers/budgetMapper";
 import { getDemoData, initDemoData } from "helpers/demoHelper";
 import moment from "moment";
-import { BudgetPair, buildBudgetPairsForMonth } from "services/budgetBuilder";
+import { buildBudgetPairsForMonth } from "services/budgetBuilder";
+import { BudgetPair } from "services/budgetPair";
 import {
-  BudgetCalculatedList,
   Calculate,
   RelevantFormula,
   calculate,
+  getRelevantFormulas,
+} from "services/budgetFormula";
+import {
   calculateForNextMonth,
   getEstimation,
-  getRelevantFormulas,
   getUserTotals,
   userTypes,
-} from "services/budgetCalculator";
+} from "services/budgetTotals";
 import { BudgetTypeUser } from "store/userdata/userdata.types";
 
 describe("budgetCalculator", () => {
@@ -426,11 +428,8 @@ describe("budgetCalculator", () => {
     const currentMonth = moment().year(2024).month(3);
     const amount = calculate(
       params.formula,
-      new Calculate(currentMonth, new BudgetCalculatedList([])),
-      new Calculate(
-        currentMonth.clone().add(-1, "M"),
-        new BudgetCalculatedList([])
-      )
+      new Calculate(currentMonth, []),
+      new Calculate(currentMonth.clone().add(-1, "M"), [])
     );
 
     expect(amount).toBe(params.result);
@@ -643,14 +642,8 @@ describe("budgetCalculator", () => {
 
     const amount = calculate(
       params.formula,
-      new Calculate(
-        currentMonth,
-        new BudgetCalculatedList(flattenBudgetPairs(curMonthBudgetPairs.list))
-      ),
-      new Calculate(
-        prevMonth,
-        new BudgetCalculatedList(flattenBudgetPairs(prevMonthBudgetPairs.list))
-      )
+      new Calculate(currentMonth, flattenBudgetPairs(curMonthBudgetPairs.list)),
+      new Calculate(prevMonth, flattenBudgetPairs(prevMonthBudgetPairs.list))
     );
 
     expect(amount).toBe(params.result);

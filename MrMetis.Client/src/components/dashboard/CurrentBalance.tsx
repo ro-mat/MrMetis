@@ -2,7 +2,7 @@ import useAccount from "hooks/useAccount";
 import { Moment } from "moment";
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { BudgetPairArray } from "services/budgetBuilder";
+import { BudgetPairArray } from "services/budgetPairArray";
 import { BudgetTypeExtra } from "store/userdata/userdata.types";
 
 export interface ICurrentBalanceProps {

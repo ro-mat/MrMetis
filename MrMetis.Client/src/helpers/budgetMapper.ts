@@ -1,4 +1,4 @@
-import { BudgetPair } from "services/budgetBuilder";
+import { BudgetPair } from "services/budgetPair";
 
 export const flattenBudgetPairs = (arr: BudgetPair[]) => {
   const res: BudgetPair[] = [];

@@ -3,7 +3,7 @@ import TableCellPair from "./TableCellPair";
 import { range } from "helpers/arrayHelper";
 import useToggle from "hooks/useToggle";
 import { IBudget } from "store/userdata/userdata.types";
-import { BudgetPairArray } from "services/budgetBuilder";
+import { BudgetPairArray } from "services/budgetPairArray";
 import useBudget from "hooks/useBudget";
 import { Moment } from "moment";
 

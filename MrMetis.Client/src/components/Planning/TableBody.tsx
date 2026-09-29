@@ -1,7 +1,7 @@
 import React from "react";
 import { BudgetTypeExtra, BudgetTypeUser } from "store/userdata/userdata.types";
 import TableRowsByType from "./TableRowsByType";
-import { BudgetPairArray } from "services/budgetBuilder";
+import { BudgetPairArray } from "services/budgetPairArray";
 import TableRowsExtra from "./TableRowsExtra";
 import { Moment } from "moment";
 

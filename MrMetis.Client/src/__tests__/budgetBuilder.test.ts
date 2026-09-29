@@ -1,11 +1,8 @@
 import { getDemoData, initDemoData } from "helpers/demoHelper";
 import moment from "moment";
-import {
-  BudgetPair,
-  BudgetPairArray,
-  BudgetStatement,
-  buildBudgetPairsForMonth,
-} from "services/budgetBuilder";
+import { buildBudgetPairsForMonth } from "services/budgetBuilder";
+import { BudgetPair, BudgetStatement } from "services/budgetPair";
+import { BudgetPairArray } from "services/budgetPairArray";
 import {
   BudgetTypeExtra,
   BudgetTypeUser,

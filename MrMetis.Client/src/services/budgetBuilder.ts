@@ -1,300 +1,84 @@
 import moment, { Moment } from "moment";
 import {
-  BudgetType,
   BudgetTypeExtra,
   BudgetTypeUser,
   IAccount,
   IBudget,
   IStatement,
 } from "store/userdata/userdata.types";
-import {
-  BudgetCalculatedList,
-  Calculate,
-  calculate,
-  calculateForNextMonth,
-  getExtraTotals,
-  getRelevantFormulas,
-  getUserTotals,
-  roundTo,
-} from "./budgetCalculator";
 import { flattenBudgetPairs } from "helpers/budgetMapper";
+import { roundTo } from "helpers/numberHelper";
+import { BudgetPair } from "./budgetPair";
+import { BudgetPairArray } from "./budgetPairArray";
+import {
+  Calculate,
+  RelevantFormula,
+  calculate,
+  getRelevantFormulas,
+} from "./budgetFormula";
+import {
+  getExtraTotals,
+  getLeftFromPrevMonthTotals,
+  getUserTotals,
+} from "./budgetTotals";
 
-export type BudgetStatement = {
-  id: number;
-  accountId: number;
-  date: string;
-  amount: number;
-  comment?: string;
+const statementKey = (budgetId: number, accountId: number) =>
+  `${budgetId}:${accountId}`;
+
+const groupMonthStatements = (month: Moment, statements: IStatement[]) => {
+  const grouped = new Map<string, IStatement[]>();
+  for (const s of statements) {
+    if (!moment(s.date).isSame(month, "M")) continue;
+
+    const key = statementKey(s.budgetId, s.accountId);
+    const group = grouped.get(key);
+    if (group) {
+      group.push(s);
+    } else {
+      grouped.set(key, [s]);
+    }
+  }
+  return grouped;
 };
 
-export class BudgetPairArray {
-  list: BudgetPair[] = [];
-  flatList: BudgetPair[] = [];
-  // flatList grouped by budget id, for fast per-budget lookups while rendering
-  private byBudgetId = new Map<number, BudgetPair[]>();
-
-  constructor(list?: BudgetPair[]) {
-    if (!list) return;
-    this.list = list;
-    this.flatList = flattenBudgetPairs(list);
-    for (const pair of this.flatList) {
-      const pairs = this.byBudgetId.get(pair.budgetId);
-      if (pairs) {
-        pairs.push(pair);
-      } else {
-        this.byBudgetId.set(pair.budgetId, [pair]);
-      }
-    }
+// The pair of a calculated formula, plus the receiving side of a transfer.
+const toBudgetPairs = (
+  month: Moment,
+  f: RelevantFormula,
+  planned: number,
+  statements: IStatement[]
+) => {
+  const actual = roundTo(
+    statements.reduce((prev, cur) => prev + cur.amount, 0),
+    2
+  );
+  const pair = new BudgetPair(
+    f.budgetId,
+    f.accountId,
+    month,
+    f.budgetType,
+    planned,
+    actual,
+    f.expectOneStatement,
+    statements,
+    f.parentId
+  );
+  if (f.budgetType !== BudgetTypeUser.transferToAccount) {
+    return [pair];
   }
 
-  private pairsOf(budgetId: number) {
-    return this.byBudgetId.get(budgetId) ?? [];
-  }
-
-  tryAddBudgetPair(budgetPair: BudgetPair) {
-    if (!budgetPair.parentId) {
-      this.list.push(budgetPair);
-      return true;
-    }
-    for (let item of this.list) {
-      if (item.tryAddChild(budgetPair, budgetPair.parentId)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  isBudgetActive(budgetId: number, accountId?: number) {
-    return this.pairsOf(budgetId).some(
-      (item) =>
-        item.isActive(accountId) ||
-        item.children.some((c) => c.isActive(accountId))
-    );
-  }
-
-  isBudgetRemaining(budgetId: number, accountId?: number) {
-    return this.pairsOf(budgetId).some((item) => item.isRemaining(accountId));
-  }
-
-  getActiveMonths() {
-    return this.list
-      .reduce((prev: Moment[], cur) => {
-        if (!prev.find((p) => p.isSame(cur.month, "M"))) {
-          prev.push(cur.month);
-        }
-        return prev;
-      }, [])
-      .sort((a, b) => a.diff(b));
-  }
-
-  getBudgetPair(
-    budgetId: number,
-    month: Moment,
-    accountId?: number
-  ): BudgetPair | undefined {
-    const monthPairs = this.pairsOf(budgetId).filter((i) =>
-      i.month.isSame(month, "M")
-    );
-
-    if (monthPairs.length === 0) {
-      return undefined;
-    }
-
-    // may be empty when the budget itself is planned on another account only,
-    // its children can still belong to this account
-    const budgetPairs = monthPairs.filter(
-      (i) =>
-        accountId === undefined ||
-        i.accountId === accountId ||
-        i.accountId === 0
-    );
-
-    const init = new BudgetPair(
-      budgetId,
-      accountId ?? 0,
-      month,
-      monthPairs[0].budgetType,
-      0,
-      0,
-      monthPairs[0].expectOneStatement,
-      []
-    );
-    // a child is attached to the first parent pair found, which may belong to
-    // another account, so collect children from every parent pair of the month
-    init.children = monthPairs.flatMap((i) => i.children);
-
-    for (const cur of budgetPairs) {
-      init.planned += cur.planned;
-      init.actual += cur.actual;
-      init.statements.push(...cur.statements);
-    }
-
-    return init;
-  }
-
-  getTotalPair(budgetTypes: BudgetType[], month: Moment, accountId?: number) {
-    const resultPair = new BudgetPair(
-      0,
-      accountId ?? 0,
-      month,
-      budgetTypes[0],
-      0,
-      0,
-      true,
-      []
-    );
-    budgetTypes.forEach((bt) => {
-      const item = this.list.find(
-        (i) =>
-          i.budgetId === 0 &&
-          i.budgetType === bt &&
-          i.month.isSame(month, "M") &&
-          (accountId === undefined
-            ? i.accountId === 0
-            : i.accountId === accountId)
-      );
-      resultPair.planned += item?.planned ?? 0;
-      resultPair.actual += item?.actual ?? 0;
-    });
-    return resultPair;
-  }
-}
-
-export class BudgetPair {
-  budgetId: number;
-  parentId?: number;
-  accountId: number;
-  month: Moment;
-  budgetType: BudgetType;
-  planned: number;
-  actual: number;
-  expectOneStatement: boolean;
-  statements: BudgetStatement[];
-  children: BudgetPair[] = [];
-
-  constructor(
-    budgetId: number,
-    accountId: number,
-    month: Moment,
-    budgetType: BudgetType,
-    planned: number,
-    actual: number,
-    expectOneStatement: boolean,
-    statements: BudgetStatement[],
-    parentId?: number
-  ) {
-    this.budgetId = budgetId;
-    this.accountId = accountId;
-    this.month = month;
-    this.budgetType = budgetType;
-    this.planned = planned;
-    this.actual = actual;
-    this.expectOneStatement = expectOneStatement;
-    this.statements = statements;
-    this.parentId = parentId;
-  }
-
-  // A calculated total (not tied to a budget), rounded to cents.
-  static total(
-    accountId: number,
-    month: Moment,
-    budgetType: BudgetType,
-    planned: number,
-    actual: number
-  ) {
-    return new BudgetPair(
-      0,
-      accountId,
-      month,
-      budgetType,
-      roundTo(planned, 2),
-      roundTo(actual, 2),
-      true,
-      []
-    );
-  }
-
-  isActive(accountId?: number): boolean {
-    return (
-      (accountId === undefined || this.accountId === accountId) &&
-      (this.planned > 0 ||
-        this.actual > 0 ||
-        this.children.reduce(
-          (prev: boolean, cur) => prev || cur.isActive(accountId),
-          false
-        ))
-    );
-  }
-
-  tryAddChild(budgetPair: BudgetPair, parentBudgetId: number) {
-    if (parentBudgetId === this.budgetId) {
-      this.children.push(budgetPair);
-      return true;
-    }
-    for (const childPair of this.children) {
-      if (childPair.tryAddChild(budgetPair, parentBudgetId)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private matchesAccount(accountId?: number) {
-    return !accountId || this.accountId === accountId || this.accountId === 0;
-  }
-
-  getChildrenPlanned(accountId?: number): number {
-    const planned = this.children.reduce(
-      (prev, cur) =>
-        prev +
-        (cur.matchesAccount(accountId) ? cur.planned : 0) +
-        cur.getChildrenPlanned(accountId),
-      0
-    );
-    return roundTo(planned, 2);
-  }
-
-  getChildrenActual(accountId?: number): number {
-    const actual = this.children.reduce(
-      (prev, cur) =>
-        prev +
-        (cur.matchesAccount(accountId) ? cur.actual : 0) +
-        cur.getChildrenActual(accountId),
-      0
-    );
-    return roundTo(actual, 2);
-  }
-
-  getChildrenStatements(accountId?: number): BudgetStatement[] {
-    return this.children.flatMap((cur) => [
-      ...(cur.matchesAccount(accountId) ? cur.statements : []),
-      ...cur.getChildrenStatements(accountId),
-    ]);
-  }
-
-  hasOwnValues(): boolean {
-    return roundTo(this.planned, 2) !== 0 || roundTo(this.actual, 2) !== 0;
-  }
-
-  // checks each descendant separately, so opposite values can't cancel out
-  hasChildrenValues(accountId?: number): boolean {
-    return this.children.some(
-      (c) =>
-        (c.matchesAccount(accountId) && c.hasOwnValues()) ||
-        c.hasChildrenValues(accountId)
-    );
-  }
-
-  isRemaining(accountId?: number): boolean {
-    return (
-      (accountId === undefined || this.accountId === accountId) &&
-      ((this.planned > 0 &&
-        ((this.expectOneStatement && this.actual === 0) ||
-          (!this.expectOneStatement && this.actual < this.planned))) ||
-        this.children.some((c) => c.isRemaining()))
-    );
-  }
-}
+  const receivingPair = new BudgetPair(
+    f.budgetId,
+    f.toAccountId!,
+    month,
+    BudgetTypeExtra.transferFromAccount,
+    planned,
+    actual,
+    f.expectOneStatement,
+    statements
+  );
+  return [pair, receivingPair];
+};
 
 export const buildBudgetPairsForMonth = (
   month: Moment,
@@ -303,142 +87,62 @@ export const buildBudgetPairsForMonth = (
   accounts: IAccount[],
   prevMonthBudgetPairs: BudgetPair[]
 ) => {
-  const flatPrevMonthBudgetPairs = flattenBudgetPairs(prevMonthBudgetPairs);
-  const monthStatements = statements.filter((s) =>
-    moment(s.date).isSame(month, "M")
-  );
+  const flatPrevMonthPairs = flattenBudgetPairs(prevMonthBudgetPairs);
   const prevMonthCalculate = new Calculate(
     month.clone().add(-1, "M"),
-    new BudgetCalculatedList(flatPrevMonthBudgetPairs)
+    flatPrevMonthPairs
   );
+  const monthStatements = groupMonthStatements(month, statements);
 
-  const relevantFormulas = budgets
+  const budgetPairs = getLeftFromPrevMonthTotals(
+    month,
+    accounts,
+    flatPrevMonthPairs
+  );
+  // reads budgetPairs directly, so it sees every pair added below
+  const curMonthCalculate = new Calculate(month, budgetPairs);
+
+  let pending = budgets
     .flatMap((b) => getRelevantFormulas(month.toDate(), b))
     .sort((a, b) => (a.parentId ?? 0) - (b.parentId ?? 0)); // calculate all root parents first
 
-  const budgetPairs: BudgetPair[] = [];
+  // Formulas can use other budgets and totals, so calculate in passes: each
+  // pass adds what can be calculated, then the totals that became known.
+  while (pending.length > 0) {
+    const notCalculated = pending.filter((f) => {
+      const planned = calculate(
+        f.formula,
+        curMonthCalculate,
+        prevMonthCalculate
+      );
+      if (typeof planned !== "number" || isNaN(planned)) {
+        // depends on something not calculated yet (or is broken), retry next pass
+        return true;
+      }
 
-  // add left from prev month
-  let totalPlanned = 0;
-  let totalActual = 0;
-  for (let account of accounts) {
-    const planned = calculateForNextMonth(flatPrevMonthBudgetPairs, account.id);
-    const actual = (account.leftFromPrevMonth.find((pm) =>
-      moment(pm.month).isSame(month, "M")
-    )?.amount ?? 0) as number;
-    const pair = new BudgetPair(
-      0,
-      account.id,
-      month,
-      BudgetTypeExtra.leftFromPrevMonth,
-      planned,
-      actual,
-      true,
-      []
-    );
+      const formulaStatements =
+        monthStatements.get(statementKey(f.budgetId, f.accountId)) ?? [];
+      budgetPairs.push(...toBudgetPairs(month, f, planned, formulaStatements));
+      return false;
+    });
 
-    budgetPairs.push(pair);
-    totalPlanned += planned;
-    totalActual += actual;
-  }
-
-  const pair = new BudgetPair(
-    0,
-    0,
-    month,
-    BudgetTypeExtra.leftFromPrevMonth,
-    totalPlanned,
-    totalActual,
-    true,
-    []
-  );
-  budgetPairs.push(pair);
-
-  let curMonthCalculate = new Calculate(
-    month,
-    new BudgetCalculatedList(budgetPairs)
-  );
-
-  let lastLenght = relevantFormulas.length + 1; // +1 for initial run
-
-  while (relevantFormulas.length > 0) {
-    if (relevantFormulas.length === lastLenght) {
-      const problemFormulas = relevantFormulas
+    if (notCalculated.length === pending.length) {
+      const problemFormulas = pending
         .map((f) => `{budget id: ${f.budgetId}, formula: ${f.formula}}`)
         .join(", ");
       throw Error(
         `Infinite loop detected while calculating! Problem somewhere here: [${problemFormulas}]`
       );
     }
-    lastLenght = relevantFormulas.length;
+    pending = notCalculated;
 
-    for (let i = 0; i < lastLenght; i++) {
-      const f = relevantFormulas.shift()!;
-
-      const rawAmount = calculate(
-        f.formula,
-        curMonthCalculate,
-        prevMonthCalculate
-      );
-      if (typeof rawAmount !== "number" || isNaN(rawAmount)) {
-        // depends on something not calculated yet (or is broken), retry next pass
-        relevantFormulas.push(f);
-        continue;
-      }
-
-      const planned = rawAmount;
-
-      const budgetAccountStatements = monthStatements.filter(
-        (s) => s.budgetId === f.budgetId && s.accountId === f.accountId
-      );
-      const actual = budgetAccountStatements.reduce(
-        (prev, cur) => prev + cur.amount,
-        0
-      );
-
-      const pair = new BudgetPair(
-        f.budgetId,
-        f.accountId,
-        month,
-        f.budgetType,
-        planned,
-        roundTo(actual, 2),
-        f.expectOneStatement,
-        budgetAccountStatements,
-        f.parentId
-      );
-      budgetPairs.push(pair);
-
-      if (f.budgetType === BudgetTypeUser.transferToAccount) {
-        // duplicate the pair for receiving account
-        const duplicatePair = new BudgetPair(
-          pair.budgetId,
-          f.toAccountId!,
-          pair.month,
-          BudgetTypeExtra.transferFromAccount,
-          pair.planned,
-          pair.actual,
-          pair.expectOneStatement,
-          pair.statements
-        );
-        budgetPairs.push(duplicatePair);
-      }
-    }
-
-    budgetPairs.push(
-      ...getUserTotals(month, accounts, budgetPairs, relevantFormulas)
-    );
+    budgetPairs.push(...getUserTotals(month, accounts, budgetPairs, pending));
     budgetPairs.push(...getExtraTotals(month, accounts, budgetPairs));
-
-    curMonthCalculate = new Calculate(
-      month,
-      new BudgetCalculatedList(budgetPairs)
-    );
   }
 
   const tree = new BudgetPairArray();
   budgetPairs.forEach((bp) => tree.tryAddBudgetPair(bp));
 
-  // rebuild so the flat list and lookup index cover the finished tree
+  // rebuild so the lookup index covers the finished tree
   return new BudgetPairArray(tree.list);
 };
