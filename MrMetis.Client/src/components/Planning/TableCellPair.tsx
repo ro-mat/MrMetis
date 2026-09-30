@@ -89,12 +89,17 @@ const TableCellPair: FC<ITableCellPairProps> = ({
     [statements, selectedPreviewStatements, pairId]
   );
 
+  // clicking the cell opens its statements, clicking it again closes them
   const handleClick = () => {
-    if (statements.length === 0 || selectedPreviewStatements === pairId) {
+    if (statements.length === 0) {
       return;
     }
 
-    dispatch(SET_PREVIEW_STATEMENTS(pairId));
+    dispatch(
+      SET_PREVIEW_STATEMENTS(
+        selectedPreviewStatements === pairId ? undefined : pairId
+      )
+    );
   };
 
   return (
@@ -109,7 +114,7 @@ const TableCellPair: FC<ITableCellPairProps> = ({
       <td
         className={`statement-cell ${
           showStatementList ? "selected" : ""
-        } br ${progressClass}`}
+        } ${statements.length > 0 ? "has-statements" : ""} br ${progressClass}`}
         onClick={handleClick}
       >
         {isStrong ? <strong>{actual?.toFixed(2)}</strong> : actual?.toFixed(2)}

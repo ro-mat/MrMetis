@@ -32,15 +32,3 @@ export const RemoveButton = ({ className, ...props }: IIconButtonProps) => {
     </Button>
   );
 };
-
-// Round "X" in the corner of a popup.
-export const CloseButton = ({ className, ...props }: IIconButtonProps) => (
-  <Button
-    variant="plain"
-    size="normal"
-    className={cx("close", className)}
-    {...props}
-  >
-    X
-  </Button>
-);

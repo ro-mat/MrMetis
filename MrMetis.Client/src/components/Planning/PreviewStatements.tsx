@@ -1,26 +1,22 @@
 import { DATE_FORMAT } from "helpers/dateHelper";
 import moment from "moment";
 import React from "react";
-import { useDispatch } from "react-redux";
 import { BudgetStatement } from "services/budgetPair";
-import { TAppDispatch } from "store/store";
-import { SET_PREVIEW_STATEMENTS } from "store/ui/ui.slice";
-import { CloseButton } from "components/ui";
 
 interface IPreviewStatementsProps {
   statements: BudgetStatement[];
 }
 
+// Opened and closed by clicking its cell, see TableCellPair.
 const PreviewStatements = ({ statements }: IPreviewStatementsProps) => {
-  const dispatch = useDispatch<TAppDispatch>();
-
-  const handleClose = () => {
-    dispatch(SET_PREVIEW_STATEMENTS(undefined));
-  };
   return (
     <>
       {statements && (
-        <div className="preview-statements">
+        // clicks inside (e.g. scrolling the list) don't toggle the cell
+        <div
+          className="preview-statements"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div>
             {[...statements]
               .sort((a, b) => moment(b.date).diff(moment(a.date)))
@@ -33,7 +29,6 @@ const PreviewStatements = ({ statements }: IPreviewStatementsProps) => {
                 </div>
               ))}
           </div>
-          <CloseButton onClick={handleClose} />
         </div>
       )}
     </>

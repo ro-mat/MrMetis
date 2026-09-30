@@ -6,7 +6,7 @@ export { default as DateInput } from "./DateInput";
 export { default as SelectBox } from "./SelectBox";
 export type { ISelectOption } from "./SelectBox";
 export { default as Button, CtaButton, CancelButton } from "./Button";
-export { EditButton, RemoveButton, CloseButton } from "./IconButton";
+export { EditButton, RemoveButton } from "./IconButton";
 export { default as Dropdown } from "./Dropdown";
 export { default as PageHeader } from "./PageHeader";
 export { default as FilterInput } from "./FilterInput";

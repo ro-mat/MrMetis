@@ -3,10 +3,19 @@
 // Borders are "separate", not "collapse": collapsed borders are drawn by the
 // table underneath its cells, so the sticky header and first column would
 // cover them. Each cell draws its left and bottom border; the table the outside.
+// Each table is its own stacking layer: its sticky parts only compete within
+// the table. The table with an open statements preview is lifted above the
+// other tables (and their sticky headers).
 table {
+  position: relative;
+  z-index: 0;
   border-collapse: separate;
   border-spacing: 0;
   border: 1px solid #ccc;
+
+  &:has(.statement-cell.selected) {
+    z-index: 1;
+  }
 
   // opaque, so sticky rows and the sticky first column hide what scrolls under them
   tr {
@@ -159,6 +168,10 @@ table {
 .statement-cell {
   position: relative;
 
+  &.has-statements {
+    cursor: pointer;
+  }
+
   &.selected {
     box-shadow: 0px 0px 5px 5px $primary-color-highlight;
   }
@@ -168,7 +181,10 @@ table {
   position: absolute;
   top: 0;
   left: 105%;
-  z-index: 50;
+  // above the other cells, below its table's sticky header, rows and first
+  // column (50-52)
+  z-index: 1;
+  cursor: default;
 
   background-color: $primary-color;
 
@@ -193,16 +209,6 @@ table {
     }
   }
 
-  .close {
-    position: absolute;
-    top: 0;
-    right: 0;
-    border: 1px solid black;
-    background-color: #f17665;
-    border-radius: 50%;
-    padding: 3px;
-    translate: 50% -50%;
-  }
 }
 
 // "show more" / "show all" links under a statement table
