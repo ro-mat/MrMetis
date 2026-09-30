@@ -53,6 +53,22 @@ form {
       }
     }
 
+    & > .labeled.horizontal label {
+      margin-bottom: 0;
+    }
+
+    // "+" button that adds a row: square, sign centered
+    .add {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      width: 1.6em;
+      height: 1.6em;
+      padding: 0;
+      line-height: 1;
+    }
+
     // row delete button
     .remove {
       @include control-button;

@@ -33,9 +33,9 @@ const schema = z.object({
     z.object({
       month: z.date(requiredError("errors.monthEmpty")),
       amount: z.coerce.number(
-        requiredError("errors.amountEmpty", "errors.NaN")
+        requiredError("errors.amountEmpty", "errors.NaN"),
       ),
-    })
+    }),
   ),
 });
 
@@ -143,7 +143,10 @@ const AccountAddOrEdit = ({
         </div>
         <div className="list-wrapper">
           <Field label="account.leftFromPrevMonth" horizontal>
-            <Button onClick={() => prepend({ amount: 0, month: new Date() })}>
+            <Button
+              className="add"
+              onClick={() => prepend({ amount: 0, month: new Date() })}
+            >
               +
             </Button>
           </Field>

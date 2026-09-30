@@ -54,20 +54,20 @@ const schema = z
           .min(1, "errors.frequencyInvalid"),
         // a formula, see the amount hint
         amount: requiredText("errors.amountEmpty"),
-      })
+      }),
     ),
     overrides: z.array(
       z.object({
         month: z.date(requiredError("errors.monthEmpty")),
         accountId: z.number(requiredError("errors.fromAccountEmpty")),
         amount: z.number(requiredError("errors.amountEmpty", "errors.NaN")),
-      })
+      }),
     ),
   })
   .refine(
     (input) =>
       input.type !== BudgetTypeUser.transferToAccount || !!input.toAccountId,
-    { path: ["toAccountId"], message: "errors.toAccountEmpty" }
+    { path: ["toAccountId"], message: "errors.toAccountEmpty" },
   )
   // a budget-level account wins over the account chosen on each row
   .transform((budget) =>
@@ -83,7 +83,7 @@ const schema = z
             accountId: budget.fromAccountId!,
           })),
         }
-      : budget
+      : budget,
   );
 
 export type FormFields = z.output<typeof schema>;
@@ -130,10 +130,10 @@ const BudgetAddOrEdit = ({
 
   // ended amounts and past overrides are hidden until asked for
   const olderAmounts = useOlderRows(amountFields, (a) =>
-    isBeforePrevMonth(a.endDate)
+    isBeforePrevMonth(a.endDate),
   );
   const olderOverrides = useOlderRows(overrideFields, (o) =>
-    isBeforePrevMonth(o.month)
+    isBeforePrevMonth(o.month),
   );
   const { setShowOlder: setShowOlderAmounts } = olderAmounts;
   const { setShowOlder: setShowOlderOverrides } = olderOverrides;
@@ -317,6 +317,7 @@ const BudgetAddOrEdit = ({
         <div className="list-wrapper">
           <Field label="budget.amounts" horizontal>
             <Button
+              className="add"
               onClick={() =>
                 prependAmount({
                   amount: "0",
@@ -382,6 +383,7 @@ const BudgetAddOrEdit = ({
         <div className="list-wrapper">
           <Field label="budget.overrides" horizontal>
             <Button
+              className="add"
               onClick={() =>
                 prependOverride({
                   month: new Date(),
