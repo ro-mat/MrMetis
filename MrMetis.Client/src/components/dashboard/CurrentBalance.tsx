@@ -23,7 +23,7 @@ const CurrentBalance: FC<ICurrentBalanceProps> = ({
       <table>
         <tbody>
           {accounts?.map((a) => (
-            <tr>
+            <tr key={a.id}>
               <td>{getAccountById(a.id)?.name}</td>
               <td>
                 {budgetPairArray
