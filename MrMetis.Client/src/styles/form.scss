@@ -43,6 +43,14 @@ form {
         gap: 1em;
         align-items: flex-end;
       }
+
+      .react-datepicker-wrapper input {
+        width: 15ch;
+      }
+
+      .frequency input {
+        width: 10ch;
+      }
     }
 
     // row delete button

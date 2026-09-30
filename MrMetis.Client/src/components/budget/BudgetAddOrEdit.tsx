@@ -364,6 +364,7 @@ const BudgetAddOrEdit = ({
                 <TextInput
                   name={`amounts.${index}.frequency`}
                   control={control}
+                  className="frequency"
                   type="number"
                   label="budget.frequency"
                   required
