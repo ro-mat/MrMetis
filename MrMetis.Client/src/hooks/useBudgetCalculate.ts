@@ -9,14 +9,19 @@ import { useMemo } from "react";
 
 // Builds budget pairs for months [start, end] relative to the current month.
 // Each month depends on the previous one, so the month before start is built too.
-export const useBudgetCalculate = (start: number, end: number) => {
+// Nothing is built while not `enabled`.
+export const useBudgetCalculate = (
+  start: number,
+  end: number,
+  enabled = true
+) => {
   const { budgets, statements, accounts } = useSelector(
     (state: AppState) => state.data.userdata
   );
   const isReady = budgets.length > 0;
 
   const budgetPairArray = useMemo(() => {
-    if (!isReady) return new BudgetPairArray([]);
+    if (!isReady || !enabled) return new BudgetPairArray([]);
 
     let prevMonthPairs = buildBudgetPairsForMonth(
       moment().add(start - 1, "M"),
@@ -39,7 +44,7 @@ export const useBudgetCalculate = (start: number, end: number) => {
     }
 
     return new BudgetPairArray(budgetPairs);
-  }, [isReady, start, end, budgets, statements, accounts]);
+  }, [isReady, enabled, start, end, budgets, statements, accounts]);
 
   return { budgetPairArray, isReady };
 };

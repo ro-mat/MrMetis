@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { BudgetTypeUser } from "store/userdata/userdata.types";
 import { useDispatch } from "react-redux";
 import { TAppDispatch } from "store/store";
@@ -31,6 +31,7 @@ import {
 } from "components/ui";
 import { DATE_FORMAT, isBeforePrevMonth } from "helpers/dateHelper";
 import useOlderRows from "hooks/useOlderRows";
+import useFormulaPreview from "hooks/useFormulaPreview";
 import { getEnumArray } from "helpers/enumHelper";
 
 const schema = z
@@ -177,6 +178,17 @@ const BudgetAddOrEdit = ({
     control,
     name: ["id", "type", "fromAccountId", "parentId"],
   });
+
+  // the focused amount's formula evaluated for the current month
+  const amounts = useWatch({ control, name: "amounts" });
+  const [focusedAmount, setFocusedAmount] = useState<number>();
+  const previewFormula = useFormulaPreview(focusedAmount !== undefined);
+  const formatPreview = (formula?: string) => {
+    const value = formula ? previewFormula(formula) : undefined;
+    if (value === undefined) return undefined;
+    if (typeof value === "string") return value;
+    return isNaN(value) ? "?" : value.toFixed(2);
+  };
 
   // a child of a budget with an account uses (and is locked to) that account
   const parentAccountId = getBudgetById(parentId)?.fromAccountId;
@@ -336,44 +348,61 @@ const BudgetAddOrEdit = ({
             </Hint>
           </div>
           <div className="list">
-            {olderAmounts.visibleRows.map(({ field, index }) => (
-              <div key={field.id}>
-                <DateInput
-                  name={`amounts.${index}.startDate`}
-                  control={control}
-                  mode="month"
-                  label="budget.startDate"
-                  required
-                />
-                <DateInput
-                  name={`amounts.${index}.endDate`}
-                  control={control}
-                  mode="month"
-                  label="budget.endDate"
-                />
-                <AccountSelect
-                  name={`amounts.${index}.fromAccountId`}
-                  {...rowAccountProps}
-                  label="budget.fromAccount"
-                  required
-                />
-                <TextInput
-                  name={`amounts.${index}.amount`}
-                  control={control}
-                  label="budget.amount"
-                  required
-                />
-                <TextInput
-                  name={`amounts.${index}.frequency`}
-                  control={control}
-                  className="frequency"
-                  type="number"
-                  label="budget.frequency"
-                  required
-                />
-                <RemoveButton onClick={() => removeAmount(index)} />
-              </div>
-            ))}
+            {olderAmounts.visibleRows.map(({ field, index }) => {
+              const preview =
+                index === focusedAmount
+                  ? formatPreview(amounts?.[index]?.amount)
+                  : undefined;
+              return (
+                <div key={field.id}>
+                  <DateInput
+                    name={`amounts.${index}.startDate`}
+                    control={control}
+                    mode="month"
+                    label="budget.startDate"
+                    required
+                  />
+                  <DateInput
+                    name={`amounts.${index}.endDate`}
+                    control={control}
+                    mode="month"
+                    label="budget.endDate"
+                  />
+                  <AccountSelect
+                    name={`amounts.${index}.fromAccountId`}
+                    {...rowAccountProps}
+                    label="budget.fromAccount"
+                    required
+                  />
+                  <div
+                    className="amount-with-preview"
+                    onFocus={() => setFocusedAmount(index)}
+                    onBlur={() => setFocusedAmount(undefined)}
+                  >
+                    <TextInput
+                      name={`amounts.${index}.amount`}
+                      control={control}
+                      label="budget.amount"
+                      required
+                    />
+                    {preview !== undefined && (
+                      <span className="formula-preview">
+                        {t("budget.amountPreview", { value: preview })}
+                      </span>
+                    )}
+                  </div>
+                  <TextInput
+                    name={`amounts.${index}.frequency`}
+                    control={control}
+                    className="frequency"
+                    type="number"
+                    label="budget.frequency"
+                    required
+                  />
+                  <RemoveButton onClick={() => removeAmount(index)} />
+                </div>
+              );
+            })}
           </div>
           <OlderRowsToggle
             hiddenCount={olderAmounts.hiddenCount}

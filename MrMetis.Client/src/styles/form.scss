@@ -51,6 +51,21 @@ form {
       .frequency input {
         width: 10ch;
       }
+
+      // current month value under the amount formula; out of the flow, so
+      // the row still lines up on the inputs' bottom
+      .amount-with-preview {
+        position: relative;
+
+        .formula-preview {
+          position: absolute;
+          top: calc(100% - 8px); // over the input's bottom margin
+          left: 0;
+          font-size: 0.8em;
+          white-space: nowrap;
+          color: #555;
+        }
+      }
     }
 
     & > .labeled.horizontal label {
