@@ -30,7 +30,7 @@ const TableRowTotal = ({
 
   return (
     <tr className={highlight ? "highlight" : ""}>
-      <td>
+      <td className="name-cell">
         <strong>
           {totalLabel ??
             `${t("planning.total")} ${t(

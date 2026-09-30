@@ -26,7 +26,7 @@ const TableRowsExtra: FC<ITableRowsExtraProps> = ({
 
   return (
     <tr className={highlight ? "highlight" : ""}>
-      <td>
+      <td className="name-cell">
         {isStrong ? (
           <strong>{t(`planning.${BudgetTypeExtra[type]}`)}</strong>
         ) : (

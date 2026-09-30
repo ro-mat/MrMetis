@@ -1,6 +1,7 @@
 import React from "react";
 import TableCellPair from "./TableCellPair";
-import { range } from "helpers/arrayHelper";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import useToggle from "hooks/useToggle";
 import { IBudget } from "store/userdata/userdata.types";
 import { BudgetPairArray } from "services/budgetPairArray";
@@ -46,26 +47,25 @@ const TableRow = ({
         budgetPairArray.isBudgetRemaining(c.id, accountId)) &&
       (onlyActive === false || budgetPairArray.isBudgetActive(c.id, accountId))
   );
+  const hasChildren = filteredChildren.length > 0;
 
   return (
     <>
       <tr className={highlight ? "highlight" : ""}>
-        {filteredChildren.length > 0 ? (
-          <td className="has-children" onClick={toggleShowChildren}>
-            {range(0, indent - 1).map((i) => (
-              <React.Fragment key={i}>&nbsp;&nbsp;&nbsp;&nbsp;</React.Fragment>
-            ))}
-            <span>{budget.name}</span>
-            <span className={`arrow ${showChildren ? "open" : ""}`}>{">"}</span>
-          </td>
-        ) : (
-          <td>
-            {range(0, indent - 1).map((i) => (
-              <React.Fragment key={i}>&nbsp;&nbsp;&nbsp;&nbsp;</React.Fragment>
-            ))}
-            {budget.name}
-          </td>
-        )}
+        <td
+          className={`name-cell${hasChildren ? " has-children" : ""}`}
+          style={{ paddingLeft: `calc(${indent} * 1em + 1.75em)` }}
+          onClick={hasChildren ? toggleShowChildren : undefined}
+        >
+          {hasChildren && (
+            <FontAwesomeIcon
+              icon={faChevronRight}
+              className={`toggle-icon${showChildren ? " open" : ""}`}
+              style={{ left: `calc(${indent} * 1em + 0.5em)` }}
+            />
+          )}
+          {budget.name}
+        </td>
         {months.map((month, index) => {
           return (
             <React.Fragment key={index}>
@@ -74,7 +74,7 @@ const TableRow = ({
                   budgetPairArray.getBudgetPair(budget.id, month, accountId)
                 }
                 moreIsGood={moreIsGood}
-                includeChildren={filteredChildren.length > 0 && !showChildren}
+                includeChildren={hasChildren && !showChildren}
                 accountId={accountId}
               />
             </React.Fragment>

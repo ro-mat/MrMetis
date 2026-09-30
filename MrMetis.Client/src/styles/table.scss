@@ -23,20 +23,22 @@ table {
     text-align: right;
     white-space: nowrap;
 
+    &.name-cell {
+      padding-left: 1.75em;
+    }
+
     &.has-children {
       cursor: pointer;
-      text-decoration: underline;
-      position: relative;
 
-      .arrow {
+      .toggle-icon {
         position: absolute;
-        margin-left: 1em;
-        rotate: 90deg;
-      }
+        top: 50%;
+        translate: 0 -50%;
+        font-size: 0.75em;
+        transition: rotate 0.15s;
 
-      .open {
-        &.arrow {
-          rotate: 0deg;
+        &.open {
+          rotate: 90deg;
         }
       }
     }
