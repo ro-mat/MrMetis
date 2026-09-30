@@ -41,4 +41,24 @@ header {
     font-size: 1.8em;
     color: $primary-color-dark;
   }
+
+  .profile-icon {
+    position: relative;
+    display: inline-flex;
+  }
+
+  // storage almost full: marks the top right corner of the profile icon
+  .warning-badge {
+    position: absolute;
+    top: -0.15em;
+    right: -0.25em;
+    display: inline-flex;
+    font-size: 0.5em;
+    border-radius: 50%;
+    background-color: white;
+  }
+
+  .storage-warning {
+    color: #d9342b;
+  }
 }

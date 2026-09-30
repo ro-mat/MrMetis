@@ -157,6 +157,7 @@
     "keepOnAccount": "Keep on Account"
   },
   "errors": {
+    "storageLimitExceeded": "Not saved: your storage limit is reached. Remove some data and try again.",
     "userNotFound": "User not found",
     "userDataNotFound": "Data not found",
     "emailEmpty": "Email cannot be empty",
@@ -215,6 +216,10 @@
       "inputPlaceholder": "Email",
       "buttonText": "Subscribe"
     }
+  },
+  "storage": {
+    "savedAfterFailure": "Saved successfully",
+    "almostFull": "Storage almost full"
   },
   "preferences": {
     "header": "Preferences"

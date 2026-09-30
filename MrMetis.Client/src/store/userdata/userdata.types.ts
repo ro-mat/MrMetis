@@ -8,6 +8,15 @@ export interface IUserdataState extends IBaseState {
   savePending: boolean;
   // stored data was loaded (and decrypted), so it's safe to save over it
   loaded: boolean;
+  // size of the stored (encrypted) data and the user's limit, from the server
+  storage?: IStorageUsage;
+  // the last save was refused for exceeding the limit
+  saveFailed: boolean;
+}
+
+export interface IStorageUsage {
+  usedBytes: number;
+  limitBytes: number;
 }
 
 export interface IUserdata {

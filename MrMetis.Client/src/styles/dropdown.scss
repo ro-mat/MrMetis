@@ -95,20 +95,31 @@
       right: 0;
     }
 
-    button {
+    button,
+    .menu-info {
       padding: 0.4em 1em;
       border-radius: 0;
       font-weight: normal;
       text-align: left;
 
-      &:hover {
-        background-color: $primary-color;
-      }
-
       &.separated {
         margin-top: 0.3em;
         border-top: 1px solid #ccc;
       }
+    }
+
+    button:hover {
+      background-color: $primary-color;
+    }
+
+    // information row, not clickable
+    .menu-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1em;
+      color: #666;
+      cursor: default;
     }
   }
 }

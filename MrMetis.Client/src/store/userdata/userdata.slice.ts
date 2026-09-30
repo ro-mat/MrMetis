@@ -9,6 +9,7 @@ import {
   IUserdata,
   IUserdataDto,
   IUserdataState,
+  IStorageUsage,
 } from "./userdata.types";
 import { IAction } from "types/IAction";
 import { IHaveMetadata } from "types/IHaveMetadata";
@@ -24,6 +25,7 @@ const initialState: IUserdataState = {
   isFetching: false,
   savePending: false,
   loaded: false,
+  saveFailed: false,
   userdata: emptyUserdata(),
 };
 
@@ -74,6 +76,15 @@ const userdataSlice = createSlice({
     SAVED: (state) => {
       state.savePending = false;
     },
+    SAVE_FAILED: (state) => {
+      state.saveFailed = true;
+    },
+    SAVE_SUCCEEDED: (state) => {
+      state.saveFailed = false;
+    },
+    SET_STORAGE: (state, action: IAction<IStorageUsage>) => {
+      state.storage = action.payload;
+    },
 
     SET_USERDATA: (state, action: IAction<Partial<IUserdataDto>>) => {
       const { statements, budgets, accounts } = action.payload;
@@ -88,6 +99,8 @@ const userdataSlice = createSlice({
     CLEAR_USERDATA: (state) => {
       state.userdata = emptyUserdata();
       state.loaded = false;
+      state.storage = undefined;
+      state.saveFailed = false;
       state.isFetching = false;
     },
 
@@ -119,6 +132,9 @@ export const {
   ERROR,
   SAVE_CHANGES,
   SAVED,
+  SAVE_FAILED,
+  SAVE_SUCCEEDED,
+  SET_STORAGE,
   SET_USERDATA,
   CLEAR_USERDATA,
   ADD_STATEMENT,

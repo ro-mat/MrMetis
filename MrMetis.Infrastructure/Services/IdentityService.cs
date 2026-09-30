@@ -19,6 +19,7 @@ namespace MrMetis.Infrastructure.Services;
 public class IdentityService(
     MrMetisContext db,
     IOptions<JwtOptions> jwtOptions,
+    IOptions<StorageOptions> storageOptions,
     IPasswordHasher<User> passwordHasher,
     TimeProvider timeProvider) : IIdentityService
 {
@@ -60,6 +61,7 @@ public class IdentityService(
             KdfSalt = keys.Salt,
             KdfIterations = keys.Iterations,
             WrappedKey = keys.WrappedKey,
+            StorageLimitBytes = storageOptions.Value.DefaultLimitBytes,
             UserData = new UserData
             {
                 IsActive = true,

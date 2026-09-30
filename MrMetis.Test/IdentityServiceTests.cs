@@ -20,18 +20,19 @@ public class IdentityServiceTests : DbTestBase
 
     private static readonly KeyMaterial Keys = new(Convert.ToBase64String(new byte[Kdf.SaltBytes]), Kdf.MinIterations, "wrapped");
 
+    private static readonly JwtOptions Jwt = new()
+    {
+        Secret = "BudgetYourLife999-unit-test-secret-at-least-32-bytes",
+        Issuer = "test",
+        Audience = "test"
+    };
+
     private IdentityService _service = null!;
 
     [SetUp]
     public void Setup()
     {
-        var jwt = new JwtOptions
-        {
-            Secret = "BudgetYourLife999-unit-test-secret-at-least-32-bytes",
-            Issuer = "test",
-            Audience = "test"
-        };
-        _service = new IdentityService(Db, Options.Create(jwt), new PasswordHasher<User>(), TimeProvider.System);
+        _service = CreateService(new StorageOptions { DefaultLimitMegabytes = 10 });
     }
 
     [Test]
@@ -129,6 +130,22 @@ public class IdentityServiceTests : DbTestBase
         Assert.That(token.ValidTo, Is.EqualTo(DateTime.UtcNow.AddMinutes(120)).Within(TimeSpan.FromMinutes(1)));
     }
 
+    [Test]
+    public async Task Register_ShouldFixStorageLimitForTheUser()
+    {
+        await AddInvitationCode();
+        await _service.RegisterAsync(Email, "password", InvitationCode, Keys);
+
+        // the configured limit changes later
+        await AddInvitationCode("other");
+        await CreateService(new StorageOptions { DefaultLimitMegabytes = 20 })
+            .RegisterAsync("other@email.com", "password", "other", Keys);
+
+        await using var db = CreateContext();
+        var limits = await db.Users.OrderBy(u => u.Id).Select(u => u.StorageLimitBytes).ToListAsync();
+        Assert.That(limits, Is.EqualTo(new[] { 10L * 1024 * 1024, 20L * 1024 * 1024 }));
+    }
+
     [TestCase("AAAA", Kdf.MinIterations, "wrapped")]
     [TestCase("not base64!", Kdf.MinIterations, "wrapped")]
     [TestCase("AAAAAAAAAAAAAAAAAAAAAA==", Kdf.MinIterations - 1, "wrapped")]
@@ -187,6 +204,9 @@ public class IdentityServiceTests : DbTestBase
         Db.ChangeTracker.Clear();
     }
 
-    private Task AddInvitationCode() =>
-        SeedAsync(new InvitationCode { Code = InvitationCode, IsActive = true, Created = DateTime.UtcNow.AddDays(-1) });
+    private IdentityService CreateService(StorageOptions storage) =>
+        new(Db, Options.Create(Jwt), Options.Create(storage), new PasswordHasher<User>(), TimeProvider.System);
+
+    private Task AddInvitationCode(string code = InvitationCode) =>
+        SeedAsync(new InvitationCode { Code = code, IsActive = true, Created = DateTime.UtcNow.AddDays(-1) });
 }

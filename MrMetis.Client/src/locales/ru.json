@@ -157,6 +157,7 @@
     "keepOnAccount": "Оставить на счету"
   },
   "errors": {
+    "storageLimitExceeded": "Не сохранено: достигнут лимит хранилища. Удалите часть данных и попробуйте снова.",
     "userNotFound": "Пользователь не найден",
     "userDataNotFound": "Данные не найдены",
     "emailEmpty": "Имейл не может быть пусным",
@@ -215,6 +216,10 @@
       "inputPlaceholder": "Електронная почта",
       "buttonText": "Подписаться"
     }
+  },
+  "storage": {
+    "savedAfterFailure": "Успешно сохранено",
+    "almostFull": "Хранилище почти заполнено"
   },
   "preferences": {
     "header": "Настройки"

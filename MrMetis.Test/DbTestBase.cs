@@ -54,7 +54,7 @@ public abstract class DbTestBase
         Db.ChangeTracker.Clear();
     }
 
-    protected async Task<User> AddUserAsync(string email, string password)
+    protected async Task<User> AddUserAsync(string email, string password, long storageLimitBytes = 1000)
     {
         var created = DateTime.UtcNow.AddDays(-1);
         var user = new User
@@ -63,6 +63,7 @@ public abstract class DbTestBase
             Password = password,
             KdfSalt = "salt",
             WrappedKey = "wrapped",
+            StorageLimitBytes = storageLimitBytes,
             UserData = new UserData { IsActive = true, Created = created },
             IsActive = true,
             Created = created

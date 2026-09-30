@@ -133,4 +133,14 @@ describe("ui components", () => {
     fireEvent.mouseDown(screen.getByText("outside"));
     expect(screen.queryByRole("menu")).toBeNull();
   });
+  it("Menu shows disabled items as text that keeps the menu open", () => {
+    render(
+      <Menu trigger="open" items={[{ key: "a", label: "info", disabled: true }]} />
+    );
+    fireEvent.click(screen.getByText("open"));
+
+    expect(screen.queryByRole("menuitem")).toBeNull();
+    fireEvent.click(screen.getByText("info"));
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+  });
 });

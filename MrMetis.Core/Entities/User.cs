@@ -21,6 +21,11 @@ public class User
     /// </summary>
     public required string WrappedKey { get; set; }
 
+    /// <summary>
+    /// How much encrypted data the user may store, fixed at registration
+    /// </summary>
+    public long StorageLimitBytes { get; set; }
+
     public virtual UserData UserData { get; set; } = null!;
 
     public bool IsActive { get; set; }

@@ -6,9 +6,11 @@ import { cx } from "./cx";
 export interface IMenuItem {
   key: string;
   label: ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
   // draws a divider above the item
   separated?: boolean;
+  // shown as information only, e.g. the storage usage
+  disabled?: boolean;
 }
 
 interface IMenuProps {
@@ -69,21 +71,31 @@ const Menu = ({
       </Button>
       {open && (
         <div role="menu" className={cx("menu-list", align)}>
-          {items.map((item) => (
-            <Button
-              key={item.key}
-              role="menuitem"
-              variant="plain"
-              size="normal"
-              className={cx(item.separated && "separated")}
-              onClick={() => {
-                setOpen(false);
-                item.onClick();
-              }}
-            >
-              {item.label}
-            </Button>
-          ))}
+          {items.map((item) =>
+            item.disabled ? (
+              <div
+                key={item.key}
+                role="presentation"
+                className={cx("menu-info", item.separated && "separated")}
+              >
+                {item.label}
+              </div>
+            ) : (
+              <Button
+                key={item.key}
+                role="menuitem"
+                variant="plain"
+                size="normal"
+                className={cx(item.separated && "separated")}
+                onClick={() => {
+                  setOpen(false);
+                  item.onClick?.();
+                }}
+              >
+                {item.label}
+              </Button>
+            )
+          )}
         </div>
       )}
     </div>
