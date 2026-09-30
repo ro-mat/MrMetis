@@ -27,7 +27,7 @@ const ThisMonthStatements: FC<IThisMonthStatementsProps> = ({
   return (
     <div>
       <h3>{t("dashboard.thisMonthStatements")}</h3>
-      <StatementTable statements={monthStatements} />
+      <StatementTable statements={monthStatements} topRows={20} />
     </div>
   );
 };

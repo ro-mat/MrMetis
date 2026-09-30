@@ -159,3 +159,10 @@ table {
     translate: 50% -50%;
   }
 }
+
+// "show more" / "show all" links under a statement table
+.show-more {
+  display: flex;
+  gap: 1em;
+  margin-top: 0.5em;
+}

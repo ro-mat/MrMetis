@@ -1,6 +1,6 @@
 import moment from "moment";
 import { IStatement } from "store/userdata/userdata.types";
-import { useMemo, useState } from "react";
+import { MouseEvent, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DATE_FORMAT } from "helpers/dateHelper";
 import { EditButton, FilterInput } from "./ui";
@@ -11,11 +11,15 @@ import useStatement from "hooks/useStatement";
 export interface IStatementTableProps {
   statements: IStatement[];
   editButtonHandler?: (id: number) => void;
+  topRows?: number; // show only this many rows at first; undefined shows all
+  showMoreRows?: number; // rows revealed per "show more" click; defaults to topRows
 }
 
 const StatementTable = ({
   statements,
   editButtonHandler,
+  topRows,
+  showMoreRows = topRows,
 }: IStatementTableProps) => {
   const { t } = useTranslation();
 
@@ -24,6 +28,7 @@ const StatementTable = ({
   const { filter: filterStatements } = useStatement();
 
   const [filter, setFilter] = useState<string>("");
+  const [visibleCount, setVisibleCount] = useState(topRows);
   const filteredStatements = useMemo(() => {
     return [...filterStatements(statements, filter)].sort((a, b) => {
       const aMom = moment(a.date);
@@ -45,12 +50,29 @@ const StatementTable = ({
     });
   }, [filter, statements, filterStatements]);
 
+  const visibleStatements =
+    visibleCount === undefined
+      ? filteredStatements
+      : filteredStatements.slice(0, visibleCount);
+  const hiddenCount = filteredStatements.length - visibleStatements.length;
+
+  // links, not navigation: keep the "#" out of the url
+  const showMore = (reveal: () => void) => (e: MouseEvent) => {
+    e.preventDefault();
+    reveal();
+  };
+
+  const onFilterChange = (value: string) => {
+    setFilter(value);
+    setVisibleCount(topRows);
+  };
+
   return (
     <>
       <FilterInput
         label="statement.filter"
         value={filter}
-        onChange={setFilter}
+        onChange={onFilterChange}
       />
       <table>
         <thead>
@@ -64,7 +86,7 @@ const StatementTable = ({
           </tr>
         </thead>
         <tbody>
-          {filteredStatements.map((s) => (
+          {visibleStatements.map((s) => (
             <tr key={s.id}>
               <td>{moment(s.date).format(DATE_FORMAT)}</td>
               <td>{s.amount.toFixed(2)}</td>
@@ -80,6 +102,23 @@ const StatementTable = ({
           ))}
         </tbody>
       </table>
+      {hiddenCount > 0 && (
+        <div className="show-more">
+          <a
+            href="#"
+            onClick={showMore(() =>
+              setVisibleCount((c) => (c ?? 0) + (showMoreRows ?? 0))
+            )}
+          >
+            {t("statement.showMore", {
+              count: Math.min(showMoreRows ?? 0, hiddenCount),
+            })}
+          </a>
+          <a href="#" onClick={showMore(() => setVisibleCount(undefined))}>
+            {t("statement.showAll", { count: hiddenCount })}
+          </a>
+        </div>
+      )}
     </>
   );
 };

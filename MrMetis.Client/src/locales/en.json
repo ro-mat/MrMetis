@@ -78,7 +78,9 @@
     "amount": "Amount",
     "budget": "Budget",
     "account": "Account",
-    "comment": "Comment"
+    "comment": "Comment",
+    "showMore": "Show {{count}} more",
+    "showAll": "Show all ({{count}})"
   },
   "budget": {
     "header": "Budget list",

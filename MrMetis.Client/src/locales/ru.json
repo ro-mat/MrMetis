@@ -78,7 +78,9 @@
     "amount": "Сумма",
     "budget": "Бюджет",
     "account": "Счет",
-    "comment": "Коментарий"
+    "comment": "Коментарий",
+    "showMore": "Показать ещё {{count}}",
+    "showAll": "Показать все ({{count}})"
   },
   "budget": {
     "header": "Список бюджетов",

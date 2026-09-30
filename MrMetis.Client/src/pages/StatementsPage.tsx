@@ -32,6 +32,7 @@ const StatementsPage = () => {
             <StatementTable
               statements={statements}
               editButtonHandler={openEdit}
+              topRows={50}
             />
           </div>
         </>
