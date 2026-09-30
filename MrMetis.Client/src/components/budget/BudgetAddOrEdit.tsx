@@ -361,6 +361,7 @@ const BudgetAddOrEdit = ({
                   name={`amounts.${index}.amount`}
                   control={control}
                   label="budget.amount"
+                  required
                 />
                 <TextInput
                   name={`amounts.${index}.frequency`}
@@ -416,6 +417,7 @@ const BudgetAddOrEdit = ({
                   control={control}
                   type="number"
                   label="budget.amount"
+                  required
                 />
                 <RemoveButton onClick={() => removeOverride(index)} />
               </div>

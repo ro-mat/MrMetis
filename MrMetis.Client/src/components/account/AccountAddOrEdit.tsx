@@ -166,6 +166,7 @@ const AccountAddOrEdit = ({
                   type="number"
                   step="0.01"
                   label="account.amount"
+                  required
                 />
                 <RemoveButton onClick={() => remove(index)} />
               </div>
