@@ -264,7 +264,7 @@ const BudgetAddOrEdit = ({
   ]);
 
   return (
-    <div>
+    <div className="add-or-edit">
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="crud">
           <TextInput

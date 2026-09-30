@@ -100,7 +100,7 @@ const StatementAddOrEdit = ({
   }, [selectedStatementId, getStatementById, reset]);
 
   return (
-    <div>
+    <div className="add-or-edit">
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="crud">
           <TextInput

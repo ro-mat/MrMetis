@@ -78,6 +78,14 @@ form {
   }
 }
 
+// expandable add/edit section above a page's list
+.add-or-edit {
+  margin-bottom: 2em;
+  padding: 1em;
+  border-radius: 5px;
+  background-color: $primary-color;
+}
+
 .labeled {
   display: flex;
   flex-direction: column;

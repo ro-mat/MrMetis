@@ -131,7 +131,7 @@ const AccountAddOrEdit = ({
   }, [selectedAccountId, reset, getAccountById, setShowOlder]);
 
   return (
-    <div>
+    <div className="add-or-edit">
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="crud">
           <TextInput
