@@ -166,3 +166,9 @@ table {
   gap: 1em;
   margin-top: 0.5em;
 }
+
+// message shown in place of an empty page's table
+.no-data {
+  color: #666;
+  font-style: italic;
+}

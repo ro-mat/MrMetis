@@ -4,6 +4,13 @@
     "no": "No",
     "nothingFound": "Nothing found"
   },
+  "noData": {
+    "dashboard": "No data yet. Start by adding an account on the Accounts page, then set up your budget.",
+    "planning": "Nothing to plan yet. Add an account and a budget first.",
+    "statements": "No statements yet. Press + to add one.",
+    "budget": "No budgets yet. Press + to add one.",
+    "accounts": "No accounts yet. Press + to add one."
+  },
   "nav": {
     "login": "Login",
     "register": "Register",

@@ -5,10 +5,13 @@ import { useTranslation } from "react-i18next";
 import RemainingPlannedExpences from "components/dashboard/RemainingPlannedExpences";
 import CurrentBalance from "components/dashboard/CurrentBalance";
 import ThisMonthStatements from "components/dashboard/ThisMonthStatements";
-import { Button } from "components/ui";
+import { Button, NoData } from "components/ui";
+import { useSelector } from "react-redux";
+import { AppState } from "store/store";
 
 const Dashboard = () => {
   const { t } = useTranslation();
+  const { loaded } = useSelector((state: AppState) => state.data);
 
   const [relativeMonthNr, setRelativeMonth] = useState(0);
   const relativeMonth = useMemo(
@@ -54,6 +57,8 @@ const Dashboard = () => {
           />
           <ThisMonthStatements relativeMonthNr={relativeMonthNr} />
         </div>
+      ) : loaded ? (
+        <NoData message="noData.dashboard" />
       ) : (
         <div>Calculating...</div>
       )}

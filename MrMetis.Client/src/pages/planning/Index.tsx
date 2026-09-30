@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import ErrorBoundary from "components/ErrorBoundary";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation } from "react-router-dom";
-import { ToggleGroup } from "components/ui";
+import { NoData, ToggleGroup } from "components/ui";
 import { useSelector } from "react-redux";
 import { AppState } from "store/store";
 import useBudgetCalculate from "hooks/useBudgetCalculate";
@@ -27,6 +27,7 @@ const Planning = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const { filter } = useSelector((state: AppState) => state.ui.ui);
+  const { loaded } = useSelector((state: AppState) => state.data);
 
   const { budgetPairArray, isReady } = useBudgetCalculate(
     filter.fromRelativeMonth,
@@ -50,6 +51,8 @@ const Planning = () => {
       <ErrorBoundary>
         {isReady ? (
           <Outlet context={{ months, budgetPairArray }} />
+        ) : loaded ? (
+          <NoData message="noData.planning" />
         ) : (
           <div>Calculating...</div>
         )}

@@ -3,12 +3,12 @@ import { useSelector } from "react-redux";
 import { AppState } from "store/store";
 import StatementAddOrEdit from "components/statement/StatementAddOrEdit";
 import StatementTable from "components/StatementTable";
-import { PageHeader } from "components/ui";
+import { NoData, PageHeader } from "components/ui";
 import useStatement from "hooks/useStatement";
 import useEditRoute from "hooks/useEditRoute";
 
 const StatementsPage = () => {
-  const { isFetching } = useSelector((state: AppState) => state.data);
+  const { isFetching, loaded } = useSelector((state: AppState) => state.data);
   const { statements } = useSelector((state: AppState) => state.data.userdata);
 
   const { getById } = useStatement();
@@ -28,13 +28,17 @@ const StatementsPage = () => {
           {showAddOrEdit && (
             <StatementAddOrEdit id={selectedId!} onClose={close} />
           )}
-          <div>
-            <StatementTable
-              statements={statements}
-              editButtonHandler={openEdit}
-              topRows={50}
-            />
-          </div>
+          {loaded && statements.length === 0 ? (
+            <NoData message="noData.statements" />
+          ) : (
+            <div>
+              <StatementTable
+                statements={statements}
+                editButtonHandler={openEdit}
+                topRows={50}
+              />
+            </div>
+          )}
         </>
       )}
     </>

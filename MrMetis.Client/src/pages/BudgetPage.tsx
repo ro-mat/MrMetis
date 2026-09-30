@@ -4,7 +4,7 @@ import { AppState } from "store/store";
 import { BudgetTypeUser } from "store/userdata/userdata.types";
 import BudgetAddOrEdit from "components/budget/BudgetAddOrEdit";
 import { useTranslation } from "react-i18next";
-import { EditButton, FilterInput, PageHeader } from "components/ui";
+import { EditButton, FilterInput, NoData, PageHeader } from "components/ui";
 import useBudgetCalculate from "hooks/useBudgetCalculate";
 import moment from "moment";
 import useBudget from "hooks/useBudget";
@@ -14,8 +14,8 @@ import useEditRoute from "hooks/useEditRoute";
 const BudgetPage = () => {
   const { t } = useTranslation();
 
-  const { isFetching } = useSelector((state: AppState) => state.data);
-  const { getById: getBudgetById, filtered } = useBudget();
+  const { isFetching, loaded } = useSelector((state: AppState) => state.data);
+  const { budgets, getById: getBudgetById, filtered } = useBudget();
   const { getById: getAccountById } = useAccount();
 
   const { selectedId, openNew, openEdit, close } = useEditRoute("/budget");
@@ -41,55 +41,59 @@ const BudgetPage = () => {
           {showAddOrEdit && (
             <BudgetAddOrEdit id={selectedId!} onClose={close} />
           )}
-          <div>
-            <FilterInput
-              label="budget.filter"
-              value={filter}
-              onChange={setFilter}
-            />
-            <table>
-              <thead>
-                <tr>
-                  <th>{t("budget.id")}</th>
-                  <th>{t("budget.name")}</th>
-                  <th>{t("budget.type")}</th>
-                  <th>{t("budget.parent")}</th>
-                  <th>{t("budget.account")}</th>
-                  <th>{t("budget.currentAmount")}</th>
-                  <th>{t("budget.expectOneStatement")}</th>
-                  <th>&nbsp;</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredBudgets.map((b) => (
-                  <tr key={b.id}>
-                    <td>{b.id}</td>
-                    <td>{b.name}</td>
-                    <td>{t(`budgetType.${BudgetTypeUser[b.type]}`)}</td>
-                    <td>{getBudgetById(b.parentId)?.name ?? ""}</td>
-                    <td>{`${getAccountById(b.fromAccountId)?.name ?? ""}${
-                      b.type === BudgetTypeUser.transferToAccount
-                        ? ` - ${getAccountById(b.toAccountId)?.name ?? ""}`
-                        : ""
-                    }`}</td>
-                    <td>
-                      {budgetPairArray
-                        .getBudgetPair(b.id, moment())
-                        ?.planned.toFixed(2) ?? "Not found"}
-                    </td>
-                    <td>
-                      {b.expectOneStatement
-                        ? t("general.yes")
-                        : t("general.no")}
-                    </td>
-                    <td>
-                      <EditButton onClick={() => openEdit(b.id)} />
-                    </td>
+          {loaded && budgets.length === 0 ? (
+            <NoData message="noData.budget" />
+          ) : (
+            <div>
+              <FilterInput
+                label="budget.filter"
+                value={filter}
+                onChange={setFilter}
+              />
+              <table>
+                <thead>
+                  <tr>
+                    <th>{t("budget.id")}</th>
+                    <th>{t("budget.name")}</th>
+                    <th>{t("budget.type")}</th>
+                    <th>{t("budget.parent")}</th>
+                    <th>{t("budget.account")}</th>
+                    <th>{t("budget.currentAmount")}</th>
+                    <th>{t("budget.expectOneStatement")}</th>
+                    <th>&nbsp;</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredBudgets.map((b) => (
+                    <tr key={b.id}>
+                      <td>{b.id}</td>
+                      <td>{b.name}</td>
+                      <td>{t(`budgetType.${BudgetTypeUser[b.type]}`)}</td>
+                      <td>{getBudgetById(b.parentId)?.name ?? ""}</td>
+                      <td>{`${getAccountById(b.fromAccountId)?.name ?? ""}${
+                        b.type === BudgetTypeUser.transferToAccount
+                          ? ` - ${getAccountById(b.toAccountId)?.name ?? ""}`
+                          : ""
+                      }`}</td>
+                      <td>
+                        {budgetPairArray
+                          .getBudgetPair(b.id, moment())
+                          ?.planned.toFixed(2) ?? "Not found"}
+                      </td>
+                      <td>
+                        {b.expectOneStatement
+                          ? t("general.yes")
+                          : t("general.no")}
+                      </td>
+                      <td>
+                        <EditButton onClick={() => openEdit(b.id)} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       )}
     </>
