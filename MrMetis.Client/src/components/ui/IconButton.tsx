@@ -18,12 +18,13 @@ export const EditButton = (props: IIconButtonProps) => {
 };
 
 // Removes a row from a list (e.g. an amount of a budget).
-export const RemoveButton = (props: IIconButtonProps) => {
+export const RemoveButton = ({ className, ...props }: IIconButtonProps) => {
   const { t } = useTranslation();
   return (
     <Button
       variant="plain"
       size="normal"
+      className={cx("remove", className)}
       aria-label={t("addOrEdit.delete")}
       {...props}
     >

@@ -150,6 +150,10 @@ table {
 
 .filter-text {
   margin-bottom: 1em;
+
+  input {
+    @include form-control;
+  }
 }
 
 .statement-cell {

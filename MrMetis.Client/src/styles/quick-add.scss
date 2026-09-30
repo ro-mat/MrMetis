@@ -20,9 +20,14 @@
 
   // small while idle, wide while in use
   input {
+    @include form-control;
     width: 10em;
     margin-bottom: 0;
     transition: width 0.2s ease;
+  }
+
+  .add {
+    @include control-button;
   }
 
   &.active input {

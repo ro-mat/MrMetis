@@ -152,7 +152,12 @@ const QuickAdd = () => {
         />
         {isActive && (
           <>
-            <Button disabled={!isComplete} onClick={saveStatement}>
+            <Button
+              variant="plain"
+              className="add"
+              disabled={!isComplete}
+              onClick={saveStatement}
+            >
               {">"}
             </Button>
             <Hint label="?" labelClass="ml-1">

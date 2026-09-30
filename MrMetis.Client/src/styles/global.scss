@@ -72,6 +72,39 @@ footer {
   overflow-y: auto;
 }
 
+// Text box look shared by form fields and table filters
+$control-line-height: 20px;
+$control-padding: 10px;
+// full outer height of a text box (line + padding + 1px borders)
+$control-height: $control-line-height + 2 * $control-padding + 2px;
+
+@mixin form-control {
+  padding: $control-padding;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  line-height: $control-line-height;
+}
+
+// Square icon/symbol button as tall as the text box next to it
+@mixin control-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  width: $control-height;
+  height: $control-height;
+  padding: 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+  font-size: 16px;
+
+  &:not(:disabled):hover {
+    background-color: #f6f6f6;
+  }
+}
+
 // Small popup shown on hover: disabled button reasons, hints
 @mixin tooltip {
   position: absolute;

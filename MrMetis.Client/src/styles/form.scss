@@ -10,19 +10,13 @@ form {
 
   input,
   textarea {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
+    @include form-control;
     margin-bottom: 10px;
   }
 
   select {
+    @include form-control;
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
     margin-bottom: 10px;
     background-color: #fff;
   }
@@ -43,11 +37,18 @@ form {
       gap: 1em;
       margin-left: 2em;
 
+      // fields have labels on top, so rows line up on the inputs' bottom
       & > div {
         display: flex;
         gap: 1em;
-        align-items: center;
+        align-items: flex-end;
       }
+    }
+
+    // row delete button
+    .remove {
+      @include control-button;
+      margin-bottom: 10px; // same as the inputs
     }
 
     // "show older items" under a list
