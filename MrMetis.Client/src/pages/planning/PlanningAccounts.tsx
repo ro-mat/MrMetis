@@ -1,6 +1,6 @@
 import AccountsTableBody from "components/Planning/AccountsTableBody";
 import TableHeader from "components/Planning/TableHeader";
-import React, { useMemo } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { IPlanningProps } from "./Index";
 import { useOutletContext } from "react-router-dom";
 import { BudgetTypeExtra } from "store/userdata/userdata.types";
@@ -17,25 +17,46 @@ const PlanningAccounts = () => {
     [accounts]
   );
 
+  // account rows stick right under the header, so track its height
+  const theadRef = useRef<HTMLTableSectionElement>(null);
+  const [theadHeight, setTheadHeight] = useState<number>();
+  useLayoutEffect(() => {
+    const thead = theadRef.current;
+    if (!thead || typeof ResizeObserver === "undefined") return;
+    // round down: the header is drawn above the rows, so overlap beats a gap
+    const observer = new ResizeObserver(() =>
+      setTheadHeight(Math.floor(thead.getBoundingClientRect().height))
+    );
+    observer.observe(thead);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <>
       <div className="planning-table">
-        <table>
-          <thead>
+        <table
+          style={
+            theadHeight === undefined
+              ? undefined
+              : ({
+                  "--thead-height": `${theadHeight}px`,
+                } as React.CSSProperties)
+          }
+        >
+          <thead ref={theadRef}>
             <TableHeader months={months} />
           </thead>
+          {filteredAccounts.map((a, index) => (
+            <AccountsTableBody
+              key={a.id}
+              accountId={a.id}
+              accountName={a.name}
+              budgetPairArray={budgetPairArray}
+              months={months}
+              index={index}
+            />
+          ))}
           <tbody>
-            {filteredAccounts.map((a, index) => (
-              <React.Fragment key={a.id}>
-                <AccountsTableBody
-                  accountId={a.id}
-                  accountName={a.name}
-                  budgetPairArray={budgetPairArray}
-                  months={months}
-                  index={index}
-                />
-              </React.Fragment>
-            ))}
             <tr>
               <td colSpan={months.length * 2 + 1}>&nbsp;</td>
             </tr>

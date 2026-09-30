@@ -1,24 +1,53 @@
 // Tables don't scroll on their own: they scroll with the page content, and
 // the header row (and first column) stick to it.
+// Borders are "separate", not "collapse": collapsed borders are drawn by the
+// table underneath its cells, so the sticky header and first column would
+// cover them. Each cell draws its left and bottom border; the table the outside.
 table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #ccc;
 
+  // opaque, so sticky rows and the sticky first column hide what scrolls under them
   tr {
+    background-color: white;
+
     &.sticky {
       position: sticky;
-      top: 60px;
+      top: var(--thead-height, 60px); // set by the planning page
       z-index: 51;
-      background-color: white;
+
+      & > td {
+        background-color: inherit;
+      }
     }
 
     &.highlight {
-      background-color: rgba(0, 0, 0, 0.1);
+      background-color: #e6e6e6;
     }
+  }
+
+  // sticky first column; before the cell colour classes (.r, .g, ...) so they win
+  td:first-of-type {
+    background-color: inherit;
+  }
+
+  td {
+    border-left: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+
+    &:first-child {
+      border-left: none;
+    }
+  }
+
+  // the table's own border is under the last row
+  tbody:last-child > tr:last-child > td {
+    border-bottom: none;
   }
 
   th,
   td {
-    border: 1px solid #ccc;
     padding: 4px 8px;
     text-align: right;
     white-space: nowrap;
@@ -51,12 +80,14 @@ table {
       z-index: 50;
     }
 
-    &.br {
-      border-right: 1px solid black;
-    }
-
+    // month separator; the next month's .bl draws it, so .br adds nothing
     &.bl {
       border-left: 1px solid black;
+    }
+
+    // the first month only borders the name column, so no separator there
+    &:first-child + .bl {
+      border-left-color: #ccc;
     }
 
     &.r {
@@ -95,9 +126,19 @@ table {
     background-color: #f6f6f6;
     text-align: center;
 
+    // no borders between header cells, just a line under the header
+    &,
+    &.bl {
+      border: none;
+    }
+
     &.current-month {
       background-color: $primary-color-highlight;
     }
+  }
+
+  thead tr:last-child th {
+    border-bottom: 1px solid #ccc;
   }
 
   thead {

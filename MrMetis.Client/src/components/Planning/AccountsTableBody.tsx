@@ -28,8 +28,9 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
     return index === undefined ? false : index % 2 === 1;
   }, [index]);
 
+  // its own tbody, so the sticky account row is pushed up by the next account's
   return (
-    <>
+    <tbody>
       <tr className={`sticky${isEven ? " highlight" : ""}`}>
         <td colSpan={months.length * 2 + 1}>
           <strong>{accountName}</strong>
@@ -125,7 +126,7 @@ const AccountsTableBody: FC<IAccountsTableBodyProps> = ({
         highlight={isEven}
         accountId={accountId}
       />
-    </>
+    </tbody>
   );
 };
 
