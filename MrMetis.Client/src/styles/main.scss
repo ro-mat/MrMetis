@@ -16,7 +16,7 @@ main {
 
   // Side panel with links
   .side-panel {
-    width: 200px;
+    width: $side-panel-width;
     flex-shrink: 0;
 
     ul {

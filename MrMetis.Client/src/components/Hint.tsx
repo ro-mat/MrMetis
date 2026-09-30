@@ -10,7 +10,7 @@ const Hint: FC<IHintProps> = ({ label, labelClass, children }) => {
   return (
     <div className={`hint ${!!labelClass && labelClass}`}>
       <label>{label}</label>
-      <div>{children}</div>
+      <div role="tooltip">{children}</div>
     </div>
   );
 };

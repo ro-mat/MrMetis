@@ -1,5 +1,12 @@
 import moment from "moment";
-import React, { ChangeEvent, KeyboardEvent, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  FocusEvent,
+  KeyboardEvent,
+  MouseEvent,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { TAppDispatch } from "store/store";
@@ -12,6 +19,7 @@ import NewStatementPreview from "./NewStatementPreview";
 import useStatementSuggestions from "hooks/useStatementSuggestions";
 import useListSelection from "hooks/useListSelection";
 import { Button, Dropdown, TextInput } from "components/ui";
+import { cx } from "components/ui/cx";
 
 const createDefaultStatement = (): IStatement => ({
   id: 0,
@@ -107,6 +115,20 @@ const QuickAdd = () => {
     event.preventDefault();
   };
 
+  // collapse only when focus leaves the whole widget (e.g. not onto ">")
+  const handleBlur = (event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      setIsActive(false);
+    }
+  };
+
+  // clicks inside the widget (">" button, hint, preview) keep the text focused
+  const handleMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target !== inputRef.current) {
+      event.preventDefault();
+    }
+  };
+
   const handlePick = (id: string) => {
     applySuggestion(id);
     resetInput();
@@ -114,7 +136,11 @@ const QuickAdd = () => {
   };
 
   return (
-    <div className="quick-add">
+    <div
+      className={cx("quick-add", isActive && "active")}
+      onBlur={handleBlur}
+      onMouseDown={handleMouseDown}
+    >
       <div className="text-wrapper">
         <TextInput
           placeholder={t("quickAdd.quickAdd")}

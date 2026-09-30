@@ -2,7 +2,7 @@ import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { z } from "zod";
 import useAppForm from "hooks/useAppForm";
-import { Button, CtaButton, SelectBox, TextInput } from "components/ui";
+import { Button, CtaButton, Menu, SelectBox, TextInput } from "components/ui";
 
 describe("ui components", () => {
   it("Field shows label, required mark and error only when given", () => {
@@ -102,5 +102,35 @@ describe("ui components", () => {
     return vi.waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith({ accountId: 1 }, expect.anything())
     );
+  });
+  it("Menu opens on click and closes on pick, Escape and outside click", () => {
+    const onPick = vi.fn();
+    render(
+      <>
+        <Menu
+          trigger="open"
+          items={[{ key: "a", label: "item a", onClick: onPick }]}
+        />
+        <span>outside</span>
+      </>
+    );
+    const trigger = screen.getByText("open");
+    expect(screen.queryByRole("menu")).toBeNull();
+
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(screen.getByRole("menuitem"));
+    expect(onPick).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("menu")).toBeNull();
+
+    fireEvent.click(trigger);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("menu")).toBeNull();
+
+    fireEvent.click(trigger);
+    fireEvent.mouseDown(screen.getByText("item a"));
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByText("outside"));
+    expect(screen.queryByRole("menu")).toBeNull();
   });
 });

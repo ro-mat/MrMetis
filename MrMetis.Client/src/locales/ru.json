@@ -19,7 +19,9 @@
     "planning": "Плинирование",
     "statements": "Трансакции",
     "budget": "Бюджет",
-    "accounts": "Счета"
+    "accounts": "Счета",
+    "preferences": "Настройки",
+    "profile": "Профиль"
   },
   "quickAdd": {
     "quickAdd": "Быстрая добавка",
@@ -213,6 +215,9 @@
       "inputPlaceholder": "Електронная почта",
       "buttonText": "Подписаться"
     }
+  },
+  "preferences": {
+    "header": "Настройки"
   },
   "privacy": {
     "header": "Политика конфиденциальности",

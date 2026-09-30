@@ -1,16 +1,18 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown, faCircleUser } from "@fortawesome/free-solid-svg-icons";
 import { logout } from "store/auth/auth.actions";
 import { AppState, TAppDispatch } from "store/store";
 import { selectIsAuthenticated } from "store/auth/auth.selectors";
 import QuickAdd from "./quick-add/QuickAdd";
-import { Button, ToggleGroup } from "./ui";
+import { Menu } from "./ui";
 import { useTranslation } from "react-i18next";
 import Logo from "styles/img/logo.png";
 import moment from "moment";
 
-const languages = ["en", "ru"].map((l) => ({ value: l, label: l }));
+const languages = ["en", "ru"];
 
 const Header = (): React.JSX.Element => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -21,6 +23,9 @@ const Header = (): React.JSX.Element => {
 
   const { isDemo } = useSelector((state: AppState) => state.auth);
   const authenticated = useSelector(selectIsAuthenticated);
+
+  // the detector may set e.g. "en-US"; resolvedLanguage is one of ours
+  const currentLang = i18n.resolvedLanguage ?? i18n.language;
 
   const changeLang = (lang: string) => {
     i18n.changeLanguage(lang);
@@ -34,33 +39,56 @@ const Header = (): React.JSX.Element => {
 
   return (
     <header>
-      <div className="left">
-        <div>
-          <Link to="/">
-            <img src={Logo} alt="Mr metis logo" className="logo" />
-          </Link>
-        </div>
-        <div>{(authenticated || isDemo) && <QuickAdd />}</div>
-      </div>
+      <Link to="/">
+        <img src={Logo} alt="Mr metis logo" className="logo" />
+      </Link>
+      <div className="center">{(authenticated || isDemo) && <QuickAdd />}</div>
       <div className="right">
-        <ToggleGroup
+        <Menu
           className="lang-select"
-          variant="text"
-          translate={false}
-          items={languages}
-          value={i18n.language}
-          onChange={changeLang}
+          trigger={
+            <>
+              {currentLang.toUpperCase()}
+              <FontAwesomeIcon icon={faChevronDown} className="chevron" />
+            </>
+          }
+          items={languages
+            .filter((l) => l !== currentLang)
+            .map((l) => ({
+              key: l,
+              label: l.toUpperCase(),
+              onClick: () => changeLang(l),
+            }))}
         />
         {authenticated && (
-          <div className="dropdown">
-            <Link to="/dashboard">{t("nav.dashboard")}</Link>|
-            <Button onClick={onLogoutClick}>{t("nav.logout")}</Button>
-          </div>
+          <Menu
+            className="profile"
+            align="right"
+            triggerLabel={t("nav.profile")}
+            trigger={<FontAwesomeIcon icon={faCircleUser} />}
+            items={[
+              {
+                key: "preferences",
+                label: t("nav.preferences"),
+                onClick: () => navigate("/preferences"),
+              },
+              {
+                key: "logout",
+                label: t("nav.logout"),
+                onClick: onLogoutClick,
+                separated: true,
+              },
+            ]}
+          />
         )}
         {!authenticated && (
-          <div>
-            <Link to="/login">{t("nav.login")}</Link>|
-            <Link to="/register">{t("nav.register")}</Link>
+          <div className="auth-links">
+            <Link to="/login" className="btn small secondary">
+              {t("nav.login")}
+            </Link>
+            <Link to="/register" className="btn small primary">
+              {t("nav.register")}
+            </Link>
           </div>
         )}
       </div>

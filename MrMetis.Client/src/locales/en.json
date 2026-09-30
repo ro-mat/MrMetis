@@ -19,7 +19,9 @@
     "planning": "Planning",
     "statements": "List",
     "budget": "Budget",
-    "accounts": "Accounts"
+    "accounts": "Accounts",
+    "preferences": "Preferences",
+    "profile": "Profile"
   },
   "quickAdd": {
     "quickAdd": "Quick add",
@@ -213,6 +215,9 @@
       "inputPlaceholder": "Email",
       "buttonText": "Subscribe"
     }
+  },
+  "preferences": {
+    "header": "Preferences"
   },
   "privacy": {
     "header": "Privacy policy",

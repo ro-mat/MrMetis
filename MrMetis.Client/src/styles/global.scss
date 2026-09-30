@@ -2,6 +2,7 @@
 $primary-color: #91f9e5;
 $primary-color-dark: #177e89;
 $primary-color-highlight: #fdca40;
+$side-panel-width: 200px;
 
 // Reset styles
 html,
@@ -69,6 +70,22 @@ footer {
   flex: 1;
   min-height: 0; // allow shrinking below the content height, so it scrolls
   overflow-y: auto;
+}
+
+// Small popup shown on hover: disabled button reasons, hints
+@mixin tooltip {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 200;
+  width: max-content;
+  max-width: 20em;
+  padding: 0.5em 0.8em;
+  border: 1px solid black;
+  background-color: white;
+  color: #333;
+  font-weight: normal;
+  white-space: normal;
 }
 
 @import "header";

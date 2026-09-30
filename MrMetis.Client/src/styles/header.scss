@@ -3,59 +3,42 @@ header {
   justify-content: space-between;
   align-items: center;
   height: 80px;
+  // logo lines up with the page content, right of the side panel
+  // (main's 1em padding + side panel + 1em gap)
+  padding: 0 1em 0 calc(#{$side-panel-width} + 2em);
+  gap: 2em;
   background-color: $primary-color;
 
   .logo {
+    display: block;
     max-height: 75px;
   }
 
-  nav {
-    ul {
-      display: flex;
-      list-style: none;
-
-      li + li {
-        margin-left: 20px;
-      }
-
-      a {
-        color: #fff;
-        font-size: 16px;
-        font-weight: bold;
-        text-decoration: none;
-      }
-
-      a:hover {
-        color: $primary-color-highlight;
-      }
-    }
-  }
-
-  .left {
+  // quick add sits centered between logo and the right section
+  .center {
     display: flex;
-    flex: 4;
-    justify-content: space-around;
-    align-items: center;
+    flex: 1;
+    justify-content: center;
   }
 
   .right {
     display: flex;
-    flex: 1;
-    justify-content: space-evenly;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1em;
   }
 
-  .lang-select {
+  .auth-links {
     display: flex;
+    gap: 0.5em;
+  }
 
-    button {
-      border: none;
-      background: none;
-      margin: 0 0.5em;
-      padding: 0;
+  .lang-select .chevron {
+    font-size: 0.7em;
+  }
 
-      &.selected {
-        text-decoration: underline;
-      }
-    }
+  .profile .menu-trigger {
+    font-size: 1.8em;
+    color: $primary-color-dark;
   }
 }

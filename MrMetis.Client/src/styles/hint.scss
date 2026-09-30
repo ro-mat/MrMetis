@@ -6,19 +6,14 @@
     text-decoration: underline;
   }
 
-  div {
+  [role="tooltip"] {
+    @include tooltip;
     display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    border: 1px solid black;
-    z-index: 200;
-    background-color: white;
-    white-space: pre-line;
-    padding: 1em;
+    white-space: pre-line; // hints use \n for line breaks
+    max-width: none; // some hints hold preformatted text
   }
 
-  &:hover > div {
-    display: inline-block;
+  &:hover > [role="tooltip"] {
+    display: block;
   }
 }

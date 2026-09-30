@@ -1,9 +1,31 @@
 .quick-add {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 
   .text-wrapper {
     display: flex;
+    justify-content: center;
     align-items: center;
     gap: 0.3em;
+  }
+
+  // lists and popups read better left-aligned
+  .dropdown-wrapper,
+  [role="tooltip"] {
+    text-align: left;
+  }
+
+  // small while idle, wide while in use
+  input {
+    width: 10em;
+    margin-bottom: 0;
+    transition: width 0.2s ease;
+  }
+
+  &.active input {
+    width: 25em;
   }
 }

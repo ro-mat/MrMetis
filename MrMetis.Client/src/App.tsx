@@ -27,6 +27,7 @@ import "moment/locale/ru";
 import ToastMessages from "components/ToastMessages";
 import RawDataEditor from "components/RawDataEditor";
 import Privacy from "pages/Privacy";
+import Preferences from "pages/Preferences";
 import { clearKey } from "services/keyStore";
 
 const App: FunctionComponent = () => {
@@ -114,6 +115,7 @@ const App: FunctionComponent = () => {
                 <Route path="/list/:id?" element={<StatementsPage />} />
                 <Route path="/budget/:id?" element={<BudgetPage />} />
                 <Route path="/accounts/:id?" element={<AccountsPage />} />
+                <Route path="/preferences" element={<Preferences />} />
               </Route>
             </Route>
 
