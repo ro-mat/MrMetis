@@ -33,7 +33,7 @@ const TableCellPair: FC<ITableCellPairProps> = ({
   const pairId = useId();
 
   const { selectedPreviewStatements } = useSelector(
-    (state: AppState) => state.ui.ui.previewStatements
+    (state: AppState) => state.ui.ui.previewStatements,
   );
 
   // an expanded parent still shows its own (possibly zero) values while any
@@ -44,7 +44,7 @@ const TableCellPair: FC<ITableCellPairProps> = ({
       (forceShow(pair.budgetType) ||
         pair.hasOwnValues() ||
         pair.hasChildrenValues(accountId)),
-    [pair, accountId]
+    [pair, accountId],
   );
 
   const planned = useMemo(
@@ -53,10 +53,10 @@ const TableCellPair: FC<ITableCellPairProps> = ({
         ? roundTo(
             pair!.planned +
               (includeChildren ? pair!.getChildrenPlanned(accountId) : 0),
-            2
+            2,
           )
         : undefined,
-    [show, pair, includeChildren, accountId]
+    [show, pair, includeChildren, accountId],
   );
 
   const actual = useMemo(
@@ -65,15 +65,15 @@ const TableCellPair: FC<ITableCellPairProps> = ({
         ? roundTo(
             pair!.actual +
               (includeChildren ? pair!.getChildrenActual(accountId) : 0),
-            2
+            2,
           )
         : undefined,
-    [show, pair, includeChildren, accountId]
+    [show, pair, includeChildren, accountId],
   );
 
   const progressClass = useMemo(
     () => getProgressClass(planned ?? 0, actual ?? 0, show, moreIsGood),
-    [planned, actual, show, moreIsGood]
+    [planned, actual, show, moreIsGood],
   );
 
   const statements = useMemo(() => {
@@ -86,7 +86,7 @@ const TableCellPair: FC<ITableCellPairProps> = ({
 
   const showStatementList = useMemo(
     () => statements.length > 0 && selectedPreviewStatements === pairId,
-    [statements, selectedPreviewStatements, pairId]
+    [statements, selectedPreviewStatements, pairId],
   );
 
   // clicking the cell opens its statements, clicking it again closes them
@@ -97,8 +97,8 @@ const TableCellPair: FC<ITableCellPairProps> = ({
 
     dispatch(
       SET_PREVIEW_STATEMENTS(
-        selectedPreviewStatements === pairId ? undefined : pairId
-      )
+        selectedPreviewStatements === pairId ? undefined : pairId,
+      ),
     );
   };
 
@@ -118,7 +118,12 @@ const TableCellPair: FC<ITableCellPairProps> = ({
         onClick={handleClick}
       >
         {isStrong ? <strong>{actual?.toFixed(2)}</strong> : actual?.toFixed(2)}
-        {showStatementList && <PreviewStatements statements={statements} />}
+        {showStatementList && (
+          <PreviewStatements
+            statements={statements}
+            budgetId={pair?.budgetId}
+          />
+        )}
       </td>
     </>
   );
@@ -128,7 +133,7 @@ const getProgressClass = (
   valuePlanned: number,
   valueActual: number,
   show: boolean,
-  moreIsGood?: boolean
+  moreIsGood?: boolean,
 ) => {
   if (!show || valueActual === 0) {
     return "";

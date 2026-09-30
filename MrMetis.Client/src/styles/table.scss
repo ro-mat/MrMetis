@@ -185,30 +185,84 @@ table {
   // column (50-52)
   z-index: 1;
   cursor: default;
+  // as wide as its longest line: an absolute box would otherwise shrink to
+  // the space left next to its cell
+  width: max-content;
 
   background-color: $primary-color;
 
   box-shadow: 3px 3px 5px 0px;
 
-  & > div {
-    padding: 0.5em 2em;
+  .preview-toolbar {
+    display: flex;
+    justify-content: flex-start;
+    gap: 0.5em;
+    padding: 0.25em 0.25em 0;
 
-    min-width: 200px;
-    max-width: 400px;
-    max-height: 100px;
-
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    & > div {
-      display: flex;
-      gap: 1em;
-      flex-direction: row;
-      justify-content: space-between;
-      white-space: nowrap;
+    // half the usual size, square
+    button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      width: 1.6em;
+      height: 1.6em;
+      padding: 0;
+      font-size: 0.75em;
     }
   }
 
+  & > div:not(.preview-toolbar) {
+    padding: 0em 0.25em 0.5em;
+
+    min-width: 200px;
+    max-height: 120px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  // nested in the planning table: undo its borders, backgrounds and sticky parts
+  table {
+    position: static;
+    z-index: auto;
+    border: none;
+
+    thead {
+      position: static;
+
+      th {
+        border-bottom: none;
+      }
+    }
+
+    tr,
+    th,
+    td {
+      position: static;
+      background: transparent;
+      border: none;
+    }
+
+    th,
+    td {
+      padding: 2px 6px;
+      text-align: left;
+
+      &.amount {
+        text-align: right;
+      }
+    }
+
+    // stays on top while the list scrolls; opaque so rows hide under it
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background-color: $primary-color;
+      font-weight: bold;
+    }
+  }
 }
 
 // "show more" / "show all" links under a statement table

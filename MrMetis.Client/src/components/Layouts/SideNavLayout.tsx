@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import DemoTopBar from "components/DemoTopBar";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -19,6 +19,13 @@ const SideNavLayout = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const { isDemo } = useSelector((state: AppState) => state.auth);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // a new page, or an item opened for editing (its form is at the top),
+  // starts at the top
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 });
+  }, [location.pathname]);
 
   return (
     <main>
@@ -38,7 +45,7 @@ const SideNavLayout = () => {
           ))}
         </ul>
       </div>
-      <div className="content">
+      <div className="content" ref={contentRef}>
         {isDemo && <DemoTopBar />}
         <ErrorBoundary>
           <Outlet />
