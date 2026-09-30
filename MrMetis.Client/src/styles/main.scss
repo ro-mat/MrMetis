@@ -46,6 +46,7 @@ main {
   // Content container
   .content {
     flex: 1;
+    padding-left: 1em;
     align-self: stretch;
     min-width: 0;
     overflow: auto;

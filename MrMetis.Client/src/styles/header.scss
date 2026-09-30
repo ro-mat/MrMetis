@@ -4,8 +4,8 @@ header {
   align-items: center;
   height: 80px;
   // logo lines up with the page content, right of the side panel
-  // (main's 1em padding + side panel + 1em gap)
-  padding: 0 1em 0 calc(#{$side-panel-width} + 2em);
+  // (main's 1em padding + side panel + 1em gap + content's 1em margin)
+  padding: 0 1em 0 calc(#{$side-panel-width} + 3em);
   gap: 2em;
   background-color: $primary-color;
 
