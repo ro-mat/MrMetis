@@ -51,18 +51,21 @@ const FilterLayout: FC<ISideNavProps> = () => {
     <div className="flex column">
       <div>
         <label>Relative range</label>
-        <Slider
-          min={-3}
-          max={12}
-          value={[...filterValues]}
-          step={1}
-          marks={true}
-          onChange={handleChange}
-          onChangeCommitted={handleChangeCommitted}
-          valueLabelDisplay="auto"
-          valueLabelFormat={valueText}
-          disableSwap
-        />
+        {/* inset: the end marks and thumbs reach past the slider's edges */}
+        <div className="range-slider">
+          <Slider
+            min={-3}
+            max={12}
+            value={[...filterValues]}
+            step={1}
+            marks={true}
+            onChange={handleChange}
+            onChangeCommitted={handleChangeCommitted}
+            valueLabelDisplay="auto"
+            valueLabelFormat={valueText}
+            disableSwap
+          />
+        </div>
       </div>
       <div className="sitewidth">
         <Outlet />

@@ -148,6 +148,10 @@ $control-height: $control-line-height + 2 * $control-padding + 2px;
   border: 1px solid black;
 }
 
+.range-slider {
+  padding: 0 10px; // half an MUI slider thumb
+}
+
 #planning-subnav {
   display: flex;
   gap: 1em;
