@@ -2,9 +2,11 @@ import { createSlice } from "@reduxjs/toolkit";
 import moment from "moment";
 import { add, nextId, remove, update } from "helpers/userdata";
 import { DATE_TIME_FORMAT } from "helpers/dateHelper";
+import { defaultPreferences, withDefaults } from "helpers/localeHelper";
 import {
   IAccount,
   IBudget,
+  IPreferences,
   IStatement,
   IUserdata,
   IUserdataDto,
@@ -18,6 +20,7 @@ const emptyUserdata = (): IUserdata => ({
   statements: [],
   budgets: [],
   accounts: [],
+  preferences: defaultPreferences(),
 });
 
 const initialState: IUserdataState = {
@@ -87,11 +90,12 @@ const userdataSlice = createSlice({
     },
 
     SET_USERDATA: (state, action: IAction<Partial<IUserdataDto>>) => {
-      const { statements, budgets, accounts } = action.payload;
+      const { statements, budgets, accounts, preferences } = action.payload;
       state.userdata = {
         statements: statements ?? [],
         budgets: budgets ?? [],
         accounts: accounts ?? [],
+        preferences: withDefaults(preferences),
       };
       state.loaded = true;
       state.isFetching = false;
@@ -102,6 +106,14 @@ const userdataSlice = createSlice({
       state.storage = undefined;
       state.saveFailed = false;
       state.isFetching = false;
+    },
+
+    UPDATE_PREFERENCES: (state, action: IAction<Partial<IPreferences>>) => {
+      state.userdata.preferences = {
+        ...state.userdata.preferences,
+        ...action.payload,
+      };
+      state.savePending = true;
     },
 
     ADD_STATEMENT: (state, action: IAction<IStatement>) =>
@@ -137,6 +149,7 @@ export const {
   SET_STORAGE,
   SET_USERDATA,
   CLEAR_USERDATA,
+  UPDATE_PREFERENCES,
   ADD_STATEMENT,
   UPDATE_STATEMENT,
   DELETE_STATEMENT,

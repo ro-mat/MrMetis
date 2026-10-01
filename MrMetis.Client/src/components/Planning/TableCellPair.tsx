@@ -6,6 +6,7 @@ import PreviewStatements from "./PreviewStatements";
 import { BudgetPair } from "services/budgetPair";
 import { roundTo } from "helpers/numberHelper";
 import { BudgetType, BudgetTypeExtra } from "store/userdata/userdata.types";
+import useLocale from "hooks/useLocale";
 
 export interface ITableCellPairProps {
   pair?: BudgetPair;
@@ -31,6 +32,9 @@ const TableCellPair: FC<ITableCellPairProps> = ({
 }) => {
   const dispatch = useDispatch<TAppDispatch>();
   const pairId = useId();
+  const { formatAmount } = useLocale();
+  const format = (value?: number) =>
+    value === undefined ? undefined : formatAmount(value);
 
   const { selectedPreviewStatements } = useSelector(
     (state: AppState) => state.ui.ui.previewStatements,
@@ -105,11 +109,7 @@ const TableCellPair: FC<ITableCellPairProps> = ({
   return (
     <>
       <td className="bl">
-        {isStrong ? (
-          <strong>{planned?.toFixed(2)}</strong>
-        ) : (
-          planned?.toFixed(2)
-        )}
+        {isStrong ? <strong>{format(planned)}</strong> : format(planned)}
       </td>
       <td
         className={`statement-cell ${
@@ -117,7 +117,7 @@ const TableCellPair: FC<ITableCellPairProps> = ({
         } ${statements.length > 0 ? "has-statements" : ""} br ${progressClass}`}
         onClick={handleClick}
       >
-        {isStrong ? <strong>{actual?.toFixed(2)}</strong> : actual?.toFixed(2)}
+        {isStrong ? <strong>{format(actual)}</strong> : format(actual)}
         {showStatementList && (
           <PreviewStatements
             statements={statements}

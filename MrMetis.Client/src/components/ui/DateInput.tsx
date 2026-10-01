@@ -5,6 +5,7 @@ import { FieldValues } from "react-hook-form";
 import "react-datepicker/dist/react-datepicker.css";
 import Field, { IFieldProps } from "./Field";
 import Bound, { IBindProps } from "./Bound";
+import useLocale from "hooks/useLocale";
 
 interface IDateInputProps<T extends FieldValues>
   extends IFieldProps, Required<IBindProps<T>> {
@@ -20,14 +21,15 @@ const DateInput = <T extends FieldValues>({
   ...fieldProps
 }: IDateInputProps<T>) => {
   const { i18n } = useTranslation();
-  const monthProps =
+  const { locale } = useLocale();
+  const modeProps =
     mode === "month"
       ? {
-          dateFormat: "MM-yyyy",
+          dateFormat: locale.pickerMonth,
           showMonthYearPicker: true,
           showTwoColumnMonthYearPicker: true,
         }
-      : {};
+      : { dateFormat: locale.pickerDate };
 
   return (
     <Bound name={name} control={control}>
@@ -37,10 +39,11 @@ const DateInput = <T extends FieldValues>({
             name={field?.name}
             ref={field?.ref}
             onBlur={field?.onBlur}
-            locale={i18n.language}
+            locale={i18n.resolvedLanguage ?? i18n.language}
+            calendarStartDay={locale.firstDayOfWeek}
             selected={field?.value ? new Date(field.value) : null}
             onChange={(date: Date | null) => field?.onChange(date)}
-            {...monthProps}
+            {...modeProps}
           />
         </Field>
       )}

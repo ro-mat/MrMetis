@@ -31,6 +31,7 @@ const SelectBox = <T extends FieldValues>({
   required,
   error,
   horizontal,
+  wrapLabel,
   className,
   options,
   emptyOption,
@@ -50,7 +51,7 @@ const SelectBox = <T extends FieldValues>({
     <Bound name={name} control={control}>
       {(field, fieldError) => (
         <Field
-          {...{ label, required, horizontal, className }}
+          {...{ label, required, horizontal, wrapLabel, className }}
           error={error ?? fieldError}
         >
           {filterable && field ? (

@@ -1,7 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock } from "@fortawesome/free-solid-svg-icons";
 import { Button, EditButton } from "components/ui";
-import { DATE_FORMAT } from "helpers/dateHelper";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
@@ -9,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { BudgetStatement } from "services/budgetPair";
 import { TAppDispatch } from "store/store";
 import { SET_PREVIEW_STATEMENTS } from "store/ui/ui.slice";
+import useLocale from "hooks/useLocale";
 
 interface IPreviewStatementsProps {
   statements: BudgetStatement[];
@@ -22,6 +22,7 @@ const PreviewStatements = ({
   budgetId,
 }: IPreviewStatementsProps) => {
   const { t } = useTranslation();
+  const { formatAmount, formatDate } = useLocale();
   const dispatch = useDispatch<TAppDispatch>();
   const navigate = useNavigate();
 
@@ -60,8 +61,8 @@ const PreviewStatements = ({
                   .sort((a, b) => moment(b.date).diff(moment(a.date)))
                   .map((s) => (
                     <tr key={s.id}>
-                      <td>{moment(s.date).format(DATE_FORMAT)}</td>
-                      <td className="amount">{s.amount.toFixed(2)}</td>
+                      <td>{formatDate(s.date)}</td>
+                      <td className="amount">{formatAmount(s.amount)}</td>
                       <td>{s.comment}</td>
                     </tr>
                   ))}

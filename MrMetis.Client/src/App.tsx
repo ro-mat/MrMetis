@@ -23,12 +23,15 @@ import Authenticated from "components/Authenticated";
 import { useIdleTimer } from "react-idle-timer";
 import UnAuthenticated from "components/UnAuthenticated";
 import { selectIsAuthenticated } from "store/auth/auth.selectors";
-import "moment/locale/ru";
 import ToastMessages from "components/ToastMessages";
 import RawDataEditor from "components/RawDataEditor";
 import Privacy from "pages/Privacy";
 import Preferences from "pages/Preferences";
 import { clearKey } from "services/keyStore";
+import { useTranslation } from "react-i18next";
+import moment from "moment";
+import { selectPreferences } from "store/userdata/userdata.selectors";
+import useLocale from "hooks/useLocale";
 
 const App: FunctionComponent = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -36,6 +39,27 @@ const App: FunctionComponent = () => {
   const { savePending } = useSelector((state: AppState) => state.data);
   const { isDemo } = useSelector((state: AppState) => state.auth);
   const authenticated = useSelector(selectIsAuthenticated);
+  const { language, idleTimeoutMinutes } = useSelector(selectPreferences);
+  const { locale } = useLocale();
+  const { i18n } = useTranslation();
+
+  // the stored language follows the user to other devices
+  useEffect(() => {
+    if (language && language !== i18n.resolvedLanguage) {
+      i18n.changeLanguage(language);
+    }
+  }, [language, i18n]);
+
+  // week starts (moment's startOf("week") and weekday order) follow the preference
+  const currentLang = i18n.resolvedLanguage ?? i18n.language;
+  useEffect(() => {
+    moment.updateLocale(currentLang, {
+      week: {
+        dow: locale.firstDayOfWeek,
+        doy: moment.localeData(currentLang).firstDayOfYear(),
+      },
+    });
+  }, [currentLang, locale.firstDayOfWeek]);
 
   const onIdle = () => {
     if (authenticated) {
@@ -46,7 +70,7 @@ const App: FunctionComponent = () => {
   const { start, pause, reset } = useIdleTimer({
     onIdle,
     startManually: true,
-    timeout: 600_000,
+    timeout: idleTimeoutMinutes * 60_000,
     throttle: 500,
   });
 

@@ -59,8 +59,9 @@ export const saveUserData =
       return;
     }
 
-    const { accounts, budgets, statements } = getState().data.userdata;
-    const data: IUserdataDto = { accounts, budgets, statements };
+    const { accounts, budgets, statements, preferences } =
+      getState().data.userdata;
+    const data: IUserdataDto = { accounts, budgets, statements, preferences };
 
     if (getState().auth.isDemo) {
       saveDemoData(data);

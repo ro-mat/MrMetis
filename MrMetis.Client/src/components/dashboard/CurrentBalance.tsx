@@ -4,6 +4,7 @@ import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { BudgetPairArray } from "services/budgetPairArray";
 import { BudgetTypeExtra } from "store/userdata/userdata.types";
+import useLocale from "hooks/useLocale";
 
 export interface ICurrentBalanceProps {
   month: Moment;
@@ -15,6 +16,7 @@ const CurrentBalance: FC<ICurrentBalanceProps> = ({
   budgetPairArray,
 }) => {
   const { t } = useTranslation();
+  const { formatAmount } = useLocale();
   const { accounts, getById: getAccountById } = useAccount();
 
   return (
@@ -26,9 +28,13 @@ const CurrentBalance: FC<ICurrentBalanceProps> = ({
             <tr key={a.id}>
               <td>{getAccountById(a.id)?.name}</td>
               <td>
-                {budgetPairArray
-                  .getTotalPair([BudgetTypeExtra.closingBalance], month, a.id)
-                  .actual.toFixed(2)}
+                {formatAmount(
+                  budgetPairArray.getTotalPair(
+                    [BudgetTypeExtra.closingBalance],
+                    month,
+                    a.id,
+                  ).actual,
+                )}
               </td>
             </tr>
           ))}
@@ -38,9 +44,12 @@ const CurrentBalance: FC<ICurrentBalanceProps> = ({
             </td>
             <td>
               <strong>
-                {budgetPairArray
-                  .getTotalPair([BudgetTypeExtra.closingBalance], month)
-                  .actual.toFixed(2)}
+                {formatAmount(
+                  budgetPairArray.getTotalPair(
+                    [BudgetTypeExtra.closingBalance],
+                    month,
+                  ).actual,
+                )}
               </strong>
             </td>
           </tr>

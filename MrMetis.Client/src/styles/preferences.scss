@@ -1,0 +1,65 @@
+.preferences {
+  // settings on the left, the preview apart on the right
+  .preferences-body {
+    display: flex;
+    gap: 2em;
+    align-items: flex-start;
+
+    form {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  // a label broken into lines (see wrapLabel) mustn't push its input below
+  // the inputs next to it
+  .crud {
+    align-items: flex-end;
+  }
+
+  .preview-panel {
+    flex: 0 0 auto;
+    min-width: 16em;
+    padding-left: 2em;
+    border-left: 1px solid #ccc;
+    // stays in view while scrolling through the settings
+    position: sticky;
+    top: 1em;
+  }
+
+  // narrow screens: below the settings
+  @media (max-width: 800px) {
+    .preferences-body {
+      flex-direction: column;
+    }
+
+    .preview-panel {
+      position: static;
+      min-width: 0;
+      padding: 1em 0 0;
+      border-left: none;
+      border-top: 1px solid #ccc;
+    }
+  }
+
+  // label and value side by side, one per line
+  .preview {
+    display: grid;
+    grid-template-columns: max-content max-content;
+    gap: 0.25em 1.5em;
+    margin: 0.5em 0 0;
+
+    dt {
+      font-weight: bold;
+    }
+
+    dd {
+      margin: 0;
+    }
+
+    .week {
+      display: flex;
+      gap: 0.75em;
+    }
+  }
+}

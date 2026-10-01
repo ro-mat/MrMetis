@@ -7,6 +7,7 @@ import {
   UPDATE_ACCOUNT,
 } from "store/userdata/userdata.slice";
 import {
+  AmountInput,
   Button,
   DateInput,
   Field,
@@ -160,11 +161,9 @@ const AccountAddOrEdit = ({
                   label="account.month"
                   required
                 />
-                <TextInput
+                <AmountInput
                   name={`leftFromPrevMonth.${index}.amount`}
                   control={control}
-                  type="number"
-                  step="0.01"
                   label="account.amount"
                   required
                 />

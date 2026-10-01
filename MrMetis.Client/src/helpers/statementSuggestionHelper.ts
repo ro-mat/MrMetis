@@ -6,18 +6,20 @@ import {
   IAccount,
   IBudget,
 } from "store/userdata/userdata.types";
-import { DATE_FORMAT } from "./dateHelper";
+import { formatInLanguage } from "./dateHelper";
 
+type DateFormatter = (date: Moment) => string;
+
+// `text` is shown and searched, e.g. "today" or a weekday's name
 const getDateSuggestion = (
   id: string,
   date: Moment,
-  textKey: string,
-  t: TFunction<"translation", undefined>
+  text: string,
+  formatDate: DateFormatter
 ) => {
-  const text = t(`quickAdd.${textKey}`);
   return {
     id: id,
-    text: `${text}(${date.format(DATE_FORMAT)})`,
+    text: `${text}(${formatDate(date)})`,
     searchText: text.toLowerCase(),
     obj: {
       date: date.toDate(),
@@ -25,15 +27,29 @@ const getDateSuggestion = (
   };
 };
 
-export const getDateSuggestions = (t: TFunction<"translation", undefined>) => {
+export const getDateSuggestions = (
+  t: TFunction<"translation", undefined>,
+  formatDate: DateFormatter
+) => {
   const list = [
-    getDateSuggestion("d1", moment(), "today", t),
-    getDateSuggestion("d2", moment().add(-1, "d"), "yesterday", t),
+    getDateSuggestion("d1", moment(), t("quickAdd.today"), formatDate),
+    getDateSuggestion(
+      "d2",
+      moment().add(-1, "d"),
+      t("quickAdd.yesterday"),
+      formatDate
+    ),
   ];
+  // weekday names in the app's language
   for (let i = -1; i >= -7; i--) {
-    let date = moment().add(i, "d");
+    const date = moment().add(i, "d");
     list.push(
-      getDateSuggestion(`d${i}`, date, date.format("dddd").toLowerCase(), t)
+      getDateSuggestion(
+        `d${i}`,
+        date,
+        formatInLanguage(date, "dddd"),
+        formatDate
+      )
     );
   }
 

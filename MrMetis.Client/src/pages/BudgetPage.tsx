@@ -10,9 +10,13 @@ import moment from "moment";
 import useBudget from "hooks/useBudget";
 import useAccount from "hooks/useAccount";
 import useEditRoute from "hooks/useEditRoute";
+import useLocale from "hooks/useLocale";
 
 const BudgetPage = () => {
   const { t } = useTranslation();
+  const { formatAmount } = useLocale();
+  const formatPlanned = (value?: number) =>
+    value === undefined ? "Not found" : formatAmount(value);
 
   const { isFetching, loaded } = useSelector((state: AppState) => state.data);
   const { budgets, getById: getBudgetById, filtered } = useBudget();
@@ -76,9 +80,10 @@ const BudgetPage = () => {
                           : ""
                       }`}</td>
                       <td>
-                        {budgetPairArray
-                          .getBudgetPair(b.id, moment())
-                          ?.planned.toFixed(2) ?? "Not found"}
+                        {formatPlanned(
+                          budgetPairArray.getBudgetPair(b.id, moment())
+                            ?.planned,
+                        )}
                       </td>
                       <td>
                         {b.expectOneStatement

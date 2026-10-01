@@ -8,6 +8,8 @@ export interface IFieldProps {
   required?: boolean;
   error?: string;
   horizontal?: boolean;
+  // a long label may break into lines; the field is kept narrow
+  wrapLabel?: boolean;
   className?: string;
 }
 
@@ -17,6 +19,7 @@ const Field = ({
   required,
   error,
   horizontal,
+  wrapLabel,
   className,
   children,
 }: IFieldProps & { children: ReactNode }) => {
@@ -27,6 +30,7 @@ const Field = ({
       className={cx(
         "labeled",
         horizontal && "horizontal",
+        wrapLabel && "wrap-label",
         error && "has-error",
         className
       )}

@@ -23,6 +23,7 @@ export interface IUserdata {
   statements: IStatement[];
   budgets: IBudget[];
   accounts: IAccount[];
+  preferences: IPreferences;
 }
 
 export interface IStatement extends IHaveMetadata {
@@ -54,6 +55,44 @@ export interface IUserdataDto {
   statements: IStatement[];
   budgets: IBudget[];
   accounts: IAccount[];
+  preferences?: IPreferences;
+}
+
+export interface IPreferences {
+  locale: ILocalePreferences;
+  // "en" | "ru"; not set: the browser's language is used
+  language?: string;
+  showLanguageInHeader: boolean;
+  currency: ICurrencyPreferences;
+  idleTimeoutMinutes: number;
+  // not applied yet
+  theme: Theme;
+}
+
+export type DateOrder = "DMY" | "MDY" | "YMD";
+export type DateSeparator = "." | "/" | "-";
+export type DecimalSeparator = "." | ",";
+export type ThousandsSeparator = "," | "." | " " | "'" | "";
+// 0 is Sunday, as in moment and the datepicker
+export type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type Theme = "auto" | "light" | "dark";
+
+// A country preset; every other field overrides the country's value when set.
+export interface ILocalePreferences {
+  country: string;
+  dateOrder?: DateOrder;
+  dateSeparator?: DateSeparator;
+  decimalSeparator?: DecimalSeparator;
+  thousandsSeparator?: ThousandsSeparator;
+  firstDayOfWeek?: WeekDay;
+}
+
+export interface ICurrencyPreferences {
+  // "" shows plain numbers
+  symbol: string;
+  position: "before" | "after";
+  decimals: 0 | 2;
+  negativeStyle: "minus" | "parentheses";
 }
 
 export enum BudgetTypeUser {

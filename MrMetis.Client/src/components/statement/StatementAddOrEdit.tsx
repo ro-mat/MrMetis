@@ -16,7 +16,7 @@ import useAppForm from "hooks/useAppForm";
 import AddOrEditControls from "components/AddOrEditControls";
 import AccountSelect from "components/AccountSelect";
 import BudgetSelect from "components/BudgetSelect";
-import { DateInput, TextArea, TextInput } from "components/ui";
+import { AmountInput, DateInput, TextArea } from "components/ui";
 
 const schema = z.object({
   id: z.number().optional(),
@@ -103,11 +103,9 @@ const StatementAddOrEdit = ({
     <div className="add-or-edit">
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="crud">
-          <TextInput
+          <AmountInput
             name="amount"
             control={control}
-            type="number"
-            step="0.01"
             label="statement.amount"
             required
           />

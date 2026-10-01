@@ -5,11 +5,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { Outlet } from "react-router-dom";
 import { AppState, TAppDispatch } from "store/store";
 import { SET_FILTER } from "store/ui/ui.slice";
+import useLocale from "hooks/useLocale";
+import { formatInLanguage } from "helpers/dateHelper";
 
 export interface ISideNavProps {}
 
 const FilterLayout: FC<ISideNavProps> = () => {
   const dispatch = useDispatch<TAppDispatch>();
+  const { formatMonth } = useLocale();
 
   const minThreshHold = 0;
   const maxThreshHold = 1;
@@ -44,7 +47,8 @@ const FilterLayout: FC<ISideNavProps> = () => {
   };
 
   const valueText = (value: number) => {
-    return moment().add(value, "M").format("YYYY - MM (MMM)");
+    const month = moment().add(value, "M");
+    return `${formatMonth(month)} (${formatInLanguage(month, "MMM")})`;
   };
 
   return (

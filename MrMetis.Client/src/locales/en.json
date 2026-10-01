@@ -31,13 +31,6 @@
     "date": "Date",
     "today": "today",
     "yesterday": "yesterday",
-    "monday": "Monday",
-    "tuesday": "Tuesday",
-    "wednesday": "Wednesday",
-    "thursday": "Thursday",
-    "friday": "Friday",
-    "saturday": "Saturday",
-    "sunday": "Sunday",
     "budget": "Budget",
     "account": "Account",
     "statementAdded": "Statement added!",
@@ -184,7 +177,8 @@
     "fromAccountEmpty": "Choose an account",
     "toAccountEmpty": "Choose the account to transfer to",
     "frequencyEmpty": "Frequency cannot be empty",
-    "frequencyInvalid": "Frequency must be a whole number of at least 1"
+    "frequencyInvalid": "Frequency must be a whole number of at least 1",
+    "symbolTooLong": "Currency symbol can be up to 5 characters"
   },
   "landingPage": {
     "welcome": {
@@ -223,8 +217,59 @@
     "almostFull": "Storage almost full"
   },
   "preferences": {
-    "header": "Preferences"
+    "header": "Preferences",
+    "locale": "Region and formats",
+    "country": "Country",
+    "default": "default",
+    "previewDate": "Date",
+    "previewMonth": "Month",
+    "previewAmount": "Amount",
+    "previewNegative": "Negative amount",
+    "previewWeek": "Week",
+    "dateFormat": "Date order",
+    "dateSeparator": "Date separator",
+    "firstDayOfWeek": "First day of the week",
+    "decimalSeparator": "Decimal separator",
+    "thousandsSeparator": "Thousands separator",
+    "dateOrder": {
+      "DMY": "Day, month, year",
+      "MDY": "Month, day, year",
+      "YMD": "Year, month, day"
+    },
+    "separator": {
+      "dot": "Dot",
+      "comma": "Comma",
+      "slash": "Slash",
+      "dash": "Dash",
+      "space": "Space",
+      "apostrophe": "Apostrophe",
+      "none": "None"
+    },
+    "currency": "Amounts",
+    "symbol": "Currency symbol",
+    "position": "Symbol position",
+    "positions": {
+      "before": "Before the amount",
+      "after": "After the amount"
+    },
+    "decimals": "Decimal places",
+    "negativeStyle": "Negative amounts",
+    "preview": "Preview",
+    "general": "General",
+    "language": "Language",
+    "showLanguageInHeader": "Show language in header",
+    "browserLanguage": "Browser language",
+    "theme": "Theme (coming soon)",
+    "themes": {
+      "auto": "Auto (as the system)",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "idleTimeout": "Log out when idle for",
+    "minutes_one": "{{count}} minute",
+    "minutes_other": "{{count}} minutes"
   },
+
   "privacy": {
     "header": "Privacy policy",
     "text1": "Your data is yours. We will not share it with anyone.",

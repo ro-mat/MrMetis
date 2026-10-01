@@ -8,4 +8,4 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-declare module "moment/locale/*";
+declare module "moment/dist/locale/*";

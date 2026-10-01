@@ -9,8 +9,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { logout } from "store/auth/auth.actions";
 import { AppState, TAppDispatch } from "store/store";
-import { selectIsAuthenticated } from "store/auth/auth.selectors";
 import {
+  selectHasSession,
+  selectIsAuthenticated,
+} from "store/auth/auth.selectors";
+import { UPDATE_PREFERENCES } from "store/userdata/userdata.slice";
+import {
+  selectPreferences,
   selectStorage,
   selectStorageWarning,
 } from "store/userdata/userdata.selectors";
@@ -19,19 +24,19 @@ import QuickAdd from "./quick-add/QuickAdd";
 import { IMenuItem, Menu } from "./ui";
 import { useTranslation } from "react-i18next";
 import Logo from "styles/img/logo.png";
-import moment from "moment";
 
 const languages = ["en", "ru"];
 
 const Header = (): React.JSX.Element => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t, i18n } = useTranslation();
-  moment.locale(i18n.language);
 
   const navigate = useNavigate();
 
   const { isDemo } = useSelector((state: AppState) => state.auth);
   const authenticated = useSelector(selectIsAuthenticated);
+  const hasSession = useSelector(selectHasSession);
+  const { showLanguageInHeader } = useSelector(selectPreferences);
   const storage = useSelector(selectStorage);
   const storageWarning = useSelector(selectStorageWarning);
 
@@ -40,7 +45,9 @@ const Header = (): React.JSX.Element => {
 
   const changeLang = (lang: string) => {
     i18n.changeLanguage(lang);
-    moment.updateLocale(i18n.language, {});
+    if (hasSession) {
+      dispatch(UPDATE_PREFERENCES({ language: lang }));
+    }
   };
 
   const onLogoutClick = () => {
@@ -90,22 +97,24 @@ const Header = (): React.JSX.Element => {
       </Link>
       <div className="center">{(authenticated || isDemo) && <QuickAdd />}</div>
       <div className="right">
-        <Menu
-          className="lang-select"
-          trigger={
-            <>
-              {currentLang.toUpperCase()}
-              <FontAwesomeIcon icon={faChevronDown} className="chevron" />
-            </>
-          }
-          items={languages
-            .filter((l) => l !== currentLang)
-            .map((l) => ({
-              key: l,
-              label: l.toUpperCase(),
-              onClick: () => changeLang(l),
-            }))}
-        />
+        {showLanguageInHeader && (
+          <Menu
+            className="lang-select"
+            trigger={
+              <>
+                {currentLang.toUpperCase()}
+                <FontAwesomeIcon icon={faChevronDown} className="chevron" />
+              </>
+            }
+            items={languages
+              .filter((l) => l !== currentLang)
+              .map((l) => ({
+                key: l,
+                label: l.toUpperCase(),
+                onClick: () => changeLang(l),
+              }))}
+          />
+        )}
         {authenticated && (
           <Menu
             className="profile"

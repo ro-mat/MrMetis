@@ -2,11 +2,11 @@ import moment from "moment";
 import { IStatement } from "store/userdata/userdata.types";
 import { MouseEvent, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { DATE_FORMAT } from "helpers/dateHelper";
 import { EditButton, FilterInput } from "./ui";
 import useBudget from "hooks/useBudget";
 import useAccount from "hooks/useAccount";
 import useStatement from "hooks/useStatement";
+import useLocale from "hooks/useLocale";
 
 export interface IStatementTableProps {
   statements: IStatement[];
@@ -22,6 +22,7 @@ const StatementTable = ({
   showMoreRows = topRows,
 }: IStatementTableProps) => {
   const { t } = useTranslation();
+  const { formatAmount, formatDate } = useLocale();
 
   const { getById: getBudgetById } = useBudget();
   const { getById: getAccountById } = useAccount();
@@ -88,8 +89,8 @@ const StatementTable = ({
         <tbody>
           {visibleStatements.map((s) => (
             <tr key={s.id}>
-              <td>{moment(s.date).format(DATE_FORMAT)}</td>
-              <td>{s.amount.toFixed(2)}</td>
+              <td>{formatDate(s.date)}</td>
+              <td>{formatAmount(s.amount)}</td>
               <td>{getBudgetById(s.budgetId)?.name}</td>
               <td>{getAccountById(s.accountId)?.name}</td>
               <td>{s.comment}</td>

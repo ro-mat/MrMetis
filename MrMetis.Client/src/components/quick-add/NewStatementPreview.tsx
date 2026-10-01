@@ -1,10 +1,9 @@
-import moment from "moment";
-import { DATE_FORMAT } from "helpers/dateHelper";
 import { useTranslation } from "react-i18next";
 import useBudget from "hooks/useBudget";
 import useAccount from "hooks/useAccount";
 import { useMemo } from "react";
 import { IStatement } from "store/userdata/userdata.types";
+import useLocale from "hooks/useLocale";
 
 export interface INewStatementPreviewProps {
   statement: IStatement;
@@ -12,6 +11,7 @@ export interface INewStatementPreviewProps {
 
 const NewStatementPreview = ({ statement }: INewStatementPreviewProps) => {
   const { t } = useTranslation();
+  const { formatAmount, formatDate } = useLocale();
 
   const { getById: getBudgetById } = useBudget();
   const { getById: getAccountById } = useAccount();
@@ -36,11 +36,11 @@ const NewStatementPreview = ({ statement }: INewStatementPreviewProps) => {
       </span>
       ,{" "}
       <span>
-        {t("quickAdd.date")}: {moment(statement.date).format(DATE_FORMAT)}
+        {t("quickAdd.date")}: {formatDate(statement.date)}
       </span>
       ,{" "}
       <span className={statement.amount === 0 ? "error" : ""}>
-        {t("quickAdd.amount")}: {statement.amount.toFixed(2)}
+        {t("quickAdd.amount")}: {formatAmount(statement.amount)}
       </span>
       ,{" "}
       <span>

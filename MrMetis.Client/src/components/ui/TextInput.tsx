@@ -23,6 +23,7 @@ const TextInput = <T extends FieldValues>({
   required,
   error,
   horizontal,
+  wrapLabel,
   className,
   type = "text",
   ...inputProps
@@ -30,7 +31,7 @@ const TextInput = <T extends FieldValues>({
   <Bound name={name} control={control}>
     {(field, fieldError) => (
       <Field
-        {...{ label, required, horizontal, className }}
+        {...{ label, required, horizontal, wrapLabel, className }}
         error={error ?? fieldError}
       >
         <input

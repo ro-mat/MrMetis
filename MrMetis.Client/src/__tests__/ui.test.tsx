@@ -2,7 +2,18 @@ import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { z } from "zod";
 import useAppForm from "hooks/useAppForm";
-import { Button, CtaButton, Menu, SelectBox, TextInput } from "components/ui";
+import { Provider } from "react-redux";
+import { store } from "store/store";
+import { SET_USERDATA } from "store/userdata/userdata.slice";
+import { defaultPreferences } from "helpers/localeHelper";
+import {
+  AmountInput,
+  Button,
+  CtaButton,
+  Menu,
+  SelectBox,
+  TextInput,
+} from "components/ui";
 
 describe("ui components", () => {
   it("Field shows label, required mark and error only when given", () => {
@@ -16,6 +27,10 @@ describe("ui components", () => {
     expect(screen.getByText("some.label")).toHaveClass("required");
     expect(screen.getByText("some.error")).toBeInTheDocument();
     expect(container.querySelector(".labeled")).toHaveClass("has-error");
+    expect(container.querySelector(".labeled")).not.toHaveClass("wrap-label");
+
+    rerender(<TextInput name="a" label="some.label" wrapLabel />);
+    expect(container.querySelector(".labeled")).toHaveClass("wrap-label");
   });
 
   it("bound fields show their own validation error and keep numbers", async () => {
@@ -42,6 +57,44 @@ describe("ui components", () => {
       expect(onSubmit).toHaveBeenCalledWith({ amount: 12.5 }, expect.anything())
     );
     expect(screen.queryByText("errors.amountEmpty")).toBeNull();
+  });
+
+  it("AmountInput reads and shows amounts in the user's format", async () => {
+    const defaults = defaultPreferences();
+    store.dispatch(
+      SET_USERDATA({
+        preferences: { ...defaults, locale: { country: "DE" } },
+      })
+    );
+    const onSubmit = vi.fn();
+    const schema = z.object({ amount: z.number("errors.amountEmpty") });
+    const Form = () => {
+      const { control, handleSubmit } = useAppForm(schema, { amount: 1234.5 });
+      return (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <AmountInput name="amount" control={control} label="a" />
+          <CtaButton>save</CtaButton>
+        </form>
+      );
+    };
+    render(
+      <Provider store={store}>
+        <Form />
+      </Provider>
+    );
+    const input = screen.getByRole("textbox");
+    expect(input).toHaveValue("1.234,5");
+
+    // a half-typed decimal stays as typed
+    fireEvent.change(input, { target: { value: "12," } });
+    expect(input).toHaveValue("12,");
+    fireEvent.change(input, { target: { value: "12,5" } });
+    fireEvent.click(screen.getByText("save"));
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith({ amount: 12.5 }, expect.anything())
+    );
+
+    store.dispatch(SET_USERDATA({}));
   });
 
   it("Button does not submit by default, CtaButton does", () => {

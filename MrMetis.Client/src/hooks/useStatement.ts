@@ -4,11 +4,13 @@ import useBudget from "./useBudget";
 import useAccount from "./useAccount";
 import { IStatement } from "store/userdata/userdata.types";
 import { useCallback } from "react";
+import useLocale from "./useLocale";
 
 const useStatement = () => {
   const { statements } = useSelector((state: AppState) => state.data.userdata);
   const { getById: getBudgetById } = useBudget();
   const { getById: getAccountById } = useAccount();
+  const { formatAmount } = useLocale();
 
   const getById = useCallback(
     (statementId?: number) => statements.find((b) => b.id === statementId),
@@ -20,7 +22,7 @@ const useStatement = () => {
       const normalizedStr = str.toLocaleLowerCase();
       return list.filter(
         (s) =>
-          s.amount.toFixed(2).includes(normalizedStr) ||
+          formatAmount(s.amount).toLowerCase().includes(normalizedStr) ||
           getBudgetById(s.budgetId)
             ?.name.toLowerCase()
             .includes(normalizedStr) ||
@@ -30,7 +32,7 @@ const useStatement = () => {
           s.comment?.toLowerCase().includes(normalizedStr)
       );
     },
-    [getAccountById, getBudgetById]
+    [getAccountById, getBudgetById, formatAmount]
   );
 
   const filtered = useCallback(

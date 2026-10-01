@@ -184,7 +184,8 @@
     "fromAccountEmpty": "Выберите счёт",
     "toAccountEmpty": "Выберите счёт для перевода",
     "frequencyEmpty": "Частота не может быть пустой",
-    "frequencyInvalid": "Частота должна быть целым числом не меньше 1"
+    "frequencyInvalid": "Частота должна быть целым числом не меньше 1",
+    "symbolTooLong": "Символ валюты — не больше 5 знаков"
   },
   "landingPage": {
     "welcome": {
@@ -223,8 +224,61 @@
     "almostFull": "Хранилище почти заполнено"
   },
   "preferences": {
-    "header": "Настройки"
+    "header": "Настройки",
+    "locale": "Регион и форматы",
+    "country": "Страна",
+    "default": "по умолчанию",
+    "previewDate": "Дата",
+    "previewMonth": "Месяц",
+    "previewAmount": "Сумма",
+    "previewNegative": "Отрицательная сумма",
+    "previewWeek": "Неделя",
+    "dateFormat": "Порядок даты",
+    "dateSeparator": "Разделитель даты",
+    "firstDayOfWeek": "Первый день недели",
+    "decimalSeparator": "Десятичный разделитель",
+    "thousandsSeparator": "Разделитель тысяч",
+    "dateOrder": {
+      "DMY": "День, месяц, год",
+      "MDY": "Месяц, день, год",
+      "YMD": "Год, месяц, день"
+    },
+    "separator": {
+      "dot": "Точка",
+      "comma": "Запятая",
+      "slash": "Косая черта",
+      "dash": "Дефис",
+      "space": "Пробел",
+      "apostrophe": "Апостроф",
+      "none": "Без разделителя"
+    },
+    "currency": "Суммы",
+    "symbol": "Символ валюты",
+    "position": "Положение символа",
+    "positions": {
+      "before": "Перед суммой",
+      "after": "После суммы"
+    },
+    "decimals": "Знаков после запятой",
+    "negativeStyle": "Отрицательные суммы",
+    "preview": "Пример",
+    "general": "Общие",
+    "language": "Язык",
+    "showLanguageInHeader": "Показывать выбор языка в шапке",
+    "browserLanguage": "Язык браузера",
+    "theme": "Тема (скоро)",
+    "themes": {
+      "auto": "Авто (как в системе)",
+      "light": "Светлая",
+      "dark": "Тёмная"
+    },
+    "idleTimeout": "Выходить при бездействии через",
+    "minutes_one": "{{count}} минуту",
+    "minutes_few": "{{count}} минуты",
+    "minutes_many": "{{count}} минут",
+    "minutes_other": "{{count}} минуты"
   },
+
   "privacy": {
     "header": "Политика конфиденциальности",
     "text1": "Ваши  данные - Ваши. Мы никому их не будем передавать.",

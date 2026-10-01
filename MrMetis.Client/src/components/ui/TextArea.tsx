@@ -14,13 +14,14 @@ const TextArea = <T extends FieldValues>({
   required,
   error,
   horizontal,
+  wrapLabel,
   className,
   ...textareaProps
 }: ITextAreaProps<T>) => (
   <Bound name={name} control={control}>
     {(field, fieldError) => (
       <Field
-        {...{ label, required, horizontal, className }}
+        {...{ label, required, horizontal, wrapLabel, className }}
         error={error ?? fieldError}
       >
         <textarea

@@ -8,9 +8,11 @@ import ThisMonthStatements from "components/dashboard/ThisMonthStatements";
 import { Button, NoData } from "components/ui";
 import { useSelector } from "react-redux";
 import { AppState } from "store/store";
+import useLocale from "hooks/useLocale";
 
 const Dashboard = () => {
   const { t } = useTranslation();
+  const { formatMonth } = useLocale();
   const { loaded } = useSelector((state: AppState) => state.data);
 
   const [relativeMonthNr, setRelativeMonth] = useState(0);
@@ -34,7 +36,7 @@ const Dashboard = () => {
           </Button>
         </div>
         <div className={`month ${relativeMonthNr === 0 ? "current" : ""}`}>
-          {relativeMonth.format("YYYY-MM")}
+          {formatMonth(relativeMonth)}
         </div>
         <div>
           <Button

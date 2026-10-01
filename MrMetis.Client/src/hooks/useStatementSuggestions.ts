@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import useBudget from "./useBudget";
 import useAccount from "./useAccount";
-import moment from "moment";
-import { DATE_FORMAT } from "helpers/dateHelper";
+import useLocale from "./useLocale";
 import { useTranslation } from "react-i18next";
 import {
   getAccountSuggestions,
@@ -21,16 +20,17 @@ const useStatementSuggestions = () => {
   const { t } = useTranslation();
   const { budgets } = useBudget();
   const { accounts, getById: getAccountById } = useAccount();
+  const { formatAmount, formatDate, parseAmount, parseDate } = useLocale();
 
   const [searchText, setSearchText] = useState<string>("");
 
   const suggestionList = useMemo(() => {
-    const list: ISuggestion[] = getDateSuggestions(t);
+    const list: ISuggestion[] = getDateSuggestions(t, formatDate);
     list.push(...getAccountSuggestions(accounts, t));
     list.push(...getBudgetSuggestions(budgets, getAccountById, t));
 
     return list;
-  }, [budgets, accounts, getAccountById, t]);
+  }, [budgets, accounts, getAccountById, t, formatDate]);
 
   // Order: matching named suggestions, then amount, date and comment.
   const filteredSuggestions = useMemo(() => {
@@ -42,21 +42,21 @@ const useStatementSuggestions = () => {
       b.searchText.includes(searchText.toLocaleLowerCase())
     );
 
-    const amount = +searchText;
-    if (!isNaN(amount)) {
+    const amount = parseAmount(searchText);
+    if (amount !== undefined && !isNaN(amount)) {
       list.push({
         id: "a",
-        text: `${t("quickAdd.amount")}: ${amount}`,
+        text: `${t("quickAdd.amount")}: ${formatAmount(amount)}`,
         searchText: "",
         obj: { amount: amount },
       });
     }
 
-    const date = moment(searchText);
-    if (date.isValid()) {
+    const date = parseDate(searchText);
+    if (date) {
       list.push({
         id: "d",
-        text: `${t("quickAdd.date")}: ${date.format(DATE_FORMAT)}`,
+        text: `${t("quickAdd.date")}: ${formatDate(date)}`,
         searchText: "",
         obj: { date: date },
       });
@@ -70,7 +70,15 @@ const useStatementSuggestions = () => {
     });
 
     return list;
-  }, [searchText, suggestionList, t]);
+  }, [
+    searchText,
+    suggestionList,
+    t,
+    formatAmount,
+    formatDate,
+    parseAmount,
+    parseDate,
+  ]);
 
   return { searchText, setSearchText, filteredSuggestions };
 };

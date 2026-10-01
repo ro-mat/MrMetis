@@ -20,6 +20,7 @@ import AddOrEditControls from "components/AddOrEditControls";
 import AccountSelect from "components/AccountSelect";
 import BudgetSelect from "components/BudgetSelect";
 import {
+  AmountInput,
   Button,
   Checkbox,
   DateInput,
@@ -33,6 +34,7 @@ import { DATE_FORMAT, isBeforePrevMonth } from "helpers/dateHelper";
 import useOlderRows from "hooks/useOlderRows";
 import useFormulaPreview from "hooks/useFormulaPreview";
 import { getEnumArray } from "helpers/enumHelper";
+import useLocale from "hooks/useLocale";
 
 const schema = z
   .object({
@@ -100,6 +102,7 @@ const BudgetAddOrEdit = ({
   onClose,
 }: IBudgetAddOrEditProps) => {
   const { t } = useTranslation();
+  const { formatAmount } = useLocale();
   const dispatch = useDispatch<TAppDispatch>();
 
   const {
@@ -187,7 +190,7 @@ const BudgetAddOrEdit = ({
     const value = formula ? previewFormula(formula) : undefined;
     if (value === undefined) return undefined;
     if (typeof value === "string") return value;
-    return isNaN(value) ? "?" : value.toFixed(2);
+    return isNaN(value) ? "?" : formatAmount(value);
   };
 
   // a child of a budget with an account uses (and is locked to) that account
@@ -441,10 +444,9 @@ const BudgetAddOrEdit = ({
                   label="budget.fromAccount"
                   required
                 />
-                <TextInput
+                <AmountInput
                   name={`overrides.${index}.amount`}
                   control={control}
-                  type="number"
                   label="budget.amount"
                   required
                 />

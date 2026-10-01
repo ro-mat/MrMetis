@@ -137,6 +137,11 @@ form {
     gap: 1em;
   }
 
+  // see the wrapLabel prop
+  &.wrap-label {
+    max-width: 12em;
+  }
+
   &.has-error input,
   &.has-error select,
   &.has-error textarea {

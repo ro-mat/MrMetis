@@ -1,13 +1,16 @@
 import React, { FC } from "react";
 import moment, { Moment } from "moment";
 import { useTranslation } from "react-i18next";
+import { formatInLanguage } from "helpers/dateHelper";
+import useLocale from "hooks/useLocale";
 
 interface ITableHeaderProps {
   months: Moment[];
 }
 
 const TableHeader: FC<ITableHeaderProps> = ({ months }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { formatMonth } = useLocale();
 
   return (
     <>
@@ -21,7 +24,7 @@ const TableHeader: FC<ITableHeaderProps> = ({ months }) => {
               month.isSame(moment(), "M") ? "current-month" : ""
             }`}
           >
-            {month.locale(i18n.language).format("YYYY-MM (MMM)")}
+            {`${formatMonth(month)} (${formatInLanguage(month, "MMM")})`}
           </th>
         ))}
       </tr>
