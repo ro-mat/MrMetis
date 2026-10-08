@@ -15,7 +15,7 @@ export interface ICredentials {
   invitationCode?: string;
 }
 
-// Key derivation settings of the account, see MrMetis.Core/Kdf.cs
+// Key derivation settings of the account, see api/MrMetis.Core/Kdf.cs
 export interface IPrelogin {
   salt: string;
   iterations: number;

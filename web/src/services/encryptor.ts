@@ -1,4 +1,4 @@
-// Keep in sync with MrMetis.Core/Kdf.cs
+// Keep in sync with api/MrMetis.Core/Kdf.cs
 export const KDF_ITERATIONS = 600_000;
 const SALT_BYTES = 16;
 const IV_BYTES = 12;

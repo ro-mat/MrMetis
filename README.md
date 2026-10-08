@@ -30,7 +30,7 @@ This starts SQL Server 2022 on `localhost:1433`, with its data kept in the `mrme
 
 ```sh
 dotnet dev-certs https                 # once; the certificate doesn't need to be trusted
-dotnet run --project MrMetis.Api
+dotnet run --project api/MrMetis.Api
 ```
 
 On startup the API (in the `Development` environment) creates the `mrmetis-local` database, applies migrations and seeds the invitation code **`local-dev`**. Codes are single-use, so a fresh one is seeded whenever no unused code is left, for example after the next restart. The API listens on `https://localhost:5001`. If it can't reach SQL Server within about a minute, it stops with an error.
@@ -38,7 +38,7 @@ On startup the API (in the `Development` environment) creates the `mrmetis-local
 #### 3. Run the client
 
 ```sh
-cd MrMetis.Client
+cd web
 npm install
 npm start
 ```
@@ -63,7 +63,7 @@ docker compose down -v   # stop and delete the database
 
   Any directory outside the encrypted home works. Many distributions delete files in `/var/tmp` that haven't been used for about 30 days.
 
-- Migrations and schema changes: see [MrMetis.Infrastructure/README.md](MrMetis.Infrastructure/README.md).
+- Migrations and schema changes: see [api/MrMetis.Infrastructure/README.md](api/MrMetis.Infrastructure/README.md).
 
 ### Contributing
 
