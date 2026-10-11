@@ -65,6 +65,23 @@ docker compose down -v   # stop and delete the database
 
 - Migrations and schema changes: see [api/MrMetis.Infrastructure/README.md](api/MrMetis.Infrastructure/README.md).
 
+### QA environment
+
+Every push to `main` runs [deploy-qa.yml](.github/workflows/deploy-qa.yml): it runs the API tests, builds the `mrmetis-web` and `mrmetis-api` images to GHCR, and the self-hosted runner on the home server starts [deploy/compose.yml](deploy/compose.yml) in `/srv/apps/mrmetis-qa`. The site is https://mrmetis-qa.romkats.eu.
+
+One-time setup in GitHub, Settings → Environments → `qa`, add these secrets:
+
+- `MSSQL_SA_PASSWORD`, `DB_APP_PASSWORD`: SQL Server passwords. They need upper case, lower case and digits, and must not contain `;` or `'`, for example `openssl rand -base64 32 | tr -d '/+='`
+- `JWT_SECRET`: at least 32 characters, for example `openssl rand -hex 32`
+
+On the first start the API creates the `mrmetis-qa` database and its login, and migrations run on every start. To change `DB_APP_PASSWORD` later, change the login's password in SQL Server too. Invitation codes are not seeded in QA; add one on the server:
+
+```sh
+cd /srv/apps/mrmetis-qa
+docker compose exec db sh -c '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d mrmetis-qa \
+  -Q "INSERT INTO dbo.InvitationCodes (Code, IsActive, Created, Modified) VALUES (N'\''my-code'\'', 1, SYSUTCDATETIME(), SYSUTCDATETIME())"'
+```
+
 ### Contributing
 
 Feel free to leave a bug report, improvement suggestion or request new functionality here in [issues](https://github.com/ro-mat/MrMetis/issues).

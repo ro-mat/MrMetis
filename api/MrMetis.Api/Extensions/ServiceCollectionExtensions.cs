@@ -4,6 +4,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MrMetis.Api.ExceptionHandling;
 using MrMetis.Core.Options;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 namespace MrMetis.Api.Extensions;
 
@@ -13,6 +16,7 @@ public static class ServiceCollectionExtensions
     {
         builder.AddCorsPolicy();
         builder.AddJwtAuthentication();
+        builder.AddTelemetry();
 
         builder.Services.AddProblemDetails();
         builder.Services.AddExceptionHandler<MrMetisExceptionHandler>();
@@ -58,6 +62,33 @@ public static class ServiceCollectionExtensions
             });
 
         builder.Services.AddAuthorization();
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Sends traces, metrics and logs over OTLP. Endpoint, service name and resource attributes come from
+    /// the OTEL_* environment variables; without OTEL_EXPORTER_OTLP_ENDPOINT (local development) nothing is sent.
+    /// </summary>
+    public static WebApplicationBuilder AddTelemetry(this WebApplicationBuilder builder)
+    {
+        if (string.IsNullOrEmpty(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
+        {
+            return builder;
+        }
+
+        builder.Services.AddOpenTelemetry()
+            .WithTracing(tracing => tracing
+                .AddAspNetCoreInstrumentation(options =>
+                    // health probes from the deploy smoke test would only add noise
+                    options.Filter = context => !context.Request.Path.StartsWithSegments("/health"))
+                .AddHttpClientInstrumentation())
+            .WithMetrics(metrics => metrics
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddRuntimeInstrumentation())
+            .WithLogging()
+            .UseOtlpExporter();
 
         return builder;
     }

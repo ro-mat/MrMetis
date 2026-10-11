@@ -1,0 +1,63 @@
+# QA environment on the home server, deployed to /srv/apps/mrmetis-qa by .github/workflows/deploy-qa.yml.
+# TAG and the secrets below are written to the .env next to this file by the workflow.
+name: mrmetis-qa
+services:
+  web:
+    image: ghcr.io/ro-mat/mrmetis-web:${TAG:-latest}
+    restart: unless-stopped
+    networks: [proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mrmetis-qa-web.rule=Host(`mrmetis-qa.romkats.eu`)
+      - traefik.http.routers.mrmetis-qa-web.entrypoints=web
+      - traefik.http.services.mrmetis-qa-web.loadbalancer.server.port=80
+
+  api:
+    image: ghcr.io/ro-mat/mrmetis-api:${TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: QA
+      # use the client's scheme and IP from Traefik's X-Forwarded-* headers
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      Database__ConnectionString: Server=db,1433;Initial Catalog=mrmetis-qa;User ID=mrmetis_qa_app;Password=${DB_APP_PASSWORD:?};Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;
+      Database__SetupConnectionString: Server=db,1433;Initial Catalog=mrmetis-qa;User ID=sa;Password=${MSSQL_SA_PASSWORD:?};Encrypt=True;TrustServerCertificate=True;
+      Authentication__Jwt__Secret: ${JWT_SECRET:?}
+      OTEL_SERVICE_NAME: mrmetis-qa-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment=qa,service.namespace=mrmetis-qa
+    networks: [proxy, otel, backend]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mrmetis-qa-api.rule=Host(`mrmetis-qa.romkats.eu`) && (PathPrefix(`/api`) || Path(`/health`))
+      - traefik.http.routers.mrmetis-qa-api.entrypoints=web
+      - traefik.http.services.mrmetis-qa-api.loadbalancer.server.port=8080
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?}
+      MSSQL_MEMORY_LIMIT_MB: 2048
+    volumes:
+      - db-data:/var/opt/mssql
+    networks: [backend]
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -Q "SELECT 1" -b -o /dev/null
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  db-data:
+
+networks:
+  backend: {}             # private to this stack: only the api reaches the database
+  proxy:
+    external: true
+  otel:
+    external: true

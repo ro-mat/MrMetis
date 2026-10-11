@@ -12,7 +12,7 @@ namespace MrMetis.Infrastructure;
 
 /// <summary>
 /// Creates the database, its login and role if missing, applies migrations and seeds local data.
-/// Only meant for Development and Test environments.
+/// Only meant for Development, Test and QA environments.
 /// </summary>
 public class DatabaseInitializer(
     MrMetisContext context,

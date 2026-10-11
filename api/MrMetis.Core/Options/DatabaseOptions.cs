@@ -10,7 +10,7 @@ public class DatabaseOptions
     public string ConnectionString { get; set; } = null!;
 
     /// <summary>
-    /// Connection string with rights to create the database and login, only used in Development/Test
+    /// Connection string with rights to create the database and login, only used in Development/Test/QA
     /// </summary>
     public string? SetupConnectionString { get; set; }
 

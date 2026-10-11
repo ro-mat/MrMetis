@@ -10,7 +10,7 @@ builder.AddApiServices();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopmentOrTest())
+if (app.Environment.IsDevelopmentOrTest() || app.Environment.IsQa())
 {
     await app.InitializeDatabaseAsync();
 }
