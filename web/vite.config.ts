@@ -2,7 +2,7 @@ import { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
-// Only scripts from our own origin may run, so injected markup can't run code that uses the data key.
+// Only scripts from our own origin may run (plus eval for formulas), so injected markup can't run code that uses the data key.
 // Build only: the dev server's HMR relies on inline scripts. Styles stay inline for MUI/emotion.
 const contentSecurityPolicy = (): Plugin => {
   let apiRoot = "/";
@@ -19,7 +19,8 @@ const contentSecurityPolicy = (): Plugin => {
           "http-equiv": "Content-Security-Policy",
           content: [
             "default-src 'self'",
-            "script-src 'self'",
+            // budget formulas are compiled with Function()
+            "script-src 'self' 'unsafe-eval'",
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data:",
             // a relative api root is already covered by 'self'
