@@ -48,7 +48,7 @@ const Planning = () => {
           subnavItems.find((i) => location.pathname.startsWith(i.value))?.value
         }
       />
-      <ErrorBoundary>
+      <ErrorBoundary resetKey={location.pathname}>
         {isReady ? (
           <Outlet context={{ months, budgetPairArray }} />
         ) : loaded ? (
