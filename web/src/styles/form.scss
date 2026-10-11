@@ -1,0 +1,190 @@
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+
+  label {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  input,
+  textarea {
+    @include form-control;
+    margin-bottom: 10px;
+  }
+
+  select {
+    @include form-control;
+    width: 100%;
+    margin-bottom: 10px;
+    background-color: #fff;
+  }
+
+  .crud {
+    display: flex;
+    gap: 1em;
+  }
+
+  .list-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      margin-left: 2em;
+
+      // fields have labels on top, so rows line up on the inputs' bottom
+      & > div {
+        display: flex;
+        gap: 1em;
+        align-items: flex-end;
+      }
+
+      .react-datepicker-wrapper input {
+        width: 15ch;
+      }
+
+      .frequency input {
+        width: 10ch;
+      }
+
+      // current month value under the amount formula; out of the flow, so
+      // the row still lines up on the inputs' bottom
+      .amount-with-preview {
+        position: relative;
+
+        .formula-preview {
+          position: absolute;
+          top: calc(100% - 8px); // over the input's bottom margin
+          left: 0;
+          font-size: 0.8em;
+          white-space: nowrap;
+          color: #555;
+        }
+      }
+    }
+
+    & > .labeled.horizontal label {
+      margin-bottom: 0;
+    }
+
+    // "+" button that adds a row: square, sign centered
+    .add {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      width: 1.6em;
+      height: 1.6em;
+      padding: 0;
+      line-height: 1;
+    }
+
+    // row delete button
+    .remove {
+      @include control-button;
+      margin-bottom: 10px; // same as the inputs
+    }
+
+    // "show older items" under a list
+    .link {
+      align-self: flex-start;
+      margin-left: 2em;
+      padding: 0;
+      border: none;
+      background: none;
+      font-weight: normal;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
+
+  .controls {
+    display: flex;
+    gap: 0.5em;
+  }
+
+  .required::after {
+    content: "*";
+    vertical-align: top;
+    padding-left: 0.2em;
+    color: red;
+    font-weight: normal;
+  }
+}
+
+// expandable add/edit section above a page's list
+.add-or-edit {
+  margin-bottom: 2em;
+  padding: 1em;
+  border-radius: 5px;
+  background-color: $primary-color;
+}
+
+.labeled {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  position: relative;
+
+  &.horizontal {
+    flex-direction: row;
+    align-items: center;
+    gap: 1em;
+  }
+
+  // see the wrapLabel prop
+  &.wrap-label {
+    max-width: 12em;
+  }
+
+  &.has-error input,
+  &.has-error select,
+  &.has-error textarea {
+    border-color: red;
+  }
+
+  .error {
+    position: absolute;
+    left: 101%;
+    top: 50%;
+    white-space: nowrap;
+  }
+}
+
+.head-wrapper {
+  display: flex;
+  margin-bottom: 1em;
+  align-items: center;
+
+  button {
+    height: 2em;
+    width: 2em;
+    padding: 3px;
+    margin-left: 2em;
+  }
+}
+
+.month-select {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+
+  .month {
+    padding: 0.2em 0.5em;
+
+    &.current {
+      background-color: $primary-color-highlight;
+    }
+  }
+}
+
+// above the sticky table header (z-index 52); nested so it outranks
+// react-datepicker.css, which loads after the global styles
+.labeled .react-datepicker-popper {
+  z-index: 100;
+}

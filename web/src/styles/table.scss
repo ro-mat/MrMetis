@@ -1,0 +1,279 @@
+// Tables don't scroll on their own: they scroll with the page content, and
+// the header row (and first column) stick to it.
+// Borders are "separate", not "collapse": collapsed borders are drawn by the
+// table underneath its cells, so the sticky header and first column would
+// cover them. Each cell draws its left and bottom border; the table the outside.
+// Each table is its own stacking layer: its sticky parts only compete within
+// the table. The table with an open statements preview is lifted above the
+// other tables (and their sticky headers).
+table {
+  position: relative;
+  z-index: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #ccc;
+
+  &:has(.statement-cell.selected) {
+    z-index: 1;
+  }
+
+  // opaque, so sticky rows and the sticky first column hide what scrolls under them
+  tr {
+    background-color: white;
+
+    &.sticky {
+      position: sticky;
+      top: var(--thead-height, 60px); // set by the planning page
+      z-index: 51;
+
+      & > td {
+        background-color: inherit;
+      }
+    }
+
+    &.highlight {
+      background-color: #e6e6e6;
+    }
+  }
+
+  // sticky first column; before the cell colour classes (.r, .g, ...) so they win
+  td:first-of-type {
+    background-color: inherit;
+  }
+
+  td {
+    border-left: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+
+    &:first-child {
+      border-left: none;
+    }
+  }
+
+  // the table's own border is under the last row
+  tbody:last-child > tr:last-child > td {
+    border-bottom: none;
+  }
+
+  th,
+  td {
+    padding: 4px 8px;
+    text-align: right;
+    white-space: nowrap;
+
+    &.name-cell {
+      padding-left: 1.75em;
+    }
+
+    &.has-children {
+      cursor: pointer;
+
+      .toggle-icon {
+        position: absolute;
+        top: 50%;
+        translate: 0 -50%;
+        font-size: 0.75em;
+        transition: rotate 0.15s;
+
+        &.open {
+          rotate: 90deg;
+        }
+      }
+    }
+
+    &:first-of-type {
+      text-align: left;
+
+      position: sticky;
+      left: 0;
+      z-index: 50;
+    }
+
+    // month separator; the next month's .bl draws it, so .br adds nothing
+    &.bl {
+      border-left: 1px solid black;
+    }
+
+    // the first month only borders the name column, so no separator there
+    &:first-child + .bl {
+      border-left-color: #ccc;
+    }
+
+    &.r {
+      background-color: #f17665;
+    }
+
+    &.g {
+      background-color: #71c471;
+    }
+
+    $i: 0;
+    @while $i <= 100 {
+      &.gp-#{$i} {
+        background: linear-gradient(
+            to right,
+            #{"#71c471 #{$i}%"},
+            #{"transparent #{$i}%"}
+          )
+          no-repeat;
+      }
+
+      &.rp-#{$i} {
+        background: linear-gradient(
+            to right,
+            #{"#f17665 #{$i}%"},
+            #{"transparent #{$i}%"}
+          )
+          no-repeat;
+      }
+
+      $i: $i + 1;
+    }
+  }
+
+  th {
+    background-color: #f6f6f6;
+    text-align: center;
+
+    // no borders between header cells, just a line under the header
+    &,
+    &.bl {
+      border: none;
+    }
+
+    &.current-month {
+      background-color: $primary-color-highlight;
+    }
+  }
+
+  thead tr:last-child th {
+    border-bottom: 1px solid #ccc;
+  }
+
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 52;
+  }
+}
+
+.filter-text {
+  margin-bottom: 1em;
+
+  input {
+    @include form-control;
+  }
+}
+
+.statement-cell {
+  position: relative;
+
+  &.has-statements {
+    cursor: pointer;
+  }
+
+  &.selected {
+    box-shadow: 0px 0px 5px 5px $primary-color-highlight;
+  }
+}
+
+.preview-statements {
+  position: absolute;
+  top: 0;
+  left: 105%;
+  // above the other cells, below its table's sticky header, rows and first
+  // column (50-52)
+  z-index: 1;
+  cursor: default;
+  // as wide as its longest line: an absolute box would otherwise shrink to
+  // the space left next to its cell
+  width: max-content;
+
+  background-color: $primary-color;
+
+  box-shadow: 3px 3px 5px 0px;
+
+  .preview-toolbar {
+    display: flex;
+    justify-content: flex-start;
+    gap: 0.5em;
+    padding: 0.25em 0.25em 0;
+
+    // half the usual size, square
+    button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      width: 1.6em;
+      height: 1.6em;
+      padding: 0;
+      font-size: 0.75em;
+    }
+  }
+
+  & > div:not(.preview-toolbar) {
+    padding: 0em 0.25em 0.5em;
+
+    min-width: 200px;
+    max-height: 120px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  // nested in the planning table: undo its borders, backgrounds and sticky parts
+  table {
+    position: static;
+    z-index: auto;
+    border: none;
+
+    thead {
+      position: static;
+
+      th {
+        border-bottom: none;
+      }
+    }
+
+    tr,
+    th,
+    td {
+      position: static;
+      background: transparent;
+      border: none;
+    }
+
+    th,
+    td {
+      padding: 2px 6px;
+      text-align: left;
+
+      &.amount {
+        text-align: right;
+      }
+    }
+
+    // stays on top while the list scrolls; opaque so rows hide under it
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background-color: $primary-color;
+      font-weight: bold;
+    }
+  }
+}
+
+// "show more" / "show all" links under a statement table
+.show-more {
+  display: flex;
+  gap: 1em;
+  margin-top: 0.5em;
+}
+
+// message shown in place of an empty page's table
+.no-data {
+  color: #666;
+  font-style: italic;
+}

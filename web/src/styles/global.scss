@@ -1,0 +1,164 @@
+﻿// Primary color and variations
+$primary-color: #91f9e5;
+$primary-color-dark: #177e89;
+$primary-color-highlight: #fdca40;
+$side-panel-width: 200px;
+
+// Reset styles
+html,
+body,
+p,
+ul,
+ol,
+h1,
+h2,
+h3,
+h4,
+h5 {
+  margin: 0;
+  padding: 0;
+}
+
+// general stuff
+body {
+  font-family: "Calibri", Arial, Helvetica, sans-serif;
+  font-size: 18px;
+
+  &.dark {
+    background-color: #333;
+    color: #fff;
+  }
+}
+
+h1 {
+  font-size: 3rem;
+}
+
+h2 {
+  font-size: 2.5rem;
+}
+
+h3 {
+  font-size: 2rem;
+}
+
+h4 {
+  font-size: 1.5rem;
+}
+
+h5 {
+  font-size: 1.1rem;
+}
+
+// App frame: header and footer always visible, the page in between scrolls.
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh; // mobile browsers: exclude the address bar
+  overflow: hidden;
+}
+
+header,
+footer {
+  flex-shrink: 0;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0; // allow shrinking below the content height, so it scrolls
+  overflow-y: auto;
+}
+
+// Text box look shared by form fields and table filters
+$control-line-height: 20px;
+$control-padding: 10px;
+// full outer height of a text box (line + padding + 1px borders)
+$control-height: $control-line-height + 2 * $control-padding + 2px;
+
+@mixin form-control {
+  padding: $control-padding;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  line-height: $control-line-height;
+}
+
+// Square icon/symbol button as tall as the text box next to it
+@mixin control-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  width: $control-height;
+  height: $control-height;
+  padding: 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+  font-size: 16px;
+
+  &:not(:disabled):hover {
+    background-color: #f6f6f6;
+  }
+}
+
+// Small popup shown on hover: disabled button reasons, hints
+@mixin tooltip {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 200;
+  width: max-content;
+  max-width: 20em;
+  padding: 0.5em 0.8em;
+  border: 1px solid black;
+  background-color: white;
+  color: #333;
+  font-weight: normal;
+  white-space: normal;
+}
+
+@import "header";
+@import "main";
+@import "footer";
+
+@import "button";
+@import "table";
+@import "form";
+
+@import "dropdown";
+@import "quick-add";
+@import "raw-data";
+@import "hint";
+
+.error {
+  color: red;
+}
+
+.ml-1 {
+  margin-left: 1em;
+}
+
+#demo-top-bar {
+  background-color: #ff4d36;
+  padding: 0.5em 1em;
+  border: 1px solid black;
+}
+
+.range-slider {
+  padding: 0 10px; // half an MUI slider thumb
+}
+
+#planning-subnav {
+  display: flex;
+  gap: 1em;
+  margin: 1em 1em;
+}
+
+// page specific
+@import "index";
+@import "dashboard";
+@import "preferences";

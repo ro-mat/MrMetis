@@ -1,0 +1,19 @@
+.hint {
+  position: relative;
+  display: inline-block;
+
+  label {
+    text-decoration: underline;
+  }
+
+  [role="tooltip"] {
+    @include tooltip;
+    display: none;
+    white-space: pre-line; // hints use \n for line breaks
+    max-width: none; // some hints hold preformatted text
+  }
+
+  &:hover > [role="tooltip"] {
+    display: block;
+  }
+}

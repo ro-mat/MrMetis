@@ -1,0 +1,321 @@
+{
+  "general": {
+    "yes": "Yes",
+    "no": "No",
+    "nothingFound": "Nothing found"
+  },
+  "noData": {
+    "dashboard": "No data yet. Start by adding an account on the Accounts page, then set up your budget.",
+    "planning": "Nothing to plan yet. Add an account and a budget first.",
+    "statements": "No statements yet. Press + to add one.",
+    "budget": "No budgets yet. Press + to add one.",
+    "accounts": "No accounts yet. Press + to add one."
+  },
+  "nav": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "planning": "Planning",
+    "statements": "List",
+    "budget": "Budget",
+    "accounts": "Accounts",
+    "preferences": "Preferences",
+    "profile": "Profile"
+  },
+  "quickAdd": {
+    "quickAdd": "Quick add",
+    "nothingFound": "Nothing found!",
+    "comment": "Comment",
+    "amount": "Amount",
+    "date": "Date",
+    "today": "today",
+    "yesterday": "yesterday",
+    "budget": "Budget",
+    "account": "Account",
+    "statementAdded": "Statement added!",
+    "hint": "Start typing\nTab to fill field\nEnter to add statement"
+  },
+  "login": {
+    "header": "Login",
+    "login": "Login",
+    "loggingIn": "Logging in...",
+    "email": "Email",
+    "password": "Password"
+  },
+  "register": {
+    "header": "Register",
+    "register": "Register",
+    "registering": "Registering...",
+    "email": "Email",
+    "password": "Password",
+    "code": "Invitation code"
+  },
+  "dashboard": {
+    "header": "Welcome to dashboard",
+    "currentBalance": "Current balance",
+    "total": "Total",
+    "thisMonthStatements": "This month statements",
+    "remainingPlannedExpences": "Remaining planned expences"
+  },
+  "planning": {
+    "header": "Welcome to planning",
+    "all": "All",
+    "perAccount": "Per account",
+    "name": "Name",
+    "planned": "Planned",
+    "actual": "Actual",
+    "leftFromPrevMonth": "Left from prev month",
+    "sentFrom": "Sent from",
+    "total": "Total",
+    "openingBalance": "Opening balance",
+    "closingBalance": "Closing balance",
+    "totalSpendings": "Total spendings",
+    "monthDelta": "Month Delta"
+  },
+  "statement": {
+    "header": "Statement list",
+    "filter": "Filter",
+    "date": "Date",
+    "amount": "Amount",
+    "budget": "Budget",
+    "account": "Account",
+    "comment": "Comment",
+    "showMore": "Show {{count}} more",
+    "showAll": "Show all ({{count}})"
+  },
+  "budget": {
+    "header": "Budget list",
+    "filter": "Filter",
+    "id": "Id",
+    "name": "Name",
+    "type": "Type",
+    "parent": "Parent",
+    "account": "Account",
+    "currentAmount": "Current amount",
+    "isEssential": "Is essential",
+    "expectOneStatement": "Expect one statement",
+    "fromAccount": "From account",
+    "toAccount": "To account",
+
+    "amounts": "Amounts",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "amount": "Amount",
+    "frequency": "Every x months",
+
+    "overrides": "Overrides",
+    "month": "Month",
+
+    "amountPreview": "This month: {{value}}",
+    "amountHint": {
+      "label": "Advanced amount",
+      "description": "[cur_month | prev_month]: Current month or previous month\n.[\ngetLeftFromPrevMonth([accountId]): Left from previous month with optional account specification\ngetTotalIncome([accountId]): Total of type 'Income' with optional account specification\ngetTotalSpending([accountId]): Total of type 'Spending' with optional account specification\ngetTotalLoanReturn([accountId]): Total of type 'Loan return' with optional account specification\ngetTotalSavings([accountId]): Total of type 'Savings' with optional account specification\ngetTotalToOtherAccount([accountId]): Total of type 'Transfer to other account' with optional account specification\ngetTotalFromOtherAccount([accountId]): Total of type 'Transfer from other account' with optional account specification\ngetTotalKeepOnAccount([accountId]): Total of type 'Keep on account' with optional account specification\ngetOpeningBalance([accountId]): = (getLeftFromPrevMonth + getTotalIncome + getTotalFromOtherAccount) with optional account specification\ngetClosingBalance([accountId]): = (getOpeningBalance - getTotalSavings - getTotalLoanReturn - getTotalSpending - totalToOtherAccount)  with optional account specification\ngetItem(<budgetId>[, accountId]): Gets amount of a specific budget item with optional account specification\ngetDaysInMonth(): Gets total of calendar days in a month (1 - 31)\ngetWeekdaysInMonth([1..7]): Gets total of a certain weekday in a month (e.g. getWeekdaysInMonth(2) = Tuesdays in a month)\n]"
+    }
+  },
+  "account": {
+    "header": "Account list",
+    "id": "Id",
+    "name": "Name",
+
+    "leftFromPrevMonth": "Left from prev month",
+    "month": "Month",
+    "amount": "Amount"
+  },
+  "addOrEdit": {
+    "add": "Add",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "invalidForm": "Some fields are missing or invalid",
+    "showOlder": "Show older items ({{count}})",
+    "hideOlder": "Hide older items",
+    "accountInUse": "This account is used by budgets or statements, so it can't be deleted",
+    "budgetInUse": "This budget has sub-budgets or statements, so it can't be deleted"
+  },
+  "demo": {
+    "topBarMessage": "You are using demo data! The data is not saved and may be lost. Feel free to play around and change anything.",
+    "resetData": "Reset data",
+    "resetSuccessful": "Reset successful"
+  },
+  "rawData": {
+    "save": "Save",
+    "discard": "Discart unsaved changes"
+  },
+  "budgetType": {
+    "income": "Income",
+    "spending": "Spending",
+    "loanReturn": "Loan return",
+    "savings": "Savings",
+    "transferToAccount": "Transfer to Account",
+    "keepOnAccount": "Keep on Account"
+  },
+  "errors": {
+    "storageLimitExceeded": "Not saved: your storage limit is reached. Remove some data and try again.",
+    "userNotFound": "User not found",
+    "userDataNotFound": "Data not found",
+    "emailEmpty": "Email cannot be empty",
+    "emailInvalid": "Email is invalid",
+    "passwordEmpty": "Password cannot be empty",
+    "passwordTooShort": "Password is too short",
+    "passwordInvalid": "Password cannot be less than 8 characters long",
+    "codeEmpty": "Code cannot be empty",
+    "codeInvalid": "Invalid code",
+    "emailExists": "User with this email address already exists",
+    "failedUserCreate": "Failed to create user",
+    "failedLogin": "Failed to login",
+    "missingTransactionData": "Not enough data for statement",
+    "nameEmpty": "Name cannot be empty",
+    "monthEmpty": "Month cannot be empty",
+    "amountEmpty": "Amount cannot be empty",
+    "NaN": "Not a number",
+    "amountZero": "Amount cannot be 0",
+    "dateEmpty": "Date cannot be empty",
+    "budgetEmpty": "Choose a budget",
+    "accountEmpty": "Choose an account",
+    "typeEmpty": "Choose a type",
+    "fromAccountEmpty": "Choose an account",
+    "toAccountEmpty": "Choose the account to transfer to",
+    "frequencyEmpty": "Frequency cannot be empty",
+    "frequencyInvalid": "Frequency must be a whole number of at least 1",
+    "symbolTooLong": "Currency symbol can be up to 5 characters"
+  },
+  "landingPage": {
+    "welcome": {
+      "header": "Mr Metis",
+      "text1": "Personal finances helper tool.",
+      "text2": "Keep and track your personal finance records, setup budget rules, plan purchases.",
+      "buttonText": "Try Demo"
+    },
+    "about": {
+      "header": "About the tool",
+      "text1": "Keep track of your spending habits. Improve your financial planning. Set budget goals.",
+      "text2": "This tool is meant for personal use and is not aimed at companies."
+    },
+    "bulletPoints": {
+      "header": "What sets this tool apart",
+      "openSource": {
+        "header": "Open source",
+        "text": "Project is open source. Feel free to review the code, submit bug reports and request functionalilty on our",
+        "urlText": "GitHub page"
+      },
+      "private": {
+        "header": "Private",
+        "text": "Your data is your own. The data is encrypted before it leaves your device. We will not share, sell or even see your data.",
+        "urlText": "Privacy policy"
+      }
+    },
+    "newsletter": {
+      "header": "Newsletter",
+      "text": "If you want to receive news about the tool, you can subscribe to our newsletter (TBA)",
+      "inputPlaceholder": "Email",
+      "buttonText": "Subscribe"
+    }
+  },
+  "storage": {
+    "savedAfterFailure": "Saved successfully",
+    "almostFull": "Storage almost full"
+  },
+  "preferences": {
+    "header": "Preferences",
+    "locale": "Region and formats",
+    "country": "Country",
+    "default": "default",
+    "previewDate": "Date",
+    "previewMonth": "Month",
+    "previewAmount": "Amount",
+    "previewNegative": "Negative amount",
+    "previewWeek": "Week",
+    "dateFormat": "Date order",
+    "dateSeparator": "Date separator",
+    "firstDayOfWeek": "First day of the week",
+    "decimalSeparator": "Decimal separator",
+    "thousandsSeparator": "Thousands separator",
+    "dateOrder": {
+      "DMY": "Day, month, year",
+      "MDY": "Month, day, year",
+      "YMD": "Year, month, day"
+    },
+    "separator": {
+      "dot": "Dot",
+      "comma": "Comma",
+      "slash": "Slash",
+      "dash": "Dash",
+      "space": "Space",
+      "apostrophe": "Apostrophe",
+      "none": "None"
+    },
+    "currency": "Amounts",
+    "symbol": "Currency symbol",
+    "position": "Symbol position",
+    "positions": {
+      "before": "Before the amount",
+      "after": "After the amount"
+    },
+    "decimals": "Decimal places",
+    "negativeStyle": "Negative amounts",
+    "preview": "Preview",
+    "general": "General",
+    "language": "Language",
+    "showLanguageInHeader": "Show language in header",
+    "browserLanguage": "Browser language",
+    "theme": "Theme (coming soon)",
+    "themes": {
+      "auto": "Auto (as the system)",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "idleTimeout": "Log out when idle for",
+    "minutes_one": "{{count}} minute",
+    "minutes_other": "{{count}} minutes"
+  },
+
+  "privacy": {
+    "header": "Privacy policy",
+    "text1": "Your data is yours. We will not share it with anyone.",
+    "text2": "Our database stores in plain text only your e-mail. The rest is encrypted before it leaves your device.",
+    "text3": "Anything we store on your device is related to functionality of the site only."
+  },
+  "demoData": {
+    "localBar": "Local bar",
+    "coffee": "Coffee",
+    "pool": "Pool with coworkers",
+    "hookah": "Hookah",
+    "beers": "Beers",
+    "bowling": "Bowling with family",
+    "vegetables": "Vegetables",
+    "steaks": "Steaks",
+    "wholeSale": "Whole sale",
+    "lagavulin": "Lagavulin 16",
+    "jimBeam": "Jim beam",
+    "partySnacks": "Party snacks",
+    "workParty": "Work party",
+    "pizza": "Pizza",
+    "market": "Market",
+    "meat": "Meat",
+    "salary": "Salary",
+    "aptLoan": "Apt loan",
+    "groceries": "Groceries",
+    "alcohol": "Alcohol",
+    "internet": "Internet",
+    "phone": "Phone",
+    "sport": "Sport",
+    "gym": "Gym",
+    "bills": "Bills",
+    "electricity": "Electricity",
+    "water": "Water",
+    "gas": "Gas",
+    "longTermSaving": "Long term saving",
+    "shortTermSaving": "Short term saving",
+    "goingOut": "Going out",
+    "kidsAllowance": "Kids allowance",
+    "sendToCC": "Send to Credit Card",
+    "cashWithdrawal": "Cash withdrawal",
+    "main": "Main",
+    "creditCard": "Credit card",
+    "cash": "Cash",
+    "unplanned": "Unplanned",
+    "borrow": "Filip borrowed",
+    "parking": "Parking"
+  }
+}

@@ -1,0 +1,150 @@
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { TAppDispatch } from "store/store";
+import {
+  ADD_STATEMENT,
+  DELETE_STATEMENT,
+  UPDATE_STATEMENT,
+} from "store/userdata/userdata.slice";
+import moment from "moment";
+import { DATE_FORMAT } from "helpers/dateHelper";
+import useStatement from "hooks/useStatement";
+import { statementAddOrEditFormDefault } from "helpers/constants/defaults";
+import { z } from "zod";
+import { requiredError, requiredId } from "helpers/zodHelper";
+import useAppForm from "hooks/useAppForm";
+import AddOrEditControls from "components/AddOrEditControls";
+import AccountSelect from "components/AccountSelect";
+import BudgetSelect from "components/BudgetSelect";
+import { AmountInput, DateInput, TextArea } from "components/ui";
+
+const schema = z.object({
+  id: z.number().optional(),
+  amount: z.coerce
+    .number(requiredError("errors.amountEmpty", "errors.NaN"))
+    .refine((amount) => amount !== 0, "errors.amountZero"),
+  date: z.date(requiredError("errors.dateEmpty")),
+  budgetId: requiredId("errors.budgetEmpty"),
+  accountId: requiredId("errors.accountEmpty"),
+  comment: z.string().optional(),
+});
+
+type FormFields = z.output<typeof schema>;
+
+interface IStatementAddOrEditProps {
+  // 0 for a new statement
+  id: number;
+  onClose: () => void;
+}
+
+const StatementAddOrEdit = ({
+  id: selectedStatementId,
+  onClose,
+}: IStatementAddOrEditProps) => {
+  const dispatch = useDispatch<TAppDispatch>();
+  const { getById: getStatementById } = useStatement();
+
+  const {
+    handleSubmit,
+    reset,
+    control,
+    formState: { isValid },
+    validationErrors,
+  } = useAppForm(schema, statementAddOrEditFormDefault);
+
+  const onSubmit = (data: FormFields) => {
+    const statement = getStatementById(selectedStatementId)!;
+    const st = {
+      ...statement,
+      ...data,
+      date: moment(data.date).format(DATE_FORMAT),
+    };
+
+    if (st.id) {
+      dispatch(UPDATE_STATEMENT(st));
+    } else {
+      dispatch(ADD_STATEMENT(st));
+    }
+
+    reset(statementAddOrEditFormDefault);
+    onClose();
+  };
+
+  const onCancelEditClick = () => {
+    onClose();
+  };
+
+  const onDeleteClick = () => {
+    if (selectedStatementId) {
+      dispatch(DELETE_STATEMENT(selectedStatementId));
+      onClose();
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedStatementId) {
+      reset();
+      return;
+    }
+
+    const item = getStatementById(selectedStatementId);
+    if (!item) {
+      return;
+    }
+
+    reset({
+      ...statementAddOrEditFormDefault,
+      ...item,
+      date: moment(item.date).toDate(),
+    });
+  }, [selectedStatementId, getStatementById, reset]);
+
+  return (
+    <div className="add-or-edit">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="crud">
+          <AmountInput
+            name="amount"
+            control={control}
+            label="statement.amount"
+            required
+          />
+          <DateInput
+            name="date"
+            control={control}
+            label="statement.date"
+            required
+          />
+          <BudgetSelect
+            name="budgetId"
+            control={control}
+            filterable
+            label="statement.budget"
+            required
+          />
+          <AccountSelect
+            name="accountId"
+            control={control}
+            filterable
+            label="statement.account"
+            required
+          />
+          <TextArea
+            name="comment"
+            control={control}
+            label="statement.comment"
+          />
+        </div>
+        <AddOrEditControls
+          isNew={!selectedStatementId}
+          onCancelEditClick={onCancelEditClick}
+          onDeleteClick={onDeleteClick}
+          isValid={isValid}
+          validationErrors={validationErrors}
+        />
+      </form>
+    </div>
+  );
+};
+
+export default StatementAddOrEdit;

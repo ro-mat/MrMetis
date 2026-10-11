@@ -1,0 +1,69 @@
+#login-content,
+#register-content,
+main {
+  flex: 1;
+}
+
+// Pages with the side menu fill the frame exactly: the menu stays put and
+// only .content scrolls.
+main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-height: 0;
+  padding: 20px 1em;
+  gap: 1em;
+
+  // Side panel with links
+  .side-panel {
+    width: $side-panel-width;
+    flex-shrink: 0;
+
+    ul {
+      list-style: none;
+
+      li + li {
+        // margin-top: 10px;
+      }
+
+      a {
+        display: block;
+        color: #333;
+        font-size: 14px;
+        font-weight: bold;
+        text-decoration: none;
+        padding: 1em 2em;
+        text-transform: uppercase;
+
+        &.selected,
+        &:hover {
+          background-color: $primary-color;
+        }
+      }
+    }
+  }
+
+  // Content container
+  .content {
+    flex: 1;
+    padding-left: 1em;
+    align-self: stretch;
+    min-width: 0;
+    overflow: auto;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      color: $primary-color-dark;
+    }
+
+    p {
+      color: #333;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+  }
+}

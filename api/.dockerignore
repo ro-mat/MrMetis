@@ -1,0 +1,5 @@
+**/bin/
+**/obj/
+MrMetis.Test/
+**/appsettings.Development.json
+**/*.csproj.user

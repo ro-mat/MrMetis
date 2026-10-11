@@ -1,0 +1,64 @@
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 80px;
+  // logo lines up with the page content, right of the side panel
+  // (main's 1em padding + side panel + 1em gap + content's 1em margin)
+  padding: 0 1em 0 calc(#{$side-panel-width} + 3em);
+  gap: 2em;
+  background-color: $primary-color;
+
+  .logo {
+    display: block;
+    max-height: 75px;
+  }
+
+  // quick add sits centered between logo and the right section
+  .center {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1em;
+  }
+
+  .auth-links {
+    display: flex;
+    gap: 0.5em;
+  }
+
+  .lang-select .chevron {
+    font-size: 0.7em;
+  }
+
+  .profile .menu-trigger {
+    font-size: 1.8em;
+    color: $primary-color-dark;
+  }
+
+  .profile-icon {
+    position: relative;
+    display: inline-flex;
+  }
+
+  // storage almost full: marks the top right corner of the profile icon
+  .warning-badge {
+    position: absolute;
+    top: -0.15em;
+    right: -0.25em;
+    display: inline-flex;
+    font-size: 0.5em;
+    border-radius: 50%;
+    background-color: white;
+  }
+
+  .storage-warning {
+    color: #d9342b;
+  }
+}
