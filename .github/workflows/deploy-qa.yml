@@ -61,56 +61,15 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
 
+  # The home server runner belongs to the private ro-mat/MrMetis-deploy repo, so pull
+  # requests here can never reach it. This only asks that repo to deploy the build;
+  # the deploy itself (and your approval) shows up in its Actions tab.
   deploy:
     needs: build
-    runs-on: [self-hosted, homeserver]
-    environment:
-      name: qa
-      url: https://mrmetis-qa.romkats.eu
+    runs-on: ubuntu-latest
+    environment: qa
     steps:
-      - uses: actions/checkout@v5
-        with:
-          sparse-checkout: deploy
-
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Deploy
+      - name: Trigger deploy in MrMetis-deploy
         env:
-          TAG: ${{ github.sha }}
-          MSSQL_SA_PASSWORD: ${{ secrets.MSSQL_SA_PASSWORD }}
-          DB_APP_PASSWORD: ${{ secrets.DB_APP_PASSWORD }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        run: |
-          set -euo pipefail
-          APP_DIR=/srv/apps/mrmetis-qa
-          mkdir -p "$APP_DIR"
-          cp deploy/compose.yml "$APP_DIR/compose.yml"
-          umask 077
-          # TAG pins the exact build; the secrets come from the qa environment
-          printf '%s\n' \
-            "TAG=$TAG" \
-            "MSSQL_SA_PASSWORD=$MSSQL_SA_PASSWORD" \
-            "DB_APP_PASSWORD=$DB_APP_PASSWORD" \
-            "JWT_SECRET=$JWT_SECRET" > "$APP_DIR/.env"
-          cd "$APP_DIR"
-          docker compose pull
-          docker compose up -d --remove-orphans
-
-      - name: Smoke test
-        run: |
-          # the first start waits for SQL Server and runs migrations, so allow up to 3 minutes
-          for i in $(seq 1 36); do
-            if curl -fsS -H 'Host: mrmetis-qa.romkats.eu' http://127.0.0.1:8080/health; then
-              echo
-              curl -fsS -o /dev/null -H 'Host: mrmetis-qa.romkats.eu' http://127.0.0.1:8080/
-              exit 0
-            fi
-            sleep 5
-          done
-          docker compose -f /srv/apps/mrmetis-qa/compose.yml logs --tail 50 api
-          exit 1
-
-      - name: Clean up old images
-        if: always()
-        run: docker image prune -af --filter "until=168h"
+          GH_TOKEN: ${{ secrets.DEPLOY_DISPATCH_TOKEN }}
+        run: gh workflow run deploy-qa.yml -R ro-mat/MrMetis-deploy -f sha="$GITHUB_SHA"
