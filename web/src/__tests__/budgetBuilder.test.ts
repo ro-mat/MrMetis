@@ -10,6 +10,13 @@ import {
   IBudget,
 } from "store/userdata/userdata.types";
 
+// the demo data and expected amounts depend on the calendar (e.g. groceries are planned
+// per Saturday), so pin "today" to a month with 4 Saturdays after one with 5
+vi.useFakeTimers({ toFake: ["Date"], now: new Date(2026, 5, 11, 12) });
+afterAll(() => {
+  vi.useRealTimers();
+});
+
 describe("budgetBuilder", () => {
   beforeEach(() => {
     initDemoData();
