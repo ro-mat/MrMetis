@@ -7,12 +7,17 @@ import useBudgetCalculate from "./useBudgetCalculate";
 // Evaluates a budget amount formula for the current month, against the saved
 // data (unsaved form changes aren't part of it).
 // Returns the value, an error message, or undefined while there's no data
-// (or it's not `enabled`, then nothing is calculated).
+// (or it's not `enabled`, then nothing is calculated, or the saved budgets
+// can't be calculated, then there's nothing to preview against).
 const useFormulaPreview = (enabled: boolean) => {
-  const { budgetPairArray, isReady } = useBudgetCalculate(-1, 0, enabled);
+  const { budgetPairArray, isReady, error } = useBudgetCalculate(
+    -1,
+    0,
+    enabled
+  );
 
   const context = useMemo(() => {
-    if (!isReady || !enabled) return undefined;
+    if (!isReady || !enabled || error) return undefined;
 
     const curMonth = moment();
     const prevMonth = moment().add(-1, "M");
@@ -27,7 +32,7 @@ const useFormulaPreview = (enabled: boolean) => {
         pairs.filter((p) => p.month.isSame(prevMonth, "M"))
       ),
     };
-  }, [budgetPairArray, isReady, enabled]);
+  }, [budgetPairArray, isReady, enabled, error]);
 
   return useCallback(
     (formula: string) =>

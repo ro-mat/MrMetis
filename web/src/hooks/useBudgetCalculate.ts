@@ -5,11 +5,44 @@ import { range } from "helpers/arrayHelper";
 import { buildBudgetPairsForMonth } from "services/budgetBuilder";
 import { BudgetPair } from "services/budgetPair";
 import { BudgetPairArray } from "services/budgetPairArray";
+import { IAccount, IBudget, IStatement } from "store/userdata/userdata.types";
 import { useMemo } from "react";
+
+const buildBudgetPairs = (
+  start: number,
+  end: number,
+  budgets: IBudget[],
+  statements: IStatement[],
+  accounts: IAccount[]
+) => {
+  let prevMonthPairs = buildBudgetPairsForMonth(
+    moment().add(start - 1, "M"),
+    budgets,
+    statements,
+    accounts,
+    []
+  );
+
+  const budgetPairs: BudgetPair[] = [];
+  for (const relativeMonth of range(start, end)) {
+    prevMonthPairs = buildBudgetPairsForMonth(
+      moment().add(relativeMonth, "M"),
+      budgets,
+      statements,
+      accounts,
+      prevMonthPairs.list
+    );
+    budgetPairs.push(...prevMonthPairs.list);
+  }
+
+  return new BudgetPairArray(budgetPairs);
+};
 
 // Builds budget pairs for months [start, end] relative to the current month.
 // Each month depends on the previous one, so the month before start is built too.
 // Nothing is built while not `enabled`.
+// When the calculation fails (e.g. a broken formula) the result is empty and
+// `error` has the message, so pages stay usable and the budgets can be fixed.
 export const useBudgetCalculate = (
   start: number,
   end: number,
@@ -20,33 +53,31 @@ export const useBudgetCalculate = (
   );
   const isReady = budgets.length > 0;
 
-  const budgetPairArray = useMemo(() => {
-    if (!isReady || !enabled) return new BudgetPairArray([]);
+  const { budgetPairArray, error } = useMemo((): {
+    budgetPairArray: BudgetPairArray;
+    error?: string;
+  } => {
+    if (!isReady || !enabled) return { budgetPairArray: new BudgetPairArray([]) };
 
-    let prevMonthPairs = buildBudgetPairsForMonth(
-      moment().add(start - 1, "M"),
-      budgets,
-      statements,
-      accounts,
-      []
-    );
-
-    const budgetPairs: BudgetPair[] = [];
-    for (const relativeMonth of range(start, end)) {
-      prevMonthPairs = buildBudgetPairsForMonth(
-        moment().add(relativeMonth, "M"),
-        budgets,
-        statements,
-        accounts,
-        prevMonthPairs.list
-      );
-      budgetPairs.push(...prevMonthPairs.list);
+    try {
+      return {
+        budgetPairArray: buildBudgetPairs(
+          start,
+          end,
+          budgets,
+          statements,
+          accounts
+        ),
+      };
+    } catch (e) {
+      return {
+        budgetPairArray: new BudgetPairArray([]),
+        error: e instanceof Error ? e.message : String(e),
+      };
     }
-
-    return new BudgetPairArray(budgetPairs);
   }, [isReady, enabled, start, end, budgets, statements, accounts]);
 
-  return { budgetPairArray, isReady };
+  return { budgetPairArray, isReady, error };
 };
 
 export default useBudgetCalculate;

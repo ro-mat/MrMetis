@@ -8,6 +8,7 @@ import { AppState } from "store/store";
 import useBudgetCalculate from "hooks/useBudgetCalculate";
 import { Moment } from "moment";
 import { BudgetPairArray } from "services/budgetPairArray";
+import CalculationError from "components/CalculationError";
 
 export type IPlanningProps = {
   months: Moment[];
@@ -29,7 +30,7 @@ const Planning = () => {
   const { filter } = useSelector((state: AppState) => state.ui.ui);
   const { loaded } = useSelector((state: AppState) => state.data);
 
-  const { budgetPairArray, isReady } = useBudgetCalculate(
+  const { budgetPairArray, isReady, error } = useBudgetCalculate(
     filter.fromRelativeMonth,
     filter.toRelativeMonth
   );
@@ -49,7 +50,9 @@ const Planning = () => {
         }
       />
       <ErrorBoundary resetKey={location.pathname}>
-        {isReady ? (
+        {error ? (
+          <CalculationError error={error} />
+        ) : isReady ? (
           <Outlet context={{ months, budgetPairArray }} />
         ) : loaded ? (
           <NoData message="noData.planning" />
