@@ -72,4 +72,5 @@ jobs:
       - name: Trigger deploy in MrMetis-deploy
         env:
           GH_TOKEN: ${{ secrets.DEPLOY_DISPATCH_TOKEN }}
-        run: gh workflow run deploy-qa.yml -R ro-mat/MrMetis-deploy -f sha="$GITHUB_SHA"
+        # --ref skips the default branch lookup, which the Actions-only token can't do
+        run: gh workflow run deploy-qa.yml -R ro-mat/MrMetis-deploy --ref main -f sha="$GITHUB_SHA"
