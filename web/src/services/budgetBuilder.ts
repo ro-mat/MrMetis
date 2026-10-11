@@ -22,6 +22,24 @@ import {
   getUserTotals,
 } from "./budgetTotals";
 
+export type ProblemFormula = { budgetId: number; formula: string };
+
+// Thrown when some formulas can never be calculated (broken, or depending on
+// each other); `problems` lists them so the budgets can be found and fixed.
+export class BudgetCalculationError extends Error {
+  problems: ProblemFormula[];
+
+  constructor(problems: ProblemFormula[]) {
+    const list = problems
+      .map((p) => `{budget id: ${p.budgetId}, formula: ${p.formula}}`)
+      .join(", ");
+    super(
+      `Infinite loop detected while calculating! Problem somewhere here: [${list}]`
+    );
+    this.problems = problems;
+  }
+}
+
 const statementKey = (budgetId: number, accountId: number) =>
   `${budgetId}:${accountId}`;
 
@@ -127,12 +145,16 @@ export const buildBudgetPairsForMonth = (
     });
 
     if (notCalculated.length === pending.length) {
-      const problemFormulas = pending
-        .map((f) => `{budget id: ${f.budgetId}, formula: ${f.formula}}`)
-        .join(", ");
-      throw Error(
-        `Infinite loop detected while calculating! Problem somewhere here: [${problemFormulas}]`
-      );
+      // a formula used for several accounts is listed once
+      const problems = pending
+        .map((f) => ({ budgetId: f.budgetId, formula: f.formula }))
+        .filter(
+          (p, i, all) =>
+            all.findIndex(
+              (o) => o.budgetId === p.budgetId && o.formula === p.formula
+            ) === i
+        );
+      throw new BudgetCalculationError(problems);
     }
     pending = notCalculated;
 

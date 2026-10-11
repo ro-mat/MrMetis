@@ -23,7 +23,7 @@ const budget = (id: number, amount: string): IBudget => ({
 });
 
 describe("BudgetPage", () => {
-  it("shows a calculation error and still lets the budgets be edited", () => {
+  it("links the budgets that can't be calculated to their edit form", () => {
     store.dispatch(
       SET_USERDATA({
         accounts: [
@@ -49,10 +49,14 @@ describe("BudgetPage", () => {
       </Provider>
     );
 
-    expect(screen.getByText(/Infinite loop detected/)).toBeInTheDocument();
-    expect(screen.getByText("Budget 2")).toBeInTheDocument();
+    expect(screen.getByText("errors.calculation")).toBeInTheDocument();
+    // the list is still there
+    expect(screen.getByRole("cell", { name: "Budget 1" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getAllByRole("button", { name: /edit/i })[0]);
+    // only the broken budget is linked, and the link opens it for editing
+    const link = screen.getByRole("link", { name: "Budget 2" });
+    expect(screen.queryByRole("link", { name: "Budget 1" })).toBeNull();
+    fireEvent.click(link);
     expect(screen.getByDisplayValue("unknownVariable + 1")).toBeInTheDocument();
   });
 });

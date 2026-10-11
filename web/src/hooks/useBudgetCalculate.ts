@@ -2,11 +2,20 @@ import moment from "moment";
 import { useSelector } from "react-redux";
 import { AppState } from "store/store";
 import { range } from "helpers/arrayHelper";
-import { buildBudgetPairsForMonth } from "services/budgetBuilder";
+import {
+  BudgetCalculationError,
+  buildBudgetPairsForMonth,
+  ProblemFormula,
+} from "services/budgetBuilder";
 import { BudgetPair } from "services/budgetPair";
 import { BudgetPairArray } from "services/budgetPairArray";
 import { IAccount, IBudget, IStatement } from "store/userdata/userdata.types";
 import { useMemo } from "react";
+
+export type CalculateError = {
+  message: string;
+  problems: ProblemFormula[]; // empty when the failure isn't about formulas
+};
 
 const buildBudgetPairs = (
   start: number,
@@ -42,7 +51,7 @@ const buildBudgetPairs = (
 // Each month depends on the previous one, so the month before start is built too.
 // Nothing is built while not `enabled`.
 // When the calculation fails (e.g. a broken formula) the result is empty and
-// `error` has the message, so pages stay usable and the budgets can be fixed.
+// `error` describes it, so pages stay usable and the budgets can be fixed.
 export const useBudgetCalculate = (
   start: number,
   end: number,
@@ -55,7 +64,7 @@ export const useBudgetCalculate = (
 
   const { budgetPairArray, error } = useMemo((): {
     budgetPairArray: BudgetPairArray;
-    error?: string;
+    error?: CalculateError;
   } => {
     if (!isReady || !enabled) return { budgetPairArray: new BudgetPairArray([]) };
 
@@ -72,7 +81,10 @@ export const useBudgetCalculate = (
     } catch (e) {
       return {
         budgetPairArray: new BudgetPairArray([]),
-        error: e instanceof Error ? e.message : String(e),
+        error: {
+          message: e instanceof Error ? e.message : String(e),
+          problems: e instanceof BudgetCalculationError ? e.problems : [],
+        },
       };
     }
   }, [isReady, enabled, start, end, budgets, statements, accounts]);

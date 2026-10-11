@@ -151,8 +151,7 @@
     "keepOnAccount": "Keep on Account"
   },
   "errors": {
-    "calculation": "Budgets could not be calculated, check the formulas of the budgets below.",
-    "calculationFix": "Fix them on the budget page",
+    "calculation": "Budgets could not be calculated, check the formulas of these budgets:",
     "storageLimitExceeded": "Not saved: your storage limit is reached. Remove some data and try again.",
     "userNotFound": "User not found",
     "userDataNotFound": "Data not found",
