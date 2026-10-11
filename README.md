@@ -67,7 +67,7 @@ docker compose down -v   # stop and delete the database
 
 ### QA environment
 
-Every push to `main` runs [deploy-qa.yml](.github/workflows/deploy-qa.yml): it runs the API tests, builds the `mrmetis-web` and `mrmetis-api` images to GHCR, and the self-hosted runner on the home server starts [deploy/compose.yml](deploy/compose.yml) in `/srv/apps/mrmetis-qa`. The site is https://mrmetis-qa.romkats.eu.
+Every push to `main` runs [deploy-qa.yml](.github/workflows/deploy-qa.yml): it runs the API tests, builds the `mrmetis-web` and `mrmetis-api` images to GHCR, then triggers the private `ro-mat/MrMetis-deploy` repo, whose runner on the home server starts that build in `/srv/apps/mrmetis-qa` after approval. The site is https://mrmetis-qa.romkats.eu.
 
 One-time setup in GitHub, Settings → Environments → `qa`, add these secrets:
 
