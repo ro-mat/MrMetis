@@ -43,7 +43,7 @@ const schema = z
     type: z.number(requiredError("errors.typeEmpty")),
     fromAccountId: z.number().optional(),
     toAccountId: z.number().optional(),
-    expectOneStatement: z.boolean(),
+    closeAfterOneStatement: z.boolean(),
     parentId: z.number().optional(),
     isEssential: z.boolean(),
     amounts: z.array(
@@ -323,9 +323,9 @@ const BudgetAddOrEdit = ({
             />
           )}
           <Checkbox
-            name="expectOneStatement"
+            name="closeAfterOneStatement"
             control={control}
-            label="budget.expectOneStatement"
+            label="budget.closeAfterOneStatement"
             horizontal={false}
           />
         </div>

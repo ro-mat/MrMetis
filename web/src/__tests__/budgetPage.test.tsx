@@ -18,7 +18,7 @@ const budget = (id: number, amount: string): IBudget => ({
   ],
   overrides: [],
   type: BudgetTypeUser.spending,
-  expectOneStatement: false,
+  closeAfterOneStatement: false,
   dateCreated: "2020-01-01",
 });
 

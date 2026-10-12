@@ -22,14 +22,16 @@ const buildBudgetPairs = (
   end: number,
   budgets: IBudget[],
   statements: IStatement[],
-  accounts: IAccount[]
+  accounts: IAccount[],
+  closedMonths: string[]
 ) => {
   let prevMonthPairs = buildBudgetPairsForMonth(
     moment().add(start - 1, "M"),
     budgets,
     statements,
     accounts,
-    []
+    [],
+    closedMonths
   );
 
   const budgetPairs: BudgetPair[] = [];
@@ -39,7 +41,8 @@ const buildBudgetPairs = (
       budgets,
       statements,
       accounts,
-      prevMonthPairs.list
+      prevMonthPairs.list,
+      closedMonths
     );
     budgetPairs.push(...prevMonthPairs.list);
   }
@@ -57,7 +60,7 @@ export const useBudgetCalculate = (
   end: number,
   enabled = true
 ) => {
-  const { budgets, statements, accounts } = useSelector(
+  const { budgets, statements, accounts, closedMonths } = useSelector(
     (state: AppState) => state.data.userdata
   );
   const isReady = budgets.length > 0;
@@ -75,7 +78,8 @@ export const useBudgetCalculate = (
           end,
           budgets,
           statements,
-          accounts
+          accounts,
+          closedMonths
         ),
       };
     } catch (e) {
@@ -87,7 +91,7 @@ export const useBudgetCalculate = (
         },
       };
     }
-  }, [isReady, enabled, start, end, budgets, statements, accounts]);
+  }, [isReady, enabled, start, end, budgets, statements, accounts, closedMonths]);
 
   return { budgetPairArray, isReady, error };
 };

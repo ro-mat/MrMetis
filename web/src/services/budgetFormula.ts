@@ -122,7 +122,6 @@ export type RelevantFormula = {
   toAccountId?: number;
   parentId?: number;
   budgetType: BudgetType;
-  expectOneStatement: boolean;
   formula: string;
 };
 
@@ -156,7 +155,6 @@ export const getRelevantFormulas = (
     toAccountId: budget.toAccountId,
     parentId: budget.parentId,
     budgetType: budget.type,
-    expectOneStatement: budget.expectOneStatement,
     formula,
   });
 

@@ -20,8 +20,9 @@ export class BudgetPair {
   budgetType: BudgetType;
   planned: number;
   actual: number;
-  expectOneStatement: boolean;
   statements: BudgetStatement[];
+  // no more statements are expected, see budgetClosing
+  isClosed = false;
   children: BudgetPair[] = [];
 
   constructor(
@@ -31,7 +32,6 @@ export class BudgetPair {
     budgetType: BudgetType,
     planned: number,
     actual: number,
-    expectOneStatement: boolean,
     statements: BudgetStatement[],
     parentId?: number
   ) {
@@ -41,7 +41,6 @@ export class BudgetPair {
     this.budgetType = budgetType;
     this.planned = planned;
     this.actual = actual;
-    this.expectOneStatement = expectOneStatement;
     this.statements = statements;
     this.parentId = parentId;
   }
@@ -61,7 +60,6 @@ export class BudgetPair {
       budgetType,
       roundTo(planned, 2),
       roundTo(actual, 2),
-      true,
       []
     );
   }
@@ -132,9 +130,7 @@ export class BudgetPair {
   isRemaining(accountId?: number): boolean {
     return (
       (accountId === undefined || this.accountId === accountId) &&
-      ((this.planned > 0 &&
-        ((this.expectOneStatement && this.actual === 0) ||
-          (!this.expectOneStatement && this.actual < this.planned))) ||
+      ((!this.isClosed && this.planned > 0 && this.actual < this.planned) ||
         this.children.some((c) => c.isRemaining()))
     );
   }

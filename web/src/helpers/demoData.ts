@@ -482,7 +482,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 10,
-        expectOneStatement: true,
+        closeAfterOneStatement: true,
       },
       {
         id: 2,
@@ -501,7 +501,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 30,
-        expectOneStatement: true,
+        closeAfterOneStatement: true,
       },
       {
         id: 3,
@@ -520,7 +520,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 20,
-        expectOneStatement: false,
+        closeAfterOneStatement: false,
       },
       {
         id: 4,
@@ -539,7 +539,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 20,
-        expectOneStatement: false,
+        closeAfterOneStatement: false,
       },
       {
         id: 5,
@@ -558,7 +558,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 20,
-        expectOneStatement: false,
+        closeAfterOneStatement: false,
       },
       {
         id: 6,
@@ -577,7 +577,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 20,
-        expectOneStatement: false,
+        closeAfterOneStatement: false,
       },
       {
         id: 7,
@@ -590,7 +590,7 @@ export const getData = () => {
         amounts: [],
         overrides: [],
         type: 20,
-        expectOneStatement: false,
+        closeAfterOneStatement: false,
       },
       {
         id: 8,
@@ -609,7 +609,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 20,
-        expectOneStatement: false,
+        closeAfterOneStatement: false,
       },
       {
         id: 9,
@@ -622,7 +622,7 @@ export const getData = () => {
         amounts: [],
         overrides: [],
         type: 20,
-        expectOneStatement: false,
+        closeAfterOneStatement: false,
       },
       {
         id: 10,
@@ -641,7 +641,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 20,
-        expectOneStatement: true,
+        closeAfterOneStatement: true,
       },
       {
         id: 11,
@@ -660,7 +660,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 20,
-        expectOneStatement: true,
+        closeAfterOneStatement: true,
       },
       {
         id: 12,
@@ -679,7 +679,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 20,
-        expectOneStatement: true,
+        closeAfterOneStatement: true,
       },
       {
         id: 13,
@@ -699,7 +699,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 40,
-        expectOneStatement: false,
+        closeAfterOneStatement: false,
       },
       {
         id: 14,
@@ -718,7 +718,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 40,
-        expectOneStatement: true,
+        closeAfterOneStatement: true,
       },
       {
         id: 15,
@@ -737,7 +737,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 20,
-        expectOneStatement: false,
+        closeAfterOneStatement: false,
       },
       {
         id: 16,
@@ -756,7 +756,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 20,
-        expectOneStatement: false,
+        closeAfterOneStatement: false,
       },
       {
         id: 17,
@@ -776,7 +776,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 50,
-        expectOneStatement: false,
+        closeAfterOneStatement: false,
       },
       {
         id: 18,
@@ -796,7 +796,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 50,
-        expectOneStatement: true,
+        closeAfterOneStatement: true,
       },
       {
         id: 19,
@@ -828,7 +828,7 @@ export const getData = () => {
         ],
         overrides: [],
         type: 20,
-        expectOneStatement: false,
+        closeAfterOneStatement: false,
       },
     ],
     accounts: [

@@ -18,6 +18,7 @@ import { DATE_FORMAT } from "helpers/dateHelper";
 import NewStatementPreview from "./NewStatementPreview";
 import useStatementSuggestions from "hooks/useStatementSuggestions";
 import useListSelection from "hooks/useListSelection";
+import useClosing from "hooks/useClosing";
 import { Button, Dropdown, TextInput } from "components/ui";
 import { cx } from "components/ui/cx";
 
@@ -40,6 +41,7 @@ const QuickAdd = () => {
   const [isActive, setIsActive] = useState<boolean>(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const { isLocked } = useClosing();
 
   const { searchText, setSearchText, filteredSuggestions } =
     useStatementSuggestions();
@@ -77,6 +79,10 @@ const QuickAdd = () => {
       ...statement,
       ...suggestionData(selectedSuggestion),
     };
+    if (isLocked(newStatement)) {
+      dispatch(ADD_ERROR_TOAST(t("errors.statementClosed")));
+      return;
+    }
     dispatch(ADD_STATEMENT(newStatement));
     setStatement({ ...newStatement, comment: undefined });
 

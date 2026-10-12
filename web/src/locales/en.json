@@ -71,7 +71,11 @@
     "openingBalance": "Opening balance",
     "closingBalance": "Closing balance",
     "totalSpendings": "Total spendings",
-    "monthDelta": "Month Delta"
+    "monthDelta": "Month Delta",
+    "closeItem": "Close: no more statements expected",
+    "openItem": "Open again",
+    "closeMonth": "Close the month and its budgets",
+    "openMonth": "Open the month again"
   },
   "statement": {
     "header": "Statement list",
@@ -94,7 +98,7 @@
     "account": "Account",
     "currentAmount": "Current amount",
     "isEssential": "Is essential",
-    "expectOneStatement": "Expect one statement",
+    "closeAfterOneStatement": "Close after one statement",
     "fromAccount": "From account",
     "toAccount": "To account",
 
@@ -179,7 +183,8 @@
     "toAccountEmpty": "Choose the account to transfer to",
     "frequencyEmpty": "Frequency cannot be empty",
     "frequencyInvalid": "Frequency must be a whole number of at least 1",
-    "symbolTooLong": "Currency symbol can be up to 5 characters"
+    "symbolTooLong": "Currency symbol can be up to 5 characters",
+    "statementClosed": "This budget is closed for this account and month, open it to change its statements"
   },
   "landingPage": {
     "welcome": {

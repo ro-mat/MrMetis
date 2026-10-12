@@ -16,6 +16,7 @@ import {
   calculate,
   getRelevantFormulas,
 } from "./budgetFormula";
+import { getClosedActual, isMonthClosed, isPairClosed } from "./budgetClosing";
 import {
   getExtraTotals,
   getLeftFromPrevMonthTotals,
@@ -60,16 +61,23 @@ const groupMonthStatements = (month: Moment, statements: IStatement[]) => {
 };
 
 // The pair of a calculated formula, plus the receiving side of a transfer.
+// A closed pair uses the statement sum stored when it was closed.
 const toBudgetPairs = (
   month: Moment,
   f: RelevantFormula,
   planned: number,
-  statements: IStatement[]
+  statements: IStatement[],
+  budget: IBudget | undefined,
+  closedMonths: string[]
 ) => {
-  const actual = roundTo(
-    statements.reduce((prev, cur) => prev + cur.amount, 0),
-    2
-  );
+  const isClosed =
+    !!budget && isPairClosed(budget, month, f.accountId, closedMonths);
+  const actual =
+    (isClosed ? getClosedActual(budget!, month, f.accountId) : undefined) ??
+    roundTo(
+      statements.reduce((prev, cur) => prev + cur.amount, 0),
+      2
+    );
   const pair = new BudgetPair(
     f.budgetId,
     f.accountId,
@@ -77,10 +85,10 @@ const toBudgetPairs = (
     f.budgetType,
     planned,
     actual,
-    f.expectOneStatement,
     statements,
     f.parentId
   );
+  pair.isClosed = isClosed;
   if (f.budgetType !== BudgetTypeUser.transferToAccount) {
     return [pair];
   }
@@ -92,9 +100,9 @@ const toBudgetPairs = (
     BudgetTypeExtra.transferFromAccount,
     planned,
     actual,
-    f.expectOneStatement,
     statements
   );
+  receivingPair.isClosed = isClosed;
   return [pair, receivingPair];
 };
 
@@ -103,8 +111,10 @@ export const buildBudgetPairsForMonth = (
   budgets: IBudget[],
   statements: IStatement[],
   accounts: IAccount[],
-  prevMonthBudgetPairs: BudgetPair[]
+  prevMonthBudgetPairs: BudgetPair[],
+  closedMonths: string[] = []
 ) => {
+  const budgetsById = new Map(budgets.map((b) => [b.id, b]));
   const flatPrevMonthPairs = flattenBudgetPairs(prevMonthBudgetPairs);
   const prevMonthCalculate = new Calculate(
     month.clone().add(-1, "M"),
@@ -117,6 +127,10 @@ export const buildBudgetPairsForMonth = (
     accounts,
     flatPrevMonthPairs
   );
+  // closing the previous month stored what was really left
+  if (isMonthClosed(closedMonths, prevMonthCalculate.month)) {
+    budgetPairs.forEach((bp) => (bp.isClosed = true));
+  }
   // reads budgetPairs directly, so it sees every pair added below
   const curMonthCalculate = new Calculate(month, budgetPairs);
 
@@ -140,7 +154,16 @@ export const buildBudgetPairsForMonth = (
 
       const formulaStatements =
         monthStatements.get(statementKey(f.budgetId, f.accountId)) ?? [];
-      budgetPairs.push(...toBudgetPairs(month, f, planned, formulaStatements));
+      budgetPairs.push(
+        ...toBudgetPairs(
+          month,
+          f,
+          planned,
+          formulaStatements,
+          budgetsById.get(f.budgetId),
+          closedMonths
+        )
+      );
       return false;
     });
 
@@ -160,6 +183,10 @@ export const buildBudgetPairsForMonth = (
 
     budgetPairs.push(...getUserTotals(month, accounts, budgetPairs, pending));
     budgetPairs.push(...getExtraTotals(month, accounts, budgetPairs));
+  }
+
+  if (isMonthClosed(closedMonths, month)) {
+    budgetPairs.forEach((bp) => (bp.isClosed = true));
   }
 
   const tree = new BudgetPairArray();

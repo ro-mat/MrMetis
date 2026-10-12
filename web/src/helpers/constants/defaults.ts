@@ -24,7 +24,7 @@ const budgetAddOrEditFormDefault = {
   amounts: [],
   overrides: [],
   type: BudgetTypeUser.spending,
-  expectOneStatement: false,
+  closeAfterOneStatement: false,
 };
 
 const statementAddOrEditFormDefault = {

@@ -136,4 +136,36 @@ describe("add/edit forms", () => {
         .data.userdata.accounts[0].leftFromPrevMonth.map((l) => l.amount)
     ).toEqual(expect.arrayContaining([10, 20, 30]));
   });
+
+  it("refuses to delete a statement of a closed month", () => {
+    const today = moment().format(DATE_FORMAT);
+    store.dispatch(
+      SET_USERDATA({
+        statements: [
+          {
+            id: 1,
+            amount: 5,
+            date: today,
+            budgetId: 1,
+            accountId: 1,
+            dateCreated: today,
+          },
+        ],
+        closedMonths: [moment().startOf("month").format(DATE_FORMAT)],
+      })
+    );
+    render(
+      <Provider store={store}>
+        <StatementAddOrEdit id={1} onClose={() => {}} />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText("addOrEdit.delete"));
+
+    expect(store.getState().data.userdata.statements).toHaveLength(1);
+    expect(store.getState().ui.messages.at(-1)).toEqual({
+      appearance: "error",
+      message: "errors.statementClosed",
+    });
+  });
 });

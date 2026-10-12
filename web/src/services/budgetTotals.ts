@@ -71,17 +71,17 @@ const addTypeTotals = (
 
 // ---- left from previous month ----
 
-// What is expected to really happen: past months and paid budgets count with
-// their actual amount, everything else with the planned one.
+// What is expected to really happen: past months, closed and overspent
+// budgets count with their actual amount, everything else with the planned one.
 export const getEstimation = (
   month: Moment,
   planned: number,
   actual: number,
-  expectOneStatement: boolean = true
+  isClosed: boolean = false
 ) => {
   return month.isBefore(moment(), "M") ||
-    (actual > 0 && actual > planned) ||
-    (expectOneStatement && actual > 0)
+    isClosed ||
+    (actual > 0 && actual > planned)
     ? actual
     : planned;
 };
@@ -97,11 +97,22 @@ const balanceSign: Partial<Record<BudgetType, 1 | -1>> = {
   [BudgetTypeUser.spending]: -1,
 };
 
+// a stored left from previous month is what really was left
+const estimatePair = (p: BudgetPair) =>
+  getEstimation(
+    p.month,
+    p.planned,
+    p.actual,
+    p.isClosed ||
+      (p.budgetType === BudgetTypeExtra.leftFromPrevMonth && p.actual > 0)
+  );
+
 // Estimated balance left at the end of the month, for one account or (no
-// accountId) all accounts.
+// accountId) all accounts. `estimate` picks the amount each pair counts with.
 export const calculateForNextMonth = (
   budgetPairArray: BudgetPair[],
-  accountId?: number
+  accountId?: number,
+  estimate: (pair: BudgetPair) => number = estimatePair
 ) => {
   const left = budgetPairArray
     .filter(
@@ -111,14 +122,7 @@ export const calculateForNextMonth = (
     )
     .reduce(
       (prev, cur) =>
-        prev +
-        (balanceSign[cur.budgetType] ?? 0) *
-          getEstimation(
-            cur.month,
-            cur.planned,
-            cur.actual,
-            cur.expectOneStatement
-          ),
+        prev + (balanceSign[cur.budgetType] ?? 0) * estimate(cur),
       0
     );
   return roundTo(left, 2);

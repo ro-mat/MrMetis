@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { TAppDispatch } from "store/store";
+import { ADD_ERROR_TOAST } from "store/ui/ui.slice";
 import {
   ADD_STATEMENT,
   DELETE_STATEMENT,
@@ -9,10 +11,12 @@ import {
 import moment from "moment";
 import { DATE_FORMAT } from "helpers/dateHelper";
 import useStatement from "hooks/useStatement";
+import useClosing from "hooks/useClosing";
 import { statementAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
 import { requiredError, requiredId } from "helpers/zodHelper";
 import useAppForm from "hooks/useAppForm";
+import { IStatement } from "store/userdata/userdata.types";
 import AddOrEditControls from "components/AddOrEditControls";
 import AccountSelect from "components/AccountSelect";
 import BudgetSelect from "components/BudgetSelect";
@@ -42,7 +46,16 @@ const StatementAddOrEdit = ({
   onClose,
 }: IStatementAddOrEditProps) => {
   const dispatch = useDispatch<TAppDispatch>();
+  const { t } = useTranslation();
   const { getById: getStatementById } = useStatement();
+  const { isLocked } = useClosing();
+
+  // statements of closed budgets and months can't be added, moved or removed
+  const refuseLocked = (...statements: (IStatement | undefined)[]) => {
+    if (!statements.some((s) => s && isLocked(s))) return false;
+    dispatch(ADD_ERROR_TOAST(t("errors.statementClosed")));
+    return true;
+  };
 
   const {
     handleSubmit,
@@ -59,6 +72,7 @@ const StatementAddOrEdit = ({
       ...data,
       date: moment(data.date).format(DATE_FORMAT),
     };
+    if (refuseLocked(statement, st)) return;
 
     if (st.id) {
       dispatch(UPDATE_STATEMENT(st));
@@ -76,6 +90,7 @@ const StatementAddOrEdit = ({
 
   const onDeleteClick = () => {
     if (selectedStatementId) {
+      if (refuseLocked(getStatementById(selectedStatementId))) return;
       dispatch(DELETE_STATEMENT(selectedStatementId));
       onClose();
     }

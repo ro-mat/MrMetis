@@ -463,7 +463,6 @@ describe("BudgetPair children", () => {
       BudgetTypeUser.spending,
       planned,
       actual,
-      false,
       statements,
       parentId
     );
@@ -563,7 +562,7 @@ describe("parent and child on different accounts", () => {
     ],
     overrides: [],
     type: BudgetTypeUser.spending,
-    expectOneStatement: false,
+    closeAfterOneStatement: false,
     dateCreated: start.toISOString(),
   });
 

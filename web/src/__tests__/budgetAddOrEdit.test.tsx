@@ -24,7 +24,7 @@ const budget = (id: number, props: Record<string, unknown> = {}) =>
     toAccountId: 0,
     isEssential: false,
     type: BudgetTypeUser.spending,
-    expectOneStatement: false,
+    closeAfterOneStatement: false,
     amounts: [],
     overrides: [],
     ...props,

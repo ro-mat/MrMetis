@@ -44,7 +44,7 @@ const PlanningAccounts = () => {
           }
         >
           <thead ref={theadRef}>
-            <TableHeader months={months} />
+            <TableHeader months={months} budgetPairArray={budgetPairArray} />
           </thead>
           {filteredAccounts.map((a, index) => (
             <AccountsTableBody

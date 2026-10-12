@@ -95,9 +95,9 @@ describe("budgetCalculator", () => {
     const month = moment();
     const { accounts } = getDemoData();
     const calculatedPairs: BudgetPair[] = [
-      new BudgetPair(1, 1, month, BudgetTypeUser.income, 100, 101, true, []),
-      new BudgetPair(2, 1, month, BudgetTypeUser.income, 102, 103, true, []),
-      new BudgetPair(1, 2, month, BudgetTypeUser.income, 104, 105, true, []),
+      new BudgetPair(1, 1, month, BudgetTypeUser.income, 100, 101, []),
+      new BudgetPair(2, 1, month, BudgetTypeUser.income, 102, 103, []),
+      new BudgetPair(1, 2, month, BudgetTypeUser.income, 104, 105, []),
     ];
     const relevantFormulas: RelevantFormula[] = [];
 
@@ -170,84 +170,84 @@ describe("budgetCalculator", () => {
       month: moment().add(-1, "M"),
       planned: 20,
       actual: 10,
-      expectOneStatement: true,
+      isClosed: true,
       result: 10,
     },
     {
       month: moment().add(-1, "M"),
       planned: 20,
       actual: 10,
-      expectOneStatement: undefined,
+      isClosed: undefined,
       result: 10,
     },
     {
       month: moment().add(-1, "M"),
       planned: 20,
       actual: 10,
-      expectOneStatement: false,
+      isClosed: false,
       result: 10,
     },
     {
       month: moment().add(-1, "M"),
       planned: 10,
       actual: 20,
-      expectOneStatement: true,
-      result: 20,
-    },
-    {
-      month: moment().add(-1, "M"),
-      planned: 10,
-      actual: 20,
-      expectOneStatement: undefined,
+      isClosed: true,
       result: 20,
     },
     {
       month: moment().add(-1, "M"),
       planned: 10,
       actual: 20,
-      expectOneStatement: false,
+      isClosed: undefined,
+      result: 20,
+    },
+    {
+      month: moment().add(-1, "M"),
+      planned: 10,
+      actual: 20,
+      isClosed: false,
       result: 20,
     },
     {
       month: moment(),
       planned: 20,
       actual: 10,
-      expectOneStatement: true,
+      isClosed: true,
       result: 10,
     },
     {
       month: moment(),
       planned: 20,
       actual: 10,
-      expectOneStatement: undefined,
-      result: 10,
+      isClosed: undefined,
+      result: 20,
     },
     {
       month: moment(),
       planned: 20,
       actual: 10,
-      expectOneStatement: false,
+      isClosed: false,
       result: 20,
     },
     {
       month: moment().add(1, "M"),
       planned: 20,
       actual: 10,
-      expectOneStatement: true,
+      isClosed: true,
       result: 10,
     },
     {
       month: moment().add(1, "M"),
       planned: 20,
       actual: 10,
-      expectOneStatement: undefined,
-      result: 10,
+      isClosed: undefined,
+      result: 20,
     },
     {
       month: moment().add(1, "M"),
       planned: 20,
       actual: 10,
-      expectOneStatement: false,
+      isClosed: false,
       result: 20,
     },
   ])("getEstimation should return correct estimation", (params: any) => {
@@ -255,7 +255,7 @@ describe("budgetCalculator", () => {
       params.month,
       params.planned,
       params.actual,
-      params.expectOneStatement
+      params.isClosed
     );
     expect(estimation).toBe(params.result);
   });

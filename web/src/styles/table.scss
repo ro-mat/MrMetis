@@ -165,6 +165,20 @@ table {
   }
 }
 
+// closed budgets and months, see budgetClosing
+td.closed,
+th.closed {
+  font-style: italic;
+  // only the text fades, not the progress background
+  color: color-mix(in srgb, currentColor 55%, transparent);
+
+  // the statements opened from a closed cell read as usual
+  .preview-statements {
+    font-style: normal;
+    color: initial;
+  }
+}
+
 .statement-cell {
   position: relative;
 

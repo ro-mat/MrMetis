@@ -78,7 +78,11 @@
     "openingBalance": "Начальное сальдо",
     "closingBalance": "Конец сальдо",
     "totalSpendings": "Всего затрат",
-    "monthDelta": "Месячный баланс"
+    "monthDelta": "Месячный баланс",
+    "closeItem": "Закрыть: транзакций больше не ожидается",
+    "openItem": "Открыть снова",
+    "closeMonth": "Закрыть месяц и его бюджеты",
+    "openMonth": "Открыть месяц снова"
   },
   "statement": {
     "header": "Список транзакций",
@@ -101,7 +105,7 @@
     "account": "Счет",
     "currentAmount": "Текущая сумма",
     "isEssential": "Необходимый",
-    "expectOneStatement": "Ожидается одна транзакция",
+    "closeAfterOneStatement": "Закрыть после одной транзакции",
     "fromAccount": "Со счета",
     "toAccount": "На счет",
 
@@ -186,7 +190,8 @@
     "toAccountEmpty": "Выберите счёт для перевода",
     "frequencyEmpty": "Частота не может быть пустой",
     "frequencyInvalid": "Частота должна быть целым числом не меньше 1",
-    "symbolTooLong": "Символ валюты — не больше 5 знаков"
+    "symbolTooLong": "Символ валюты — не больше 5 знаков",
+    "statementClosed": "Бюджет закрыт для этого счёта и месяца, откройте его, чтобы изменить транзакции"
   },
   "landingPage": {
     "welcome": {

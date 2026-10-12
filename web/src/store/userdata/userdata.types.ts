@@ -24,6 +24,8 @@ export interface IUserdata {
   budgets: IBudget[];
   accounts: IAccount[];
   preferences: IPreferences;
+  // first days (DATE_FORMAT) of closed months
+  closedMonths: string[];
 }
 
 export interface IStatement extends IHaveMetadata {
@@ -43,7 +45,19 @@ export interface IBudget extends IHaveMetadata {
   amounts: IAmount[];
   overrides: IMonthAmountPair[];
   type: BudgetType;
-  expectOneStatement: boolean;
+  // the budget is closed for its account and month as soon as it gets a statement
+  closeAfterOneStatement: boolean;
+  closed?: IClosedPair[];
+}
+
+// A budget closed for an account and month: no more statements are expected.
+// accountId 0 means closed for every account that month.
+export interface IClosedPair {
+  // first day of the month, DATE_FORMAT
+  month: string;
+  accountId: number;
+  // sum of the statements when closed (accountId 0: of all accounts)
+  actual: number;
 }
 
 export interface IAccount extends IHaveMetadata {
@@ -56,6 +70,7 @@ export interface IUserdataDto {
   budgets: IBudget[];
   accounts: IAccount[];
   preferences?: IPreferences;
+  closedMonths?: string[];
 }
 
 export interface IPreferences {

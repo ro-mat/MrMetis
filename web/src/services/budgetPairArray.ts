@@ -93,13 +93,14 @@ export class BudgetPairArray {
       monthPairs[0].budgetType,
       0,
       0,
-      monthPairs[0].expectOneStatement,
       []
     );
     // a child is attached to the first parent pair found, which may belong to
     // another account, so collect children from every parent pair of the month
     init.children = monthPairs.flatMap((i) => i.children);
 
+    init.isClosed =
+      budgetPairs.length > 0 && budgetPairs.every((p) => p.isClosed);
     for (const cur of budgetPairs) {
       init.planned += cur.planned;
       init.actual += cur.actual;
@@ -117,7 +118,6 @@ export class BudgetPairArray {
       budgetTypes[0],
       0,
       0,
-      true,
       []
     );
     budgetTypes.forEach((bt) => {
@@ -128,6 +128,7 @@ export class BudgetPairArray {
           i.month.isSame(month, "M") &&
           i.accountId === (accountId ?? 0)
       );
+      resultPair.isClosed = !!item?.isClosed;
       resultPair.planned += item?.planned ?? 0;
       resultPair.actual += item?.actual ?? 0;
     });

@@ -65,7 +65,7 @@ const BudgetPage = () => {
                     <th>{t("budget.parent")}</th>
                     <th>{t("budget.account")}</th>
                     <th>{t("budget.currentAmount")}</th>
-                    <th>{t("budget.expectOneStatement")}</th>
+                    <th>{t("budget.closeAfterOneStatement")}</th>
                     <th>&nbsp;</th>
                   </tr>
                 </thead>
@@ -89,7 +89,7 @@ const BudgetPage = () => {
                           )}
                       </td>
                       <td>
-                        {b.expectOneStatement
+                        {b.closeAfterOneStatement
                           ? t("general.yes")
                           : t("general.no")}
                       </td>

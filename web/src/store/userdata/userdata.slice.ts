@@ -15,12 +15,36 @@ import {
 } from "./userdata.types";
 import { IAction } from "types/IAction";
 import { IHaveMetadata } from "types/IHaveMetadata";
+import { IMonthAmountPair } from "types/IMonthAmountPair";
+import {
+  closeBudget,
+  closeMonth,
+  isStatementLocked,
+  migrateExpectOneStatement,
+  openBudget,
+  openMonth,
+} from "services/budgetClosing";
+
+export interface IBudgetClosingPayload {
+  budgetId: number;
+  // any day of the month, DATE_FORMAT
+  month: string;
+  // not set: every account
+  accountId?: number;
+}
+
+export interface IMonthClosingPayload {
+  month: string;
+  // what is left on each account, stored for the next month
+  left: IMonthAmountPair[];
+}
 
 const emptyUserdata = (): IUserdata => ({
   statements: [],
   budgets: [],
   accounts: [],
   preferences: defaultPreferences(),
+  closedMonths: [],
 });
 
 const initialState: IUserdataState = {
@@ -52,6 +76,29 @@ const updateItem = <T extends IHaveMetadata>(
   update(list, { ...item, dateModified: now() });
   state.savePending = true;
 };
+
+// a budget closing after one statement closes once it gets one
+const closeIfSingleStatement = (
+  state: IUserdataState,
+  statement: IStatement
+) => {
+  const budget = state.userdata.budgets.find(
+    (b) => b.id === statement.budgetId
+  );
+  if (budget?.closeAfterOneStatement) {
+    closeBudget(
+      state.userdata,
+      budget.id,
+      statement.date,
+      statement.accountId
+    );
+  }
+};
+
+const isSamePosition = (a: IStatement, b: IStatement) =>
+  a.budgetId === b.budgetId &&
+  a.accountId === b.accountId &&
+  moment(a.date).isSame(moment(b.date), "M");
 
 const removeItem = (
   state: IUserdataState,
@@ -90,13 +137,19 @@ const userdataSlice = createSlice({
     },
 
     SET_USERDATA: (state, action: IAction<Partial<IUserdataDto>>) => {
-      const { statements, budgets, accounts, preferences } = action.payload;
+      const { statements, budgets, accounts, preferences, closedMonths } =
+        action.payload;
       state.userdata = {
         statements: statements ?? [],
         budgets: budgets ?? [],
         accounts: accounts ?? [],
         preferences: withDefaults(preferences),
+        closedMonths: closedMonths ?? [],
       };
+      // save the converted data
+      if (migrateExpectOneStatement(state.userdata)) {
+        state.savePending = true;
+      }
       state.loaded = true;
       state.isFetching = false;
     },
@@ -116,12 +169,52 @@ const userdataSlice = createSlice({
       state.savePending = true;
     },
 
-    ADD_STATEMENT: (state, action: IAction<IStatement>) =>
-      addItem(state, state.userdata.statements, action.payload),
-    UPDATE_STATEMENT: (state, action: IAction<IStatement>) =>
-      updateItem(state, state.userdata.statements, action.payload),
-    DELETE_STATEMENT: (state, action: IAction<number>) =>
-      removeItem(state, state.userdata.statements, action.payload),
+    // statements of closed budgets and months can't change, the UI says why
+    ADD_STATEMENT: (state, action: IAction<IStatement>) => {
+      if (isStatementLocked(state.userdata, action.payload)) return;
+      addItem(state, state.userdata.statements, action.payload);
+      closeIfSingleStatement(state, action.payload);
+    },
+    UPDATE_STATEMENT: (state, action: IAction<IStatement>) => {
+      const old = state.userdata.statements.find(
+        (s) => s.id === action.payload.id
+      );
+      if (
+        (old && isStatementLocked(state.userdata, old)) ||
+        isStatementLocked(state.userdata, action.payload)
+      )
+        return;
+      updateItem(state, state.userdata.statements, action.payload);
+      if (!old || !isSamePosition(old, action.payload)) {
+        closeIfSingleStatement(state, action.payload);
+      }
+    },
+    DELETE_STATEMENT: (state, action: IAction<number>) => {
+      const old = state.userdata.statements.find(
+        (s) => s.id === action.payload
+      );
+      if (old && isStatementLocked(state.userdata, old)) return;
+      removeItem(state, state.userdata.statements, action.payload);
+    },
+
+    CLOSE_BUDGET: (state, action: IAction<IBudgetClosingPayload>) => {
+      const { budgetId, month, accountId } = action.payload;
+      closeBudget(state.userdata, budgetId, month, accountId);
+      state.savePending = true;
+    },
+    OPEN_BUDGET: (state, action: IAction<IBudgetClosingPayload>) => {
+      const { budgetId, month, accountId } = action.payload;
+      openBudget(state.userdata, budgetId, month, accountId);
+      state.savePending = true;
+    },
+    CLOSE_MONTH: (state, action: IAction<IMonthClosingPayload>) => {
+      closeMonth(state.userdata, action.payload.month, action.payload.left);
+      state.savePending = true;
+    },
+    OPEN_MONTH: (state, action: IAction<string>) => {
+      openMonth(state.userdata, action.payload);
+      state.savePending = true;
+    },
 
     ADD_BUDGET: (state, action: IAction<IBudget>) =>
       addItem(state, state.userdata.budgets, action.payload),
@@ -153,6 +246,10 @@ export const {
   ADD_STATEMENT,
   UPDATE_STATEMENT,
   DELETE_STATEMENT,
+  CLOSE_BUDGET,
+  OPEN_BUDGET,
+  CLOSE_MONTH,
+  OPEN_MONTH,
   ADD_BUDGET,
   UPDATE_BUDGET,
   DELETE_BUDGET,
