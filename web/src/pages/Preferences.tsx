@@ -6,7 +6,8 @@ import { z } from "zod";
 import moment from "moment";
 import debounce from "lodash/debounce";
 import { AppState, TAppDispatch } from "store/store";
-import { IMPORT_DATA, UPDATE_PREFERENCES } from "store/userdata/userdata.slice";
+import { UPDATE_PREFERENCES } from "store/userdata/userdata.slice";
+import { importData } from "store/userdata/userdata.actions";
 import { ADD_ERROR_TOAST, ADD_SUCCESS_TOAST } from "store/ui/ui.slice";
 import { selectPreferences } from "store/userdata/userdata.selectors";
 import { IPreferences, Theme } from "store/userdata/userdata.types";
@@ -257,7 +258,7 @@ const DataImport = () => {
         userdata,
         importer.parse(await file.text())
       );
-      dispatch(IMPORT_DATA(prepared));
+      dispatch(importData(prepared));
       dispatch(
         ADD_SUCCESS_TOAST(
           t("preferences.imported", { count: prepared.items.length })

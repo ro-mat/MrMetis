@@ -292,7 +292,8 @@
     "importSkipped_one": "{{count}} item skipped: its account or budget doesn't exist",
     "importSkipped_other": "{{count}} items skipped: their account or budget doesn't exist",
     "importNotMrmetis": "This is not a file exported from MrMetis",
-    "importInvalid": "The file could not be read"
+    "importInvalid": "The file could not be read",
+    "importLeftNotRecalculated": "What is left after the closed months could not be recalculated, as some budget formulas are broken. Fix them, then close those months again."
   },
 
   "privacy": {

@@ -26,7 +26,6 @@ import {
   openMonth,
   recalculateClosed,
 } from "services/budgetClosing";
-import { recalculateClosedMonths } from "services/closedMonthsRecalculation";
 
 export interface IBudgetClosingPayload {
   budgetId: number;
@@ -224,17 +223,20 @@ const userdataSlice = createSlice({
       const list: IHaveMetadata[] = state.userdata[payload.entity];
       list.push(...payload.items);
       if (payload.entity === "statements") {
-        // also to closed budgets and months: their stored sums and what is
-        // left after them follow
-        const statements = payload.items;
-        statements.forEach((s) => closeIfSingleStatement(state, s));
-        recalculateClosed(state.userdata, statements);
-        const first = statements.map((s) => s.date).sort()[0];
-        try {
-          if (first) recalculateClosedMonths(state.userdata, first);
-        } catch {
-          // a broken formula, shown on the budget pages; the left stays
-        }
+        // also to closed budgets, their stored sums follow (what is left
+        // after closed months: see importData)
+        payload.items.forEach((s) => closeIfSingleStatement(state, s));
+        recalculateClosed(state.userdata, payload.items);
+      }
+      state.savePending = true;
+    },
+    SET_LEFT_FROM_PREV_MONTH: (
+      state,
+      action: IAction<Pick<IAccount, "id" | "leftFromPrevMonth">[]>
+    ) => {
+      for (const { id, leftFromPrevMonth } of action.payload) {
+        const account = state.userdata.accounts.find((a) => a.id === id);
+        if (account) account.leftFromPrevMonth = leftFromPrevMonth;
       }
       state.savePending = true;
     },
@@ -274,6 +276,7 @@ export const {
   CLOSE_MONTH,
   OPEN_MONTH,
   IMPORT_DATA,
+  SET_LEFT_FROM_PREV_MONTH,
   ADD_BUDGET,
   UPDATE_BUDGET,
   DELETE_BUDGET,

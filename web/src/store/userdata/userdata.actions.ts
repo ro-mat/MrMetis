@@ -6,6 +6,8 @@ import {
   SAVE_FAILED,
   SAVE_SUCCEEDED,
   SAVED,
+  IMPORT_DATA,
+  SET_LEFT_FROM_PREV_MONTH,
   SET_STORAGE,
   SET_USERDATA,
 } from "./userdata.slice";
@@ -17,6 +19,8 @@ import { getDemoData, initDemoData, saveDemoData } from "helpers/demoHelper";
 import { SET_ISDEMO } from "store/auth/auth.slice";
 import { ADD_ERROR_TOAST, ADD_SUCCESS_TOAST } from "store/ui/ui.slice";
 import i18n from "i18next";
+import { Imported } from "helpers/importers";
+import { recalculateClosedMonths } from "services/closedMonthsRecalculation";
 
 interface IUserdataResponse {
   data: string | null;
@@ -108,3 +112,28 @@ export const startDemo = (): TAppThunk => (dispatch) => {
   dispatch(SET_USERDATA(initDemoData()));
   dispatch(SET_ISDEMO(true));
 };
+
+// Adds items from prepareImport. Imported statements also change what is left
+// after the closed months from theirs on; when that can't be calculated (a
+// broken formula) the stored left stays and a toast says so.
+export const importData =
+  (imported: Imported): TAppThunk =>
+  (dispatch, getState) => {
+    dispatch(IMPORT_DATA(imported));
+    if (imported.entity !== "statements") return;
+
+    const first = imported.items.map((s) => s.date).sort()[0];
+    if (!first) return;
+    const userdata = getState().data.userdata;
+    // the state is frozen, the recalculation sets copies
+    const accounts = userdata.accounts.map((a) => ({ ...a }));
+    try {
+      recalculateClosedMonths({ ...userdata, accounts }, first);
+    } catch {
+      dispatch(
+        ADD_ERROR_TOAST(i18n.t("preferences.importLeftNotRecalculated"))
+      );
+      return;
+    }
+    dispatch(SET_LEFT_FROM_PREV_MONTH(accounts));
+  };

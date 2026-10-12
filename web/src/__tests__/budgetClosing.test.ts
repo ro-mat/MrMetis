@@ -14,6 +14,10 @@ import { buildBudgetPairsForMonth } from "services/budgetBuilder";
 import { recalculateClosedMonths } from "services/closedMonthsRecalculation";
 import { flattenBudgetPairs } from "helpers/budgetMapper";
 import { calculateForNextMonth } from "services/budgetTotals";
+import { store } from "store/store";
+import { importData } from "store/userdata/userdata.actions";
+import { CLEAR_TOAST_MESSAGES } from "store/ui/ui.slice";
+import i18n from "locales/i18n";
 import reducer, {
   ADD_STATEMENT,
   CLOSE_BUDGET,
@@ -503,22 +507,44 @@ describe("recalculating closed months", () => {
     );
   });
 
+  const importToMay = (d: ClosingData) => {
+    store.dispatch(CLEAR_TOAST_MESSAGES());
+    store.dispatch(SET_USERDATA(d));
+    store.dispatch(
+      importData({
+        entity: "statements",
+        items: [statement(10, 1, MAIN, 5, mayDay)],
+      })
+    );
+    return store.getState();
+  };
+
   it("an import into a closed month passes the change on to the next ones", () => {
     const d = closed();
     const june = leftFor(d, month)!;
     const julyLeft = leftFor(d, july)!;
 
-    let s = reducer(undefined, SET_USERDATA(d));
-    s = reducer(
-      s,
-      IMPORT_DATA({
-        entity: "statements",
-        items: [statement(10, 1, MAIN, 5, mayDay)],
-      })
-    );
+    const { data, ui } = importToMay(d);
+    expect(leftFor(data.userdata, month)).toBe(june - 5);
+    expect(leftFor(data.userdata, july)).toBe(julyLeft - 5);
+    expect(ui.messages).toEqual([]);
+  });
 
-    expect(leftFor(s.userdata, month)).toBe(june - 5);
-    expect(leftFor(s.userdata, july)).toBe(julyLeft - 5);
+  it("an import tells when the left can't be recalculated", () => {
+    const d = closed();
+    const june = leftFor(d, month)!;
+    // a budget with a broken formula
+    d.budgets.push(budget(2, [[MAIN, "unknown("]]));
+
+    const { data, ui } = importToMay(d);
+    expect(data.userdata.statements).toHaveLength(3);
+    expect(leftFor(data.userdata, month)).toBe(june);
+    expect(ui.messages).toEqual([
+      {
+        appearance: "error",
+        message: i18n.t("preferences.importLeftNotRecalculated"),
+      },
+    ]);
   });
 
   it("a broken formula changes nothing", () => {
