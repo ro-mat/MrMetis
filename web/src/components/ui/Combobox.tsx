@@ -13,6 +13,7 @@ interface IComboboxProps {
   name?: string;
   disabled?: boolean;
   required?: boolean;
+  ariaLabel?: string;
 }
 
 // Select with a text field: typing narrows the options shown in a dropdown.
@@ -25,6 +26,7 @@ const Combobox = ({
   name,
   disabled,
   required,
+  ariaLabel,
 }: IComboboxProps) => {
   const { t } = useTranslation();
   // null while closed, otherwise what the user has typed
@@ -96,6 +98,7 @@ const Combobox = ({
         role="combobox"
         aria-expanded={isOpen}
         aria-required={required}
+        aria-label={ariaLabel}
         name={name}
         disabled={disabled}
         placeholder={isOpen ? selectedLabel : undefined}

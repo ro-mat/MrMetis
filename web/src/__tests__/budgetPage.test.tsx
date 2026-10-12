@@ -7,14 +7,19 @@ import { SET_USERDATA } from "store/userdata/userdata.slice";
 import BudgetPage from "pages/BudgetPage";
 import { BudgetTypeUser, IBudget } from "store/userdata/userdata.types";
 
-const budget = (id: number, amount: string): IBudget => ({
+const budget = (id: number, amount: number): IBudget => ({
   id,
   name: `Budget ${id}`,
   fromAccountId: 1,
   toAccountId: 0,
   isEssential: false,
   amounts: [
-    { amount, fromAccountId: 1, frequency: 1, startDate: "2020-01-01" },
+    {
+      expression: [{ kind: "number", value: amount }],
+      fromAccountId: 1,
+      frequency: 1,
+      startDate: "2020-01-01",
+    },
   ],
   overrides: [],
   type: BudgetTypeUser.spending,
@@ -34,8 +39,21 @@ describe("BudgetPage", () => {
             leftFromPrevMonth: [],
           },
         ],
-        // the formula can never be calculated
-        budgets: [budget(1, "10"), budget(2, "unknownVariable + 1")],
+        // stored before amounts were expressions, so it can't be calculated
+        budgets: [
+          budget(1, 10),
+          {
+            ...budget(2, 0),
+            amounts: [
+              {
+                amount: "unknownVariable + 1",
+                fromAccountId: 1,
+                frequency: 1,
+                startDate: "2020-01-01",
+              },
+            ],
+          } as unknown as IBudget,
+        ],
       })
     );
 
@@ -57,6 +75,7 @@ describe("BudgetPage", () => {
     const link = screen.getByRole("link", { name: "Budget 2" });
     expect(screen.queryByRole("link", { name: "Budget 1" })).toBeNull();
     fireEvent.click(link);
-    expect(screen.getByDisplayValue("unknownVariable + 1")).toBeInTheDocument();
+    // with the old formula shown, to rebuild it
+    expect(screen.getByText("budget.expression.legacy")).toBeInTheDocument();
   });
 });

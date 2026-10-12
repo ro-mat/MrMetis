@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { CalculateError } from "hooks/useBudgetCalculate";
 import useBudget from "hooks/useBudget";
+import useAmountTokenText from "hooks/useAmountTokenText";
 
 interface ICalculationErrorProps {
   error: CalculateError; // from useBudgetCalculate
@@ -12,18 +13,22 @@ interface ICalculationErrorProps {
 const CalculationError = ({ error }: ICalculationErrorProps) => {
   const { t } = useTranslation();
   const { getById } = useBudget();
+  const { formatTokens } = useAmountTokenText();
 
   return (
     <div className="error calculation-error">
       <p>{t("errors.calculation")}</p>
       {error.problems.length > 0 ? (
         <ul>
-          {error.problems.map((p) => (
-            <li key={`${p.budgetId}:${p.formula}`}>
+          {error.problems.map((p, i) => (
+            <li key={i}>
               <Link to={`/budget/${p.budgetId}`}>
                 {getById(p.budgetId)?.name ?? `#${p.budgetId}`}
               </Link>
-              : <code>{p.formula}</code>
+              :{" "}
+              <code>
+                {formatTokens(p.expression) || t("errors.expressionEmpty")}
+              </code>
             </li>
           ))}
         </ul>

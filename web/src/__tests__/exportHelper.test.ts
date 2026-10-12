@@ -21,7 +21,7 @@ const userdata: IUserdata = {
       isEssential: true,
       amounts: [
         {
-          amount: "100",
+          expression: [{ kind: "number", value: 100 }],
           fromAccountId: 1,
           frequency: 1,
           startDate: "2026-01-01",

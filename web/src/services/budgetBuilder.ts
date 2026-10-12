@@ -6,6 +6,7 @@ import {
   IBudget,
   IStatement,
 } from "store/userdata/userdata.types";
+import { AmountToken } from "types/IAmount";
 import { flattenBudgetPairs } from "helpers/budgetMapper";
 import { roundTo } from "helpers/numberHelper";
 import { BudgetPair } from "./budgetPair";
@@ -13,9 +14,9 @@ import { BudgetPairArray } from "./budgetPairArray";
 import {
   Calculate,
   RelevantFormula,
-  calculate,
   getRelevantFormulas,
 } from "./budgetFormula";
+import { evaluateExpression, formatExpression } from "./amountExpression";
 import { getClosedActual, isMonthClosed, isPairClosed } from "./budgetClosing";
 import {
   getExtraTotals,
@@ -23,7 +24,7 @@ import {
   getUserTotals,
 } from "./budgetTotals";
 
-export type ProblemFormula = { budgetId: number; formula: string };
+export type ProblemFormula = { budgetId: number; expression: AmountToken[] };
 
 // Thrown when some formulas can never be calculated (broken, or depending on
 // each other); `problems` lists them so the budgets can be found and fixed.
@@ -32,7 +33,11 @@ export class BudgetCalculationError extends Error {
 
   constructor(problems: ProblemFormula[]) {
     const list = problems
-      .map((p) => `{budget id: ${p.budgetId}, formula: ${p.formula}}`)
+      .map(
+        (p) =>
+          `{budget id: ${p.budgetId}, ` +
+          `formula: ${formatExpression(p.expression)}}`
+      )
       .join(", ");
     super(
       `Infinite loop detected while calculating! Problem somewhere here: [${list}]`
@@ -131,19 +136,23 @@ export const buildBudgetPairsForMonth = (
   if (isMonthClosed(closedMonths, prevMonthCalculate.month)) {
     budgetPairs.forEach((bp) => (bp.isClosed = true));
   }
-  // reads budgetPairs directly, so it sees every pair added below
-  const curMonthCalculate = new Calculate(month, budgetPairs);
-
   let pending = budgets
     .flatMap((b) => getRelevantFormulas(month.toDate(), b))
     .sort((a, b) => (a.parentId ?? 0) - (b.parentId ?? 0)); // calculate all root parents first
 
+  // reads budgetPairs directly, so it sees every pair added below
+  const curMonthCalculate = new Calculate(month, budgetPairs);
+
   // Formulas can use other budgets and totals, so calculate in passes: each
   // pass adds what can be calculated, then the totals that became known.
   while (pending.length > 0) {
+    // a budget is only used once all of its formulas are calculated
+    curMonthCalculate.pendingBudgetIds = new Set(
+      pending.map((f) => f.budgetId)
+    );
     const notCalculated = pending.filter((f) => {
-      const planned = calculate(
-        f.formula,
+      const planned = evaluateExpression(
+        f.expression,
         curMonthCalculate,
         prevMonthCalculate
       );
@@ -169,14 +178,11 @@ export const buildBudgetPairsForMonth = (
 
     if (notCalculated.length === pending.length) {
       // a formula used for several accounts is listed once
+      const key = (f: RelevantFormula) =>
+        `${f.budgetId}:${formatExpression(f.expression)}`;
       const problems = pending
-        .map((f) => ({ budgetId: f.budgetId, formula: f.formula }))
-        .filter(
-          (p, i, all) =>
-            all.findIndex(
-              (o) => o.budgetId === p.budgetId && o.formula === p.formula
-            ) === i
-        );
+        .filter((f, i, all) => all.findIndex((o) => key(o) === key(f)) === i)
+        .map((f) => ({ budgetId: f.budgetId, expression: f.expression }));
       throw new BudgetCalculationError(problems);
     }
     pending = notCalculated;

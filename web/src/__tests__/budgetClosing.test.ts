@@ -18,6 +18,7 @@ import { store } from "store/store";
 import { importData } from "store/userdata/userdata.actions";
 import { CLEAR_TOAST_MESSAGES } from "store/ui/ui.slice";
 import i18n from "locales/i18n";
+import { AmountToken } from "types/IAmount";
 import reducer, {
   ADD_STATEMENT,
   CLOSE_BUDGET,
@@ -53,9 +54,12 @@ const account = (id: number): IAccount => ({
   leftFromPrevMonth: [],
 });
 
+// can never be calculated
+const broken: AmountToken[] = [{ kind: "paren", paren: "(" }];
+
 const budget = (
   id: number,
-  plans: [accountId: number, amount: string][],
+  plans: [accountId: number, amount: number | AmountToken[]][],
   extra: Partial<IBudget> = {}
 ): IBudget => ({
   id,
@@ -63,7 +67,9 @@ const budget = (
   toAccountId: 0,
   isEssential: false,
   amounts: plans.map(([fromAccountId, amount]) => ({
-    amount,
+    expression: Array.isArray(amount)
+      ? amount
+      : [{ kind: "number", value: amount }],
     fromAccountId,
     frequency: 1,
     startDate: day(1),
@@ -94,11 +100,11 @@ const statement = (
 const data = (): ClosingData => ({
   budgets: [
     budget(1, [
-      [MAIN, "100"],
-      [CARD, "50"],
+      [MAIN, 100],
+      [CARD, 50],
     ]),
-    budget(2, [[MAIN, "30"]], { parentId: 1 }),
-    budget(3, [[MAIN, "10"]]),
+    budget(2, [[MAIN, 30]], { parentId: 1 }),
+    budget(3, [[MAIN, 10]]),
   ],
   statements: [
     statement(1, 1, MAIN, 40),
@@ -178,8 +184,8 @@ describe("budgetClosing", () => {
   it("opening a budget opens its children but not its siblings", () => {
     const d = data();
     d.budgets.push(
-      budget(5, [[MAIN, "5"]], { parentId: 2 }),
-      budget(6, [[MAIN, "6"]], { parentId: 1 })
+      budget(5, [[MAIN, 5]], { parentId: 2 }),
+      budget(6, [[MAIN, 6]], { parentId: 1 })
     );
     closeBudget(d, 1, month, MAIN);
     expect(isPairClosed(d.budgets[3], month, MAIN, [])).toBe(true);
@@ -240,7 +246,7 @@ describe("budgetClosing", () => {
   it("closing the receiving side of a transfer closes the whole budget", () => {
     const d = data();
     d.budgets.push(
-      budget(4, [[MAIN, "70"]], {
+      budget(4, [[MAIN, 70]], {
         type: BudgetTypeUser.transferToAccount,
         toAccountId: CARD,
       })
@@ -362,8 +368,8 @@ describe("statements of closed budgets", () => {
       SET_USERDATA({
         ...data(),
         budgets: [
-          budget(1, [[MAIN, "100"]], { closeAfterOneStatement: true }),
-          budget(3, [[MAIN, "10"]]),
+          budget(1, [[MAIN, 100]], { closeAfterOneStatement: true }),
+          budget(3, [[MAIN, 10]]),
         ],
         statements: [],
       })
@@ -435,7 +441,7 @@ describe("statements of closed budgets", () => {
         statements: [statement(1, 1, MAIN, 5)],
         budgets: [
           {
-            ...budget(1, [[MAIN, "10"]]),
+            ...budget(1, [[MAIN, 10]]),
             expectOneStatement: true,
           } as IBudget,
         ],
@@ -461,7 +467,7 @@ describe("recalculating closed months", () => {
         budget(1, [], {
           amounts: [
             {
-              amount: "100",
+              expression: [{ kind: "number", value: 100 }],
               fromAccountId: MAIN,
               frequency: 1,
               startDate: may.format(DATE_FORMAT),
@@ -539,7 +545,7 @@ describe("recalculating closed months", () => {
     const d = closed();
     const june = leftFor(d, month)!;
     // a budget with a broken formula
-    d.budgets.push(budget(2, [[MAIN, "unknown("]]));
+    d.budgets.push(budget(2, [[MAIN, broken]]));
 
     const { data, ui } = importToMay(d);
     expect(data.userdata.statements).toHaveLength(3);
@@ -556,7 +562,7 @@ describe("recalculating closed months", () => {
   it("a broken formula throws, the data stays", () => {
     const d = closed();
     const before = JSON.stringify(d.accounts);
-    d.budgets[0].amounts[0].amount = "unknown(";
+    d.budgets[0].amounts[0].expression = broken;
     expect(() => recalculateClosedMonths(d, may)).toThrow();
     expect(JSON.stringify(d.accounts)).toBe(before);
   });

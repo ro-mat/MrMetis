@@ -14,6 +14,7 @@ import {
   THOUSANDS_SEPARATORS,
 } from "helpers/localeHelper";
 import { getEnumArray } from "helpers/enumHelper";
+import { expressionSchema } from "helpers/amountExpressionSchema";
 import { BudgetTypeExtra, BudgetTypeUser } from "store/userdata/userdata.types";
 import { IImporter, Imported, ImportError } from "./importer";
 
@@ -57,14 +58,22 @@ const SCHEMAS = {
     isEssential: z.boolean().default(false),
     amounts: z.array(
       z.object({
-        amount: z.string(),
+        expression: expressionSchema(),
         fromAccountId: optional(id),
         frequency: z.number(),
         startDate: z.string(),
         endDate: optional(z.string()),
       })
     ),
-    overrides: z.array(monthAmountPair).default([]),
+    overrides: z
+      .array(
+        z.object({
+          month: z.string(),
+          accountId: optional(id),
+          expression: expressionSchema(true),
+        })
+      )
+      .default([]),
     type: z.number().refine((t) => budgetTypes.includes(t)),
     closeAfterOneStatement: z.boolean().default(false),
     closed: optional(

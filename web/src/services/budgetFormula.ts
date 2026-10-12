@@ -2,119 +2,80 @@ import moment, { Moment } from "moment";
 import {
   BudgetType,
   BudgetTypeExtra,
-  BudgetTypeUser,
   IBudget,
 } from "store/userdata/userdata.types";
-import { IAmount } from "types/IAmount";
-import { roundTo } from "helpers/numberHelper";
+import { AmountToken, IAmount } from "types/IAmount";
 import { BudgetPair } from "./budgetPair";
 
-// ---- evaluating formulas ----
-
-type Formula = (cur_month: Calculate, prev_month: Calculate) => number;
-
-// Formulas are evaluated many times per render, so compile each one only once.
-const compiledFormulas = new Map<string, Formula>();
-
-const compileFormula = (str: string): Formula => {
-  let fn = compiledFormulas.get(str);
-  if (!fn) {
-    fn = Function(
-      "cur_month",
-      "prev_month",
-      `"use strict"; return (${str});`
-    ) as Formula;
-    compiledFormulas.set(str, fn);
-  }
-  return fn;
-};
-
-// Returns the rounded result, or the error message when the formula fails.
-export const calculate = (
-  str: string,
-  cur_month: Calculate,
-  prev_month: Calculate
-): number | string => {
-  try {
-    return roundTo(compileFormula(str)(cur_month, prev_month), 2);
-  } catch (e) {
-    if (typeof e === "string") {
-      return e;
-    } else if (e instanceof Error) {
-      return e.message;
-    }
-    return "Unknown error";
-  }
-};
-
-// ---- what formulas can use: `cur_month` and `prev_month` ----
-// The method names are used by the formulas users store, keep them stable.
+// ---- the values amount expressions use, see amountExpression ----
 
 export class Calculate {
   month: Moment;
   pairs: BudgetPair[];
+  // budgets of the month not calculated yet; not set for a finished month,
+  // where whatever isn't there counts as 0
+  pendingBudgetIds?: Set<number>;
 
   // `pairs` is read on every call, so pairs pushed later are visible too
-  constructor(month: Moment, pairs: BudgetPair[]) {
+  constructor(
+    month: Moment,
+    pairs: BudgetPair[],
+    pendingBudgetIds?: Set<number>
+  ) {
     this.month = month;
     this.pairs = pairs;
+    this.pendingBudgetIds = pendingBudgetIds;
   }
 
   getDaysInMonth = () => this.month.daysInMonth();
 
-  getWeekdaysInMonth = (day: number) => {
-    if (day < 1 || day > 7) {
-      throw Error("Day can only be from 1 to 7!");
-    }
-
-    const curMonth = this.month.clone().startOf("M");
-    const countedDay = this.month.clone().day(day);
+  // how many times the weekday (0 is Sunday) is in the month
+  getWeekdaysInMonth = (weekday: number) => {
+    const day = this.month.clone().startOf("M");
     let res = 0;
-
-    while (curMonth.isSame(this.month, "M")) {
-      if (curMonth.weekday() === countedDay.weekday()) {
+    while (day.isSame(this.month, "M")) {
+      if (day.day() === weekday) {
         res++;
       }
-
-      curMonth.add(1, "d");
+      day.add(1, "d");
     }
     return res;
   };
 
+  // planned amount of a budget, for one account or (no accountId) all
+  // accounts; undefined while the budget isn't calculated yet
   getItem = (id: number, accountId?: number) => {
-    if (accountId) {
-      return this.pairs.find(
-        (i) => i.budgetId === id && i.accountId === accountId
-      )?.planned;
+    if (this.pendingBudgetIds?.has(id)) {
+      return undefined;
     }
     return this.pairs
-      .filter((i) => i.budgetId === id)
+      .filter(
+        (i) =>
+          i.budgetId === id &&
+          (accountId
+            ? i.accountId === accountId
+            : // a transfer is counted once, not again on the receiving account
+              i.budgetType !== BudgetTypeExtra.transferFromAccount)
+      )
       .reduce((prev, cur) => prev + cur.planned, 0);
   };
 
-  // planned total of a type, for one account or (no accountId) all accounts
-  private total = (type: BudgetType) => (accountId?: number) =>
-    this.pairs.find(
+  // planned total of a type, for one account or (no accountId) all accounts;
+  // undefined while it isn't calculated yet
+  getTotal = (type: BudgetType, accountId?: number) => {
+    const total = this.pairs.find(
       (i) =>
         i.budgetId === 0 &&
         i.budgetType === type &&
         i.accountId === (accountId ?? 0)
-    )?.planned;
-
-  getTotalIncome = this.total(BudgetTypeUser.income);
-  getTotalSaving = this.total(BudgetTypeUser.savings);
-  getTotalLoanReturn = this.total(BudgetTypeUser.loanReturn);
-  getTotalSpending = this.total(BudgetTypeUser.spending);
-  getTotalKeepOnAccount = this.total(BudgetTypeUser.keepOnAccount);
-  getTotalToOtherAccount = this.total(BudgetTypeUser.transferToAccount);
-  getTotalFromOtherAccount = this.total(BudgetTypeExtra.transferFromAccount);
-  getLeftFromPrevMonth = this.total(BudgetTypeExtra.leftFromPrevMonth);
-  getOpeningBalance = this.total(BudgetTypeExtra.openingBalance);
-  getClosingBalance = this.total(BudgetTypeExtra.closingBalance);
-  getMonthDelta = this.total(BudgetTypeExtra.monthDelta);
+    );
+    return total ? total.planned : this.pendingBudgetIds ? undefined : 0;
+  };
 }
 
 // ---- which formulas apply to a month ----
+
+const zeroExpression: AmountToken[] = [{ kind: "number", value: 0 }];
 
 export type RelevantFormula = {
   budgetId: number;
@@ -122,7 +83,7 @@ export type RelevantFormula = {
   toAccountId?: number;
   parentId?: number;
   budgetType: BudgetType;
-  formula: string;
+  expression: AmountToken[];
 };
 
 const isAmountInMonth = (monthStart: Moment, amount: IAmount) => {
@@ -142,25 +103,28 @@ const isAmountInMonth = (monthStart: Moment, amount: IAmount) => {
 };
 
 // One formula per account the budget is planned on this month, or a single
-// "0" formula when it isn't planned at all.
+// 0 formula when it isn't planned at all.
 export const getRelevantFormulas = (
   month: Date,
   budget: IBudget
 ): RelevantFormula[] => {
   const monthStart = moment(month).startOf("M");
 
-  const toFormula = (accountId: number, formula: string): RelevantFormula => ({
+  const toFormula = (
+    accountId: number,
+    expression: AmountToken[]
+  ): RelevantFormula => ({
     budgetId: budget.id,
     accountId: budget.fromAccountId || accountId,
     toAccountId: budget.toAccountId,
     parentId: budget.parentId,
     budgetType: budget.type,
-    formula,
+    expression,
   });
 
   const overrides = budget.overrides
     .filter((o) => moment(o.month).isSame(month, "M"))
-    .map((o) => toFormula(o.accountId, o.amount.toString()));
+    .map((o) => toFormula(o.accountId, o.expression));
 
   // An override replaces the regular amount for its account.
   const amounts = budget.amounts
@@ -169,12 +133,12 @@ export const getRelevantFormulas = (
         !overrides.some((o) => o.accountId === a.fromAccountId) &&
         isAmountInMonth(monthStart, a)
     )
-    .map((a) => toFormula(a.fromAccountId, a.amount));
+    .map((a) => toFormula(a.fromAccountId, a.expression));
 
   const formulas = [...overrides, ...amounts];
 
   // the placeholder has no receiving account, so it creates no transfer pair
   return formulas.length > 0
     ? formulas
-    : [{ ...toFormula(0, "0"), toAccountId: undefined }];
+    : [{ ...toFormula(0, zeroExpression), toAccountId: undefined }];
 };

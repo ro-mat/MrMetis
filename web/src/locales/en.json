@@ -113,8 +113,44 @@
 
     "amountPreview": "This month: {{value}}",
     "amountHint": {
-      "label": "Advanced amount",
-      "description": "[cur_month | prev_month]: Current month or previous month\n.[\ngetLeftFromPrevMonth([accountId]): Left from previous month with optional account specification\ngetTotalIncome([accountId]): Total of type 'Income' with optional account specification\ngetTotalSpending([accountId]): Total of type 'Spending' with optional account specification\ngetTotalLoanReturn([accountId]): Total of type 'Loan return' with optional account specification\ngetTotalSavings([accountId]): Total of type 'Savings' with optional account specification\ngetTotalToOtherAccount([accountId]): Total of type 'Transfer to other account' with optional account specification\ngetTotalFromOtherAccount([accountId]): Total of type 'Transfer from other account' with optional account specification\ngetTotalKeepOnAccount([accountId]): Total of type 'Keep on account' with optional account specification\ngetOpeningBalance([accountId]): = (getLeftFromPrevMonth + getTotalIncome + getTotalFromOtherAccount) with optional account specification\ngetClosingBalance([accountId]): = (getOpeningBalance - getTotalSavings - getTotalLoanReturn - getTotalSpending - totalToOtherAccount)  with optional account specification\ngetItem(<budgetId>[, accountId]): Gets amount of a specific budget item with optional account specification\ngetDaysInMonth(): Gets total of calendar days in a month (1 - 31)\ngetWeekdaysInMonth([1..7]): Gets total of a certain weekday in a month (e.g. getWeekdaysInMonth(2) = Tuesdays in a month)\n]"
+      "label": "About amounts",
+      "description": "Build the amount from numbers, other budget items, type totals (e.g. all spending on an account) and calendar counts, joined with + − × ÷ and parentheses. A value can be taken from the previous month instead of the current one."
+    },
+    "sentence": {
+      "from": "From",
+      "until": "until",
+      "noEnd": "further notice",
+      "onAccount": "on account",
+      "every": "every",
+      "months": "months:",
+      "in": "In",
+      "amount": "amount:"
+    },
+    "expression": {
+      "addValue": "+ value",
+      "addNumber": "+ number",
+      "number": "Number",
+      "budget": "Budget item",
+      "total": "Type total",
+      "daysInMonth": "Days in month",
+      "weekdays": "Weekdays",
+      "weekdaysOf": "{{day}}s",
+      "days": "number of days",
+      "month": "Month",
+      "thisMonth": "this month's",
+      "lastMonth": "last month's",
+      "on": "on",
+      "account": "Account",
+      "allAccounts": "all accounts",
+      "prevMonth": "Previous month",
+      "legacy": "Previous formula: {{formula}}",
+      "operator": {
+        "label": "Operation",
+        "+": "Add",
+        "-": "Subtract",
+        "*": "Multiply",
+        "/": "Divide"
+      }
     }
   },
   "account": {
@@ -152,7 +188,12 @@
     "loanReturn": "Loan return",
     "savings": "Savings",
     "transferToAccount": "Transfer to Account",
-    "keepOnAccount": "Keep on Account"
+    "keepOnAccount": "Keep on Account",
+    "transferFromAccount": "Transfer from Account",
+    "leftFromPrevMonth": "Left from prev month",
+    "openingBalance": "Opening balance",
+    "closingBalance": "Closing balance",
+    "monthDelta": "Month Delta"
   },
   "errors": {
     "calculation": "Budgets could not be calculated, check the formulas of these budgets:",
@@ -184,7 +225,13 @@
     "frequencyEmpty": "Frequency cannot be empty",
     "frequencyInvalid": "Frequency must be a whole number of at least 1",
     "symbolTooLong": "Currency symbol can be up to 5 characters",
-    "statementClosed": "This budget is closed for this account and month, open it to change its statements"
+    "statementClosed": "This budget is closed for this account and month, open it to change its statements",
+    "expressionEmpty": "Amount is empty",
+    "expressionInvalid": "Amount needs a value between operators",
+    "expressionParens": "Parentheses don't match",
+    "expressionNumbersOnly": "Only numbers can be used here",
+    "expressionNotFinite": "Amount can't be calculated (division by zero?)",
+    "expressionBudgetEmpty": "Choose a budget"
   },
   "landingPage": {
     "welcome": {

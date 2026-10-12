@@ -546,7 +546,7 @@ describe("parent and child on different accounts", () => {
 
   const budget = (
     id: number,
-    amount: string,
+    amount: number,
     fromAccountId: number,
     frequency: number,
     parentId?: number
@@ -558,7 +558,12 @@ describe("parent and child on different accounts", () => {
     toAccountId: 0,
     isEssential: false,
     amounts: [
-      { amount, fromAccountId, frequency, startDate: start.toISOString() },
+      {
+        expression: [{ kind: "number", value: amount }],
+        fromAccountId,
+        frequency,
+        startDate: start.toISOString(),
+      },
     ],
     overrides: [],
     type: BudgetTypeUser.spending,
@@ -569,7 +574,7 @@ describe("parent and child on different accounts", () => {
   const build = (month: moment.Moment) =>
     buildBudgetPairsForMonth(
       month,
-      [budget(1, "0", CARD, 1), budget(2, "15", MAIN, 6, 1)],
+      [budget(1, 0, CARD, 1), budget(2, 15, MAIN, 6, 1)],
       [],
       [account(MAIN, "Main"), account(CARD, "Card")],
       []

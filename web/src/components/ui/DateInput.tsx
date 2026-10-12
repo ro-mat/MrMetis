@@ -11,6 +11,10 @@ interface IDateInputProps<T extends FieldValues>
   extends IFieldProps, Required<IBindProps<T>> {
   // "month" picks a whole month (used for budgets and balances)
   mode?: "day" | "month";
+  // names the input when there's no label
+  ariaLabel?: string;
+  // shown while no date is picked
+  placeholder?: string;
 }
 
 const DateInput = <T extends FieldValues>({
@@ -18,6 +22,8 @@ const DateInput = <T extends FieldValues>({
   control,
   mode = "day",
   error,
+  ariaLabel,
+  placeholder,
   ...fieldProps
 }: IDateInputProps<T>) => {
   const { i18n } = useTranslation();
@@ -37,6 +43,8 @@ const DateInput = <T extends FieldValues>({
         <Field {...fieldProps} error={error ?? fieldError}>
           <DatePicker
             name={field?.name}
+            ariaLabel={ariaLabel}
+            placeholderText={placeholder}
             ref={field?.ref}
             onBlur={field?.onBlur}
             locale={i18n.resolvedLanguage ?? i18n.language}

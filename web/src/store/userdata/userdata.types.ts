@@ -1,5 +1,5 @@
 import { IBaseState } from "store/store";
-import { IAmount } from "types/IAmount";
+import { IAmount, IOverride } from "types/IAmount";
 import { IHaveMetadata } from "types/IHaveMetadata";
 import { IMonthAmountPair } from "types/IMonthAmountPair";
 
@@ -43,7 +43,7 @@ export interface IBudget extends IHaveMetadata {
   toAccountId: number;
   isEssential: boolean;
   amounts: IAmount[];
-  overrides: IMonthAmountPair[];
+  overrides: IOverride[];
   type: BudgetType;
   // the budget is closed for its account and month as soon as it gets a statement
   closeAfterOneStatement: boolean;

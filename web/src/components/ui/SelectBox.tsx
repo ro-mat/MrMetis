@@ -63,6 +63,7 @@ const SelectBox = <T extends FieldValues>({
               name={field.name}
               disabled={selectProps.disabled}
               required={required}
+              ariaLabel={selectProps["aria-label"]}
             />
           ) : (
             <select

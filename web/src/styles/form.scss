@@ -52,19 +52,186 @@ form {
         width: 10ch;
       }
 
-      // current month value under the amount formula; out of the flow, so
-      // the row still lines up on the inputs' bottom
-      .amount-with-preview {
-        position: relative;
+      // an amount or override reads as a sentence: its fields look like the
+      // words around them until hovered or focused
+      & > .sentence {
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.3em;
+        line-height: $control-line-height;
 
-        .formula-preview {
-          position: absolute;
-          top: calc(100% - 8px); // over the input's bottom margin
+        input,
+        select {
+          box-sizing: content-box;
+          width: auto;
+          min-width: 1ch;
+          margin: 0;
+          padding: 0 2px;
+          border: 1px solid transparent;
+          border-radius: 3px;
+          background: none;
+          color: inherit;
+          font: inherit;
+          appearance: none; // no dropdown arrow
+          field-sizing: content; // as wide as the text
+
+          &:hover,
+          &:focus {
+            border-color: #ccc;
+            background-color: #fff;
+            outline: none;
+          }
+        }
+
+        // what is picked from a list
+        select,
+        .combobox input,
+        .react-datepicker-wrapper input {
+          cursor: pointer;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+
+        .labeled.has-error input,
+        .labeled.has-error select {
+          border-bottom-color: red;
+        }
+
+        .combobox {
+          margin-bottom: 0;
+
+          .combobox-arrow {
+            display: none;
+          }
+
+          // the field is only as wide as its text, the list fits its options
+          .dropdown-wrapper {
+            width: max-content;
+            min-width: 100%;
+          }
+        }
+
+        // browsers without field-sizing: a width that fits most values
+        @supports not (field-sizing: content) {
+          input {
+            width: 8ch;
+          }
+        }
+
+        // shown while the row is hovered; it keeps its place, so the row
+        // doesn't move
+        .remove {
+          margin-bottom: 0;
+          align-self: center;
+          visibility: hidden;
+        }
+
+        &:hover .remove,
+        &:focus-within .remove {
+          visibility: visible;
+        }
+
+        @media (hover: none) {
+          .remove {
+            visibility: visible;
+          }
+        }
+
+        // errors under their field instead of next to it, where the
+        // following words are
+        .labeled .error {
+          top: 100%;
           left: 0;
           font-size: 0.8em;
-          white-space: nowrap;
-          color: #555;
         }
+      }
+
+      .expression {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.3em;
+
+        .token {
+          position: relative;
+          display: inline-flex;
+          align-items: baseline;
+          gap: 0.3em;
+
+          .sign {
+            font-weight: bold;
+          }
+
+          // a value reads as one item, however many fields it has
+          // (hugging the value, despite the gap between its fields)
+          &.token-value::before {
+            content: "[";
+            margin-right: -0.3em;
+            color: #888;
+          }
+
+          &.token-value::after {
+            content: "]";
+            margin-left: -0.3em;
+            color: #888;
+          }
+        }
+
+        // removes a token; shown over its corner while hovered, so the
+        // sentence doesn't move
+        .token-remove {
+          display: none;
+          position: absolute;
+          top: -0.8em;
+          right: -0.6em;
+          z-index: 1;
+          padding: 0 0.2em;
+          border: none;
+          background: none;
+          color: #888;
+          font-size: 0.8em;
+          line-height: 1;
+          cursor: pointer;
+        }
+
+        .token:hover .token-remove,
+        .token:focus-within .token-remove {
+          display: block;
+        }
+
+        // without a mouse nothing is hovered, so they always show
+        @media (hover: none) {
+          .token-remove {
+            display: block;
+          }
+        }
+
+        .expression-add {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3em;
+          margin-left: 0.5em;
+
+          .menu-trigger {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+          }
+        }
+
+        & > .error {
+          font-size: 0.8em;
+        }
+      }
+
+      // current month value of the expression, and the formula stored
+      // before expressions
+      .formula-preview,
+      .legacy {
+        font-size: 0.8em;
+        color: #555;
       }
     }
 

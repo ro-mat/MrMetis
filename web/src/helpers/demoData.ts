@@ -1,6 +1,28 @@
 import moment from "moment";
 import i18n from "i18next";
+import {
+  BudgetType,
+  BudgetTypeExtra,
+  BudgetTypeUser,
+  WeekDay,
+} from "store/userdata/userdata.types";
+import { AmountOperator, AmountToken } from "types/IAmount";
 import { DATE_FORMAT } from "./dateHelper";
+
+const num = (value: number): AmountToken => ({ kind: "number", value });
+const op = (operator: AmountOperator): AmountToken => ({
+  kind: "operator",
+  operator,
+});
+const total = (budgetType: BudgetType, accountId: number): AmountToken => ({
+  kind: "total",
+  budgetType,
+  accountId,
+});
+const weekdays = (weekday: WeekDay): AmountToken => ({
+  kind: "weekdays",
+  weekday,
+});
 
 export const getData = () => {
   const cur_month = moment();
@@ -475,7 +497,7 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount: "1630",
+            expression: [num(1630)],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -494,7 +516,7 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount: "480",
+            expression: [num(480)],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -513,7 +535,8 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount: "cur_month.getWeekdaysInMonth(6)*50",
+            // 50 every Saturday
+            expression: [weekdays(6), op("*"), num(50)],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -532,7 +555,7 @@ export const getData = () => {
         isEssential: false,
         amounts: [
           {
-            amount: "60",
+            expression: [num(60)],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -551,7 +574,7 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount: "29",
+            expression: [num(29)],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -570,7 +593,7 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount: "15",
+            expression: [num(15)],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -602,7 +625,7 @@ export const getData = () => {
         isEssential: false,
         amounts: [
           {
-            amount: "119",
+            expression: [num(119)],
             frequency: 3,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -634,7 +657,7 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount: "30",
+            expression: [num(30)],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -653,7 +676,7 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount: "15",
+            expression: [num(15)],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -672,7 +695,7 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount: "20",
+            expression: [num(20)],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -691,8 +714,18 @@ export const getData = () => {
         isEssential: false,
         amounts: [
           {
-            amount:
-              "cur_month.getOpeningBalance(1) - cur_month.getTotalSpending(1) - cur_month.getTotalLoanReturn(1) - cur_month.getTotalToOtherAccount(1) - cur_month.getItem(14)",
+            // what is left on the main account
+            expression: [
+              total(BudgetTypeExtra.openingBalance, 1),
+              op("-"),
+              total(BudgetTypeUser.spending, 1),
+              op("-"),
+              total(BudgetTypeUser.loanReturn, 1),
+              op("-"),
+              total(BudgetTypeUser.transferToAccount, 1),
+              op("-"),
+              { kind: "budget", budgetId: 14 },
+            ],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -711,7 +744,7 @@ export const getData = () => {
         isEssential: false,
         amounts: [
           {
-            amount: "100",
+            expression: [num(100)],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -730,7 +763,7 @@ export const getData = () => {
         isEssential: false,
         amounts: [
           {
-            amount: "250",
+            expression: [num(250)],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -749,7 +782,7 @@ export const getData = () => {
         isEssential: false,
         amounts: [
           {
-            amount: "150",
+            expression: [num(150)],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -768,8 +801,16 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount:
-              "cur_month.getTotalSpending(2) + cur_month.getTotalLoanReturn(2) + cur_month.getTotalSaving(2) + cur_month.getTotalToOtherAccount(2)",
+            // everything paid from the credit card
+            expression: [
+              total(BudgetTypeUser.spending, 2),
+              op("+"),
+              total(BudgetTypeUser.loanReturn, 2),
+              op("+"),
+              total(BudgetTypeUser.savings, 2),
+              op("+"),
+              total(BudgetTypeUser.transferToAccount, 2),
+            ],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -788,8 +829,14 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount:
-              "cur_month.getTotalSpending(3) + cur_month.getTotalLoanReturn(3) + cur_month.getTotalSaving(3)",
+            // everything paid in cash
+            expression: [
+              total(BudgetTypeUser.spending, 3),
+              op("+"),
+              total(BudgetTypeUser.loanReturn, 3),
+              op("+"),
+              total(BudgetTypeUser.savings, 3),
+            ],
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
@@ -808,19 +855,19 @@ export const getData = () => {
         isEssential: true,
         amounts: [
           {
-            amount: "40",
+            expression: [num(40)],
             fromAccountId: 1,
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
           {
-            amount: "50",
+            expression: [num(50)],
             fromAccountId: 2,
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),
           },
           {
-            amount: "20",
+            expression: [num(20)],
             fromAccountId: 3,
             frequency: 1,
             startDate: prev_month.date(1).format(DATE_FORMAT),

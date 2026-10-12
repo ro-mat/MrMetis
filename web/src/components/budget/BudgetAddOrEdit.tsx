@@ -15,12 +15,12 @@ import { budgetAddOrEditFormDefault } from "helpers/constants/defaults";
 import { z } from "zod";
 import { requiredError, requiredText } from "helpers/zodHelper";
 import { useFieldArray, useWatch } from "react-hook-form";
+import { omit } from "lodash";
 import useAppForm from "hooks/useAppForm";
 import AddOrEditControls from "components/AddOrEditControls";
 import AccountSelect from "components/AccountSelect";
 import BudgetSelect from "components/BudgetSelect";
 import {
-  AmountInput,
   Button,
   Checkbox,
   DateInput,
@@ -35,6 +35,11 @@ import useOlderRows from "hooks/useOlderRows";
 import useFormulaPreview from "hooks/useFormulaPreview";
 import { getEnumArray } from "helpers/enumHelper";
 import useLocale from "hooks/useLocale";
+import { expressionSchema } from "helpers/amountExpressionSchema";
+import { AmountToken } from "types/IAmount";
+import AmountExpressionEditor, {
+  ExpressionPath,
+} from "./AmountExpressionEditor";
 
 const schema = z
   .object({
@@ -55,15 +60,18 @@ const schema = z
           .number(requiredError("errors.frequencyEmpty", "errors.NaN"))
           .int("errors.frequencyInvalid")
           .min(1, "errors.frequencyInvalid"),
-        // a formula, see the amount hint
-        amount: requiredText("errors.amountEmpty"),
+        expression: expressionSchema(),
+        // the formula stored before expressions, shown to rebuild it; not saved
+        legacy: z.string().optional(),
       }),
     ),
     overrides: z.array(
       z.object({
         month: z.date(requiredError("errors.monthEmpty")),
         accountId: z.number(requiredError("errors.fromAccountEmpty")),
-        amount: z.number(requiredError("errors.amountEmpty", "errors.NaN")),
+        expression: expressionSchema(true),
+        // the amount stored before expressions, shown to rebuild it; not saved
+        legacy: z.string().optional(),
       }),
     ),
   })
@@ -90,6 +98,13 @@ const schema = z
   );
 
 export type FormFields = z.output<typeof schema>;
+export type FormInput = z.input<typeof schema>;
+
+const zeroExpression = (): AmountToken[] => [{ kind: "number", value: 0 }];
+
+// stored data from before expressions has a formula (or number) instead
+const legacyOf = (row: object) =>
+  "expression" in row || !("amount" in row) ? undefined : String(row.amount);
 
 interface IBudgetAddOrEditProps {
   // 0 for a new budget
@@ -149,7 +164,7 @@ const BudgetAddOrEdit = ({
       ...data,
       amounts: data.amounts.map((a) => {
         return {
-          ...a,
+          ...omit(a, "legacy"),
           startDate: moment(a.startDate).format(DATE_FORMAT),
           endDate: a.endDate
             ? moment(a.endDate).format(DATE_FORMAT)
@@ -158,7 +173,7 @@ const BudgetAddOrEdit = ({
       }),
       overrides: data.overrides.map((o) => {
         return {
-          ...o,
+          ...omit(o, "legacy"),
           month: moment(o.month).format(DATE_FORMAT),
         };
       }),
@@ -182,16 +197,40 @@ const BudgetAddOrEdit = ({
     name: ["id", "type", "fromAccountId", "parentId"],
   });
 
-  // the focused amount's formula evaluated for the current month
-  const amounts = useWatch({ control, name: "amounts" });
-  const [focusedAmount, setFocusedAmount] = useState<number>();
-  const previewFormula = useFormulaPreview(focusedAmount !== undefined);
-  const formatPreview = (formula?: string) => {
-    const value = formula ? previewFormula(formula) : undefined;
+  // the focused row's expression evaluated for the current month
+  const [amounts, overrides] = useWatch({
+    control,
+    name: ["amounts", "overrides"],
+  });
+  const [focusedRow, setFocusedRow] = useState<ExpressionPath>();
+  const previewExpression = useFormulaPreview(focusedRow !== undefined);
+  const formatPreview = (expression?: AmountToken[]) => {
+    const value = expression ? previewExpression(expression) : undefined;
     if (value === undefined) return undefined;
-    if (typeof value === "string") return value;
+    if (typeof value === "string") return t(value);
     return isNaN(value) ? "?" : formatAmount(value);
   };
+  const previewOf = (row: ExpressionPath, expression?: AmountToken[]) => {
+    const preview = row === focusedRow ? formatPreview(expression) : undefined;
+    return (
+      preview !== undefined && (
+        <span className="formula-preview">
+          {t("budget.amountPreview", { value: preview })}
+        </span>
+      )
+    );
+  };
+  // shows the row's preview while one of its fields has the focus
+  const focusProps = (row: ExpressionPath) => ({
+    onFocus: () => setFocusedRow(row),
+    onBlur: () => setFocusedRow(undefined),
+  });
+  const legacyNote = (legacy?: string) =>
+    legacy && (
+      <span className="legacy">
+        {t("budget.expression.legacy", { formula: legacy })}
+      </span>
+    );
 
   // a child of a budget with an account uses (and is locked to) that account
   const parentAccountId = getBudgetById(parentId)?.fromAccountId;
@@ -254,6 +293,8 @@ const BudgetAddOrEdit = ({
         .map((a) => {
           return {
             ...a,
+            expression: a.expression ?? [],
+            legacy: legacyOf(a),
             fromAccountId: budgetAccountId || a.fromAccountId,
             startDate: moment(a.startDate).toDate(),
             endDate: a.endDate ? moment(a.endDate).toDate() : null,
@@ -264,6 +305,8 @@ const BudgetAddOrEdit = ({
         .map((o) => {
           return {
             ...o,
+            expression: o.expression ?? [],
+            legacy: legacyOf(o),
             accountId: budgetAccountId || o.accountId,
             month: moment(o.month).toDate(),
           };
@@ -335,7 +378,7 @@ const BudgetAddOrEdit = ({
               className="add"
               onClick={() =>
                 prependAmount({
-                  amount: "0",
+                  expression: zeroExpression(),
                   fromAccountId: fromAccountId || 1,
                   frequency: 1,
                   startDate: new Date(),
@@ -347,61 +390,51 @@ const BudgetAddOrEdit = ({
           </Field>
           <div>
             <Hint label={t("budget.amountHint.label")}>
-              <pre>{t("budget.amountHint.description")}</pre>
+              <p>{t("budget.amountHint.description")}</p>
             </Hint>
           </div>
           <div className="list">
             {olderAmounts.visibleRows.map(({ field, index }) => {
-              const preview =
-                index === focusedAmount
-                  ? formatPreview(amounts?.[index]?.amount)
-                  : undefined;
+              const row: ExpressionPath = `amounts.${index}.expression`;
               return (
-                <div key={field.id}>
+                <div key={field.id} className="sentence" {...focusProps(row)}>
+                  <span>{t("budget.sentence.from")}</span>
                   <DateInput
                     name={`amounts.${index}.startDate`}
                     control={control}
                     mode="month"
-                    label="budget.startDate"
-                    required
+                    ariaLabel={t("budget.startDate")}
                   />
+                  <span>{t("budget.sentence.until")}</span>
                   <DateInput
                     name={`amounts.${index}.endDate`}
                     control={control}
                     mode="month"
-                    label="budget.endDate"
+                    ariaLabel={t("budget.endDate")}
+                    placeholder={t("budget.sentence.noEnd")}
                   />
+                  <span>{t("budget.sentence.onAccount")}</span>
                   <AccountSelect
                     name={`amounts.${index}.fromAccountId`}
                     {...rowAccountProps}
-                    label="budget.fromAccount"
-                    required
+                    aria-label={t("budget.fromAccount")}
                   />
-                  <div
-                    className="amount-with-preview"
-                    onFocus={() => setFocusedAmount(index)}
-                    onBlur={() => setFocusedAmount(undefined)}
-                  >
-                    <TextInput
-                      name={`amounts.${index}.amount`}
-                      control={control}
-                      label="budget.amount"
-                      required
-                    />
-                    {preview !== undefined && (
-                      <span className="formula-preview">
-                        {t("budget.amountPreview", { value: preview })}
-                      </span>
-                    )}
-                  </div>
+                  <span>{t("budget.sentence.every")}</span>
                   <TextInput
                     name={`amounts.${index}.frequency`}
                     control={control}
                     className="frequency"
                     type="number"
-                    label="budget.frequency"
-                    required
+                    aria-label={t("budget.frequency")}
                   />
+                  <span>{t("budget.sentence.months")}</span>
+                  <AmountExpressionEditor
+                    control={control}
+                    name={row}
+                    budgetId={id}
+                  />
+                  {previewOf(row, amounts?.[index]?.expression)}
+                  {legacyNote(amounts?.[index]?.legacy)}
                   <RemoveButton onClick={() => removeAmount(index)} />
                 </div>
               );
@@ -420,7 +453,7 @@ const BudgetAddOrEdit = ({
               onClick={() =>
                 prependOverride({
                   month: new Date(),
-                  amount: 0,
+                  expression: zeroExpression(),
                   accountId: fromAccountId || 1,
                 })
               }
@@ -429,30 +462,35 @@ const BudgetAddOrEdit = ({
             </Button>
           </Field>
           <div className="list">
-            {olderOverrides.visibleRows.map(({ field, index }) => (
-              <div key={field.id}>
-                <DateInput
-                  name={`overrides.${index}.month`}
-                  control={control}
-                  mode="month"
-                  label="budget.month"
-                  required
-                />
-                <AccountSelect
-                  name={`overrides.${index}.accountId`}
-                  {...rowAccountProps}
-                  label="budget.fromAccount"
-                  required
-                />
-                <AmountInput
-                  name={`overrides.${index}.amount`}
-                  control={control}
-                  label="budget.amount"
-                  required
-                />
-                <RemoveButton onClick={() => removeOverride(index)} />
-              </div>
-            ))}
+            {olderOverrides.visibleRows.map(({ field, index }) => {
+              const row: ExpressionPath = `overrides.${index}.expression`;
+              return (
+                <div key={field.id} className="sentence" {...focusProps(row)}>
+                  <span>{t("budget.sentence.in")}</span>
+                  <DateInput
+                    name={`overrides.${index}.month`}
+                    control={control}
+                    mode="month"
+                    ariaLabel={t("budget.month")}
+                  />
+                  <span>{t("budget.sentence.onAccount")}</span>
+                  <AccountSelect
+                    name={`overrides.${index}.accountId`}
+                    {...rowAccountProps}
+                    aria-label={t("budget.fromAccount")}
+                  />
+                  <span>{t("budget.sentence.amount")}</span>
+                  <AmountExpressionEditor
+                    control={control}
+                    name={row}
+                    numbersOnly
+                  />
+                  {previewOf(row, overrides?.[index]?.expression)}
+                  {legacyNote(overrides?.[index]?.legacy)}
+                  <RemoveButton onClick={() => removeOverride(index)} />
+                </div>
+              );
+            })}
           </div>
           <OlderRowsToggle
             hiddenCount={olderOverrides.hiddenCount}
