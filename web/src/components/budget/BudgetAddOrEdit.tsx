@@ -26,7 +26,6 @@ import {
   DateInput,
   Field,
   OlderRowsToggle,
-  RemoveButton,
   SelectBox,
   TextInput,
 } from "components/ui";
@@ -432,10 +431,10 @@ const BudgetAddOrEdit = ({
                     control={control}
                     name={row}
                     budgetId={id}
+                    onRemove={() => removeAmount(index)}
                   />
                   {previewOf(row, amounts?.[index]?.expression)}
                   {legacyNote(amounts?.[index]?.legacy)}
-                  <RemoveButton onClick={() => removeAmount(index)} />
                 </div>
               );
             })}
@@ -484,10 +483,10 @@ const BudgetAddOrEdit = ({
                     control={control}
                     name={row}
                     numbersOnly
+                    onRemove={() => removeOverride(index)}
                   />
                   {previewOf(row, overrides?.[index]?.expression)}
                   {legacyNote(overrides?.[index]?.legacy)}
-                  <RemoveButton onClick={() => removeOverride(index)} />
                 </div>
               );
             })}

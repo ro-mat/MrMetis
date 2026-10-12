@@ -19,7 +19,13 @@ import { getEnumArray } from "helpers/enumHelper";
 import useAmountTokenText from "hooks/useAmountTokenText";
 import AccountSelect from "components/AccountSelect";
 import BudgetSelect from "components/BudgetSelect";
-import { AmountInput, Button, Menu, SelectBox } from "components/ui";
+import {
+  AmountInput,
+  Button,
+  Menu,
+  RemoveButton,
+  SelectBox,
+} from "components/ui";
 import type { FormFields, FormInput } from "./BudgetAddOrEdit";
 
 export type ExpressionPath =
@@ -33,6 +39,8 @@ interface IAmountExpressionEditorProps {
   numbersOnly?: boolean;
   // the budget being edited, it can't use itself
   budgetId?: number;
+  // removes the whole row; shown with the add buttons
+  onRemove: () => void;
 }
 
 const newValues: Record<
@@ -64,6 +72,7 @@ const AmountExpressionEditor = ({
   name,
   numbersOnly,
   budgetId,
+  onRemove,
 }: IAmountExpressionEditorProps) => {
   const { t } = useTranslation();
   const { typeLabel, weekdayNames } = useAmountTokenText();
@@ -249,6 +258,7 @@ const AmountExpressionEditor = ({
             {paren}
           </Button>
         ))}
+        <RemoveButton onClick={onRemove} />
       </span>
       {error && <span className="error">{t(error)}</span>}
     </div>

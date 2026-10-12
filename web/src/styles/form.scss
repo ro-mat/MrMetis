@@ -120,25 +120,6 @@ form {
           }
         }
 
-        // shown while the row is hovered; it keeps its place, so the row
-        // doesn't move
-        .remove {
-          margin-bottom: 0;
-          align-self: center;
-          visibility: hidden;
-        }
-
-        &:hover .remove,
-        &:focus-within .remove {
-          visibility: visible;
-        }
-
-        @media (hover: none) {
-          .remove {
-            visibility: visible;
-          }
-        }
-
         // errors under their field instead of next to it, where the
         // following words are
         .labeled .error {
@@ -148,11 +129,9 @@ form {
         }
       }
 
+      // its tokens flow on with the words of the sentence
       .expression {
-        display: inline-flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        gap: 0.3em;
+        display: contents;
 
         .token {
           position: relative;
@@ -208,20 +187,42 @@ form {
           }
         }
 
+        // on a line of their own, below the sentence
         .expression-add {
-          display: inline-flex;
+          order: 1;
+          display: flex;
+          flex-basis: 100%;
           align-items: center;
           gap: 0.3em;
-          margin-left: 0.5em;
 
           .menu-trigger {
             border: 1px solid #ccc;
             border-radius: 5px;
             background-color: #fff;
           }
+
+          // the add buttons and the row's delete button: small, one height
+          & > button,
+          & > .menu > .menu-trigger {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            height: 1.8em;
+            margin: 0;
+            padding: 0 0.9em;
+            font-size: 1em;
+          }
+
+          & > .remove {
+            width: auto;
+            padding: 0 0.5em;
+          }
         }
 
         & > .error {
+          order: 2;
+          flex-basis: 100%;
           font-size: 0.8em;
         }
       }
