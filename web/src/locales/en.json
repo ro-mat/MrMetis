@@ -114,7 +114,7 @@
     "amountPreview": "This month: {{value}}",
     "amountHint": {
       "label": "About amounts",
-      "description": "Build the amount from numbers, other budget items, type totals (e.g. all spending on an account) and calendar counts, joined with + − × ÷ and parentheses. A value can be taken from the previous month instead of the current one."
+      "description": "The amount is built from:\n• numbers\n• other budget items\n• type totals, e.g. all spending on an account\n• days or weekdays in the month\nJoin them with + − × ÷ and parentheses.\nEach value can be taken from this or last month."
     },
     "sentence": {
       "from": "From",
