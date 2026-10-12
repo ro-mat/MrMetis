@@ -17,6 +17,14 @@ table {
     z-index: 1;
   }
 
+  // the account with an open statements preview is lifted above the other
+  // accounts' rows, so the next account's sticky row doesn't cover the preview;
+  // the preview still slides under its own account's sticky row and the header
+  tbody:has(.statement-cell.selected) {
+    position: relative;
+    z-index: 52;
+  }
+
   // opaque, so sticky rows and the sticky first column hide what scrolls under them
   tr {
     background-color: white;
@@ -153,7 +161,7 @@ table {
   thead {
     position: sticky;
     top: 0;
-    z-index: 52;
+    z-index: 53;
   }
 }
 
