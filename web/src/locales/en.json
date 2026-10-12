@@ -273,7 +273,16 @@
     },
     "idleTimeout": "Log out when idle for",
     "minutes_one": "{{count}} minute",
-    "minutes_other": "{{count}} minutes"
+    "minutes_other": "{{count}} minutes",
+    "export": "Export data",
+    "exportEntity": "Data",
+    "exportFormat": "Format",
+    "exportButton": "Export",
+    "exportEntities": {
+      "statements": "Statements",
+      "budgets": "Budgets",
+      "accounts": "Accounts"
+    }
   },
 
   "privacy": {

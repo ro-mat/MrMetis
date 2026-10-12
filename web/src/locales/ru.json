@@ -282,7 +282,16 @@
     "minutes_one": "{{count}} минуту",
     "minutes_few": "{{count}} минуты",
     "minutes_many": "{{count}} минут",
-    "minutes_other": "{{count}} минуты"
+    "minutes_other": "{{count}} минуты",
+    "export": "Экспорт данных",
+    "exportEntity": "Данные",
+    "exportFormat": "Формат",
+    "exportButton": "Экспортировать",
+    "exportEntities": {
+      "statements": "Транзакции",
+      "budgets": "Бюджеты",
+      "accounts": "Счета"
+    }
   },
 
   "privacy": {

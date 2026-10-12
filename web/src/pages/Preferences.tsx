@@ -10,6 +10,7 @@ import { UPDATE_PREFERENCES } from "store/userdata/userdata.slice";
 import { selectPreferences } from "store/userdata/userdata.selectors";
 import { IPreferences, Theme } from "store/userdata/userdata.types";
 import {
+  Button,
   Checkbox,
   ISelectOption,
   PageHeader,
@@ -26,6 +27,11 @@ import {
   getCountryPreset,
   THOUSANDS_SEPARATORS,
 } from "helpers/localeHelper";
+import {
+  EXPORT_ENTITIES,
+  EXPORT_FORMATS,
+  exportData,
+} from "helpers/exportHelper";
 
 // form value of "use the country's value" ("" is a real choice: no separator)
 const COUNTRY_DEFAULT = "default";
@@ -173,6 +179,55 @@ const separatorKey: Record<string, string> = {
   "": "none",
 };
 
+// Downloads the chosen data.
+const exportSchema = z.object({
+  entity: z.enum(EXPORT_ENTITIES),
+  format: z.enum(EXPORT_FORMATS),
+});
+
+const DataExport = () => {
+  const { t } = useTranslation();
+  const { userdata } = useSelector((state: AppState) => state.data);
+  const { control, handleSubmit } = useAppForm(exportSchema, {
+    entity: "statements",
+    format: "csv",
+  });
+
+  const handleExport = handleSubmit(({ entity, format }) =>
+    exportData(userdata, entity, format)
+  );
+
+  return (
+    // a form of its own: gets the form styles, never saves the preferences
+    <form className="data-export" onSubmit={handleExport}>
+      <h3>{t("preferences.export")}</h3>
+      <div className="crud">
+        <SelectBox
+          name="entity"
+          control={control}
+          label="preferences.exportEntity"
+          options={EXPORT_ENTITIES.map((en) => ({
+            value: en,
+            label: t(`preferences.exportEntities.${en}`),
+          }))}
+        />
+        <SelectBox
+          name="format"
+          control={control}
+          label="preferences.exportFormat"
+          options={EXPORT_FORMATS.map((f) => ({
+            value: f,
+            label: f.toUpperCase(),
+          }))}
+        />
+      </div>
+      <div>
+        <Button type="submit">{t("preferences.exportButton")}</Button>
+      </div>
+    </form>
+  );
+};
+
 // Every change is applied and saved right away.
 const PreferencesForm = () => {
   const { t, i18n } = useTranslation();
@@ -246,139 +301,148 @@ const PreferencesForm = () => {
 
   return (
     <div className="preferences-body">
-      <form onSubmit={(e) => e.preventDefault()}>
-        <section>
-          <h3>{t("preferences.general")}</h3>
-          <div className="crud">
-            <SelectBox
-              name="language"
-              control={control}
-              label="preferences.language"
-              options={[
-                { value: "", label: t("preferences.browserLanguage") },
-                ...LANGUAGES.map((l) => ({ value: l, label: l.toUpperCase() })),
-              ]}
-            />
-            {/* label on top, like the fields next to it */}
-            <Checkbox
-              name="showLanguageInHeader"
-              control={control}
-              horizontal={false}
-              wrapLabel
-              label="preferences.showLanguageInHeader"
-            />
-            <SelectBox
-              name="idleTimeoutMinutes"
-              control={control}
-              label="preferences.idleTimeout"
-              options={IDLE_TIMEOUTS.map((m) => ({
-                value: m,
-                label: t("preferences.minutes", { count: m }),
-              }))}
-            />
-            {/* saved only; the dark styles come later */}
-            <SelectBox
-              name="theme"
-              control={control}
-              label="preferences.theme"
-              options={THEMES.map((th) => ({
-                value: th,
-                label: t(`preferences.themes.${th}`),
-              }))}
-            />
-          </div>
-        </section>
+      <div className="settings">
+        <form onSubmit={(e) => e.preventDefault()}>
+          <section>
+            <h3>{t("preferences.general")}</h3>
+            <div className="crud">
+              <SelectBox
+                name="language"
+                control={control}
+                label="preferences.language"
+                options={[
+                  { value: "", label: t("preferences.browserLanguage") },
+                  ...LANGUAGES.map((l) => ({
+                    value: l,
+                    label: l.toUpperCase(),
+                  })),
+                ]}
+              />
+              {/* label on top, like the fields next to it */}
+              <Checkbox
+                name="showLanguageInHeader"
+                control={control}
+                horizontal={false}
+                wrapLabel
+                label="preferences.showLanguageInHeader"
+              />
+              <SelectBox
+                name="idleTimeoutMinutes"
+                control={control}
+                label="preferences.idleTimeout"
+                options={IDLE_TIMEOUTS.map((m) => ({
+                  value: m,
+                  label: t("preferences.minutes", { count: m }),
+                }))}
+              />
+              {/* saved only; the dark styles come later */}
+              <SelectBox
+                name="theme"
+                control={control}
+                label="preferences.theme"
+                options={THEMES.map((th) => ({
+                  value: th,
+                  label: t(`preferences.themes.${th}`),
+                }))}
+              />
+            </div>
+          </section>
 
-        <section>
-          <h3>{t("preferences.locale")}</h3>
-          <SelectBox
-            name="country"
-            control={control}
-            filterable
-            label="preferences.country"
-            options={countryOptions}
-          />
-          <div className="crud">
-            <LocaleSelect
-              name="dateOrder"
+          <section>
+            <h3>{t("preferences.locale")}</h3>
+            <SelectBox
+              name="country"
               control={control}
-              label="preferences.dateFormat"
-              options={DATE_ORDERS.map((o) => ({
-                value: o,
-                label: dateOrderLabel(o),
-              }))}
-              preset={preset.dateOrder}
+              filterable
+              label="preferences.country"
+              options={countryOptions}
             />
-            <LocaleSelect
-              name="dateSeparator"
-              control={control}
-              label="preferences.dateSeparator"
-              options={separatorOptions(DATE_SEPARATORS)}
-              preset={preset.dateSeparator}
-            />
-            <LocaleSelect
-              name="firstDayOfWeek"
-              control={control}
-              label="preferences.firstDayOfWeek"
-              options={WEEK_DAYS.map((d) => ({ value: d, label: weekdays[d] }))}
-              preset={preset.firstDayOfWeek}
-            />
-          </div>
-          <div className="crud">
-            <LocaleSelect
-              name="decimalSeparator"
-              control={control}
-              label="preferences.decimalSeparator"
-              options={separatorOptions(DECIMAL_SEPARATORS)}
-              preset={preset.decimalSeparator}
-            />
-            <LocaleSelect
-              name="thousandsSeparator"
-              control={control}
-              label="preferences.thousandsSeparator"
-              options={separatorOptions(THOUSANDS_SEPARATORS)}
-              preset={preset.thousandsSeparator}
-            />
-          </div>
-        </section>
+            <div className="crud">
+              <LocaleSelect
+                name="dateOrder"
+                control={control}
+                label="preferences.dateFormat"
+                options={DATE_ORDERS.map((o) => ({
+                  value: o,
+                  label: dateOrderLabel(o),
+                }))}
+                preset={preset.dateOrder}
+              />
+              <LocaleSelect
+                name="dateSeparator"
+                control={control}
+                label="preferences.dateSeparator"
+                options={separatorOptions(DATE_SEPARATORS)}
+                preset={preset.dateSeparator}
+              />
+              <LocaleSelect
+                name="firstDayOfWeek"
+                control={control}
+                label="preferences.firstDayOfWeek"
+                options={WEEK_DAYS.map((d) => ({
+                  value: d,
+                  label: weekdays[d],
+                }))}
+                preset={preset.firstDayOfWeek}
+              />
+            </div>
+            <div className="crud">
+              <LocaleSelect
+                name="decimalSeparator"
+                control={control}
+                label="preferences.decimalSeparator"
+                options={separatorOptions(DECIMAL_SEPARATORS)}
+                preset={preset.decimalSeparator}
+              />
+              <LocaleSelect
+                name="thousandsSeparator"
+                control={control}
+                label="preferences.thousandsSeparator"
+                options={separatorOptions(THOUSANDS_SEPARATORS)}
+                preset={preset.thousandsSeparator}
+              />
+            </div>
+          </section>
 
-        <section>
-          <h3>{t("preferences.currency")}</h3>
-          <div className="crud">
-            <TextInput
-              name="symbol"
-              control={control}
-              className="symbol"
-              label="preferences.symbol"
-              placeholder="€, $, ₽"
-            />
-            <SelectBox
-              name="position"
-              control={control}
-              label="preferences.position"
-              options={["before", "after"].map((p) => ({
-                value: p,
-                label: t(`preferences.positions.${p}`),
-              }))}
-            />
-            <SelectBox
-              name="decimals"
-              control={control}
-              label="preferences.decimals"
-              options={[2, 0].map((d) => ({ value: d, label: String(d) }))}
-            />
-            <SelectBox
-              name="negativeStyle"
-              control={control}
-              label="preferences.negativeStyle"
-              options={[
-                { value: "minus", label: "-1" },
-                { value: "parentheses", label: "(1)" },
-              ]}
-            />
-          </div>
-        </section>
-      </form>
+          <section>
+            <h3>{t("preferences.currency")}</h3>
+            <div className="crud">
+              <TextInput
+                name="symbol"
+                control={control}
+                className="symbol"
+                label="preferences.symbol"
+                placeholder="€, $, ₽"
+              />
+              <SelectBox
+                name="position"
+                control={control}
+                label="preferences.position"
+                options={["before", "after"].map((p) => ({
+                  value: p,
+                  label: t(`preferences.positions.${p}`),
+                }))}
+              />
+              <SelectBox
+                name="decimals"
+                control={control}
+                label="preferences.decimals"
+                options={[2, 0].map((d) => ({ value: d, label: String(d) }))}
+              />
+              <SelectBox
+                name="negativeStyle"
+                control={control}
+                label="preferences.negativeStyle"
+                options={[
+                  { value: "minus", label: "-1" },
+                  { value: "parentheses", label: "(1)" },
+                ]}
+              />
+            </div>
+          </section>
+        </form>
+        <DataExport />
+      </div>
       {/* apart from the settings, so it stays in view while changing them */}
       <aside className="preview-panel">
         <h3>{t("preferences.preview")}</h3>
