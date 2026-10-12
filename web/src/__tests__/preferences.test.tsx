@@ -9,7 +9,7 @@ import Header from "components/Header";
 import "locales/i18n";
 import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
-import { APP_CODE } from "helpers/exportHelper";
+import { APP_CODE, toJson } from "helpers/exportHelper";
 
 const country = () => store.getState().data.userdata.preferences.locale.country;
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -162,5 +162,41 @@ describe("preferences page", () => {
     await wait(600);
     expect(store.getState().data.userdata.preferences).toBe(prefs);
     click.mockRestore();
+  });
+
+  it("imports a mrmetis export as new items", async () => {
+    const account = {
+      id: 1,
+      name: "Cash",
+      dateCreated: "2026-01-01",
+      leftFromPrevMonth: [],
+    };
+    store.dispatch(SET_USERDATA({ accounts: [account] }));
+    render(
+      <Provider store={store}>
+        <Preferences />
+      </Provider>
+    );
+    const importButton = screen.getByText("Import").closest("button")!;
+    // nothing to import before a file is picked
+    expect(importButton.disabled).toBe(true);
+
+    const exported = toJson(store.getState().data.userdata, "accounts");
+    fireEvent.change(document.querySelector('input[name="file"]')!, {
+      target: { files: [new File([exported], "accounts.json")] },
+    });
+    await waitFor(() => expect(importButton.disabled).toBe(false));
+    fireEvent.click(importButton);
+
+    await waitFor(() =>
+      expect(store.getState().data.userdata.accounts).toEqual([
+        account,
+        expect.objectContaining({ id: 2, name: "Cash" }),
+      ])
+    );
+    expect(store.getState().ui.messages).toContainEqual({
+      appearance: "success",
+      message: "1 item imported",
+    });
   });
 });

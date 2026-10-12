@@ -14,6 +14,7 @@ import {
   IStorageUsage,
 } from "./userdata.types";
 import { IAction } from "types/IAction";
+import { Imported } from "helpers/importers";
 import { IHaveMetadata } from "types/IHaveMetadata";
 import { IMonthAmountPair } from "types/IMonthAmountPair";
 import {
@@ -23,7 +24,9 @@ import {
   migrateExpectOneStatement,
   openBudget,
   openMonth,
+  recalculateClosed,
 } from "services/budgetClosing";
+import { recalculateClosedMonths } from "services/closedMonthsRecalculation";
 
 export interface IBudgetClosingPayload {
   budgetId: number;
@@ -216,6 +219,26 @@ const userdataSlice = createSlice({
       state.savePending = true;
     },
 
+    // items from prepareImport (new ids, links checked)
+    IMPORT_DATA: (state, { payload }: IAction<Imported>) => {
+      const list: IHaveMetadata[] = state.userdata[payload.entity];
+      list.push(...payload.items);
+      if (payload.entity === "statements") {
+        // also to closed budgets and months: their stored sums and what is
+        // left after them follow
+        const statements = payload.items;
+        statements.forEach((s) => closeIfSingleStatement(state, s));
+        recalculateClosed(state.userdata, statements);
+        const first = statements.map((s) => s.date).sort()[0];
+        try {
+          if (first) recalculateClosedMonths(state.userdata, first);
+        } catch {
+          // a broken formula, shown on the budget pages; the left stays
+        }
+      }
+      state.savePending = true;
+    },
+
     ADD_BUDGET: (state, action: IAction<IBudget>) =>
       addItem(state, state.userdata.budgets, action.payload),
     UPDATE_BUDGET: (state, action: IAction<IBudget>) =>
@@ -250,6 +273,7 @@ export const {
   OPEN_BUDGET,
   CLOSE_MONTH,
   OPEN_MONTH,
+  IMPORT_DATA,
   ADD_BUDGET,
   UPDATE_BUDGET,
   DELETE_BUDGET,

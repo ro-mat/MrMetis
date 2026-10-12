@@ -11,12 +11,14 @@ import {
   openMonth,
 } from "services/budgetClosing";
 import { buildBudgetPairsForMonth } from "services/budgetBuilder";
+import { recalculateClosedMonths } from "services/closedMonthsRecalculation";
 import { flattenBudgetPairs } from "helpers/budgetMapper";
 import { calculateForNextMonth } from "services/budgetTotals";
 import reducer, {
   ADD_STATEMENT,
   CLOSE_BUDGET,
   DELETE_STATEMENT,
+  IMPORT_DATA,
   SET_USERDATA,
   UPDATE_STATEMENT,
 } from "store/userdata/userdata.slice";
@@ -393,6 +395,34 @@ describe("statements of closed budgets", () => {
     expect(s.userdata.statements).toHaveLength(1);
   });
 
+  it("imported statements are added to closed budgets and their sums follow", () => {
+    let s = reducer(undefined, SET_USERDATA(data()));
+    s = reducer(s, CLOSE_BUDGET({ budgetId: 1, month: day(1) }));
+    const nextMonth = month.clone().add(1, "M").format(DATE_FORMAT);
+    s = reducer(
+      s,
+      IMPORT_DATA({
+        entity: "statements",
+        items: [
+          statement(10, 1, MAIN, 4.5),
+          statement(11, 2, MAIN, 3),
+          statement(12, 1, CARD, 7, nextMonth),
+        ],
+      })
+    );
+
+    expect(s.userdata.statements).toHaveLength(7);
+    expect(closedOf(s.userdata, 1)).toEqual([
+      { month: day(1), accountId: MAIN, actual: 70 },
+      { month: day(1), accountId: CARD, actual: 20 },
+      { month: day(1), accountId: 0, actual: 90 },
+    ]);
+    expect(closedOf(s.userdata, 2)).toEqual([
+      { month: day(1), accountId: MAIN, actual: 15 },
+      { month: day(1), accountId: 0, actual: 15 },
+    ]);
+  });
+
   it("loading legacy data migrates it and saves it", () => {
     const s = reducer(
       undefined,
@@ -412,5 +442,90 @@ describe("statements of closed budgets", () => {
     expect(s.userdata.closedMonths).toEqual([]);
     expect(s.userdata.budgets[0].closeAfterOneStatement).toBe(true);
     expect(isPairClosed(s.userdata.budgets[0], month, MAIN, [])).toBe(true);
+  });
+});
+
+describe("recalculating closed months", () => {
+  const may = month.clone().add(-1, "M");
+  const july = month.clone().add(1, "M");
+  const mayDay = may.clone().date(5).format(DATE_FORMAT);
+
+  // May and June closed, budget 1 planned on MAIN since May
+  const closed = (): ClosingData => {
+    const d: ClosingData = {
+      budgets: [
+        budget(1, [], {
+          amounts: [
+            {
+              amount: "100",
+              fromAccountId: MAIN,
+              frequency: 1,
+              startDate: may.format(DATE_FORMAT),
+            },
+          ],
+        }),
+      ],
+      statements: [
+        statement(1, 1, MAIN, 40, mayDay),
+        statement(2, 1, MAIN, 30),
+      ],
+      accounts: [account(MAIN)],
+      closedMonths: [],
+    };
+    closeMonth(d, may, []);
+    closeMonth(d, month, []);
+    recalculateClosedMonths(d, may);
+    return d;
+  };
+  const leftFor = (d: ClosingData, m: moment.Moment) =>
+    d.accounts[0].leftFromPrevMonth.find((l) => m.isSame(l.month, "M"))?.amount;
+
+  it("stores what closing each month would", () => {
+    const d = closed();
+    const prev = buildBudgetPairsForMonth(
+      may.clone().add(-1, "M"),
+      d.budgets,
+      d.statements,
+      d.accounts,
+      [],
+      d.closedMonths
+    );
+    const mayPairs = buildBudgetPairsForMonth(
+      may.clone(),
+      d.budgets,
+      d.statements,
+      d.accounts,
+      prev.list,
+      d.closedMonths
+    );
+    expect(getLeftForNextMonth(mayPairs, d.accounts, may)[0].amount).toBe(
+      leftFor(d, month)
+    );
+  });
+
+  it("an import into a closed month passes the change on to the next ones", () => {
+    const d = closed();
+    const june = leftFor(d, month)!;
+    const julyLeft = leftFor(d, july)!;
+
+    let s = reducer(undefined, SET_USERDATA(d));
+    s = reducer(
+      s,
+      IMPORT_DATA({
+        entity: "statements",
+        items: [statement(10, 1, MAIN, 5, mayDay)],
+      })
+    );
+
+    expect(leftFor(s.userdata, month)).toBe(june - 5);
+    expect(leftFor(s.userdata, july)).toBe(julyLeft - 5);
+  });
+
+  it("a broken formula changes nothing", () => {
+    const d = closed();
+    const before = JSON.stringify(d.accounts);
+    d.budgets[0].amounts[0].amount = "unknown(";
+    expect(() => recalculateClosedMonths(d, may)).toThrow();
+    expect(JSON.stringify(d.accounts)).toBe(before);
   });
 });

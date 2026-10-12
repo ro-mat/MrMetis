@@ -144,6 +144,30 @@ export const closeBudget = (
     .forEach((child) => closeBudget(data, child.id, month, target));
 };
 
+// Updates the statement sums stored for the closed pairs of the statements'
+// budgets and months, e.g. after statements were added to them.
+export const recalculateClosed = (
+  data: ClosingData,
+  statements: Pick<IStatement, "budgetId" | "date">[]
+) => {
+  const done = new Set<string>();
+  for (const { budgetId, date } of statements) {
+    const key = `${budgetId} ${monthKey(date)}`;
+    const budget = data.budgets.find((b) => b.id === budgetId);
+    if (done.has(key) || !budget?.closed) continue;
+    done.add(key);
+
+    const month = monthStatements(budgetId, date, data.statements);
+    budget.closed
+      .filter((c) => isSameMonth(c.month, date))
+      .forEach((c) => {
+        c.actual = sumStatements(
+          c.accountId ? month.filter((s) => s.accountId === c.accountId) : month
+        );
+      });
+  }
+};
+
 // Removes the budget's closing for one account (no accountId: every account)
 // and returns that account, see targetAccount.
 const removeClosed = (
@@ -222,7 +246,19 @@ export const closeMonth = (
   left: IMonthAmountPair[]
 ) => {
   data.budgets.forEach((b) => closeBudget(data, b.id, month));
+  storeLeftForNextMonth(data, month, left);
 
+  if (!isMonthClosed(data.closedMonths, month)) {
+    data.closedMonths.push(monthKey(month));
+  }
+};
+
+// Stores what is left after the month as the next month's left from prev month.
+export const storeLeftForNextMonth = (
+  data: ClosingData,
+  month: MomentInput,
+  left: IMonthAmountPair[]
+) => {
   const nextMonth = moment(month).add(1, "M");
   for (const l of left) {
     const account = data.accounts.find((a) => a.id === l.accountId);
@@ -241,10 +277,6 @@ export const closeMonth = (
     } else {
       account.leftFromPrevMonth.push(entry);
     }
-  }
-
-  if (!isMonthClosed(data.closedMonths, month)) {
-    data.closedMonths.push(monthKey(month));
   }
 };
 

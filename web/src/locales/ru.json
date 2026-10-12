@@ -291,7 +291,21 @@
       "statements": "Транзакции",
       "budgets": "Бюджеты",
       "accounts": "Счета"
-    }
+    },
+    "import": "Импорт данных",
+    "importSource": "Экспортировано из",
+    "importFile": "Файл",
+    "importButton": "Импортировать",
+    "imported_one": "Импортирован {{count}} элемент",
+    "imported_few": "Импортировано {{count}} элемента",
+    "imported_many": "Импортировано {{count}} элементов",
+    "imported_other": "Импортировано {{count}} элемента",
+    "importSkipped_one": "Пропущен {{count}} элемент: нет его счета или бюджета",
+    "importSkipped_few": "Пропущено {{count}} элемента: нет их счета или бюджета",
+    "importSkipped_many": "Пропущено {{count}} элементов: нет их счета или бюджета",
+    "importSkipped_other": "Пропущено {{count}} элемента: нет их счета или бюджета",
+    "importNotMrmetis": "Это не файл, экспортированный из MrMetis",
+    "importInvalid": "Не удалось прочитать файл"
   },
 
   "privacy": {

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { Control, Controller, useWatch } from "react-hook-form";
@@ -6,12 +6,14 @@ import { z } from "zod";
 import moment from "moment";
 import debounce from "lodash/debounce";
 import { AppState, TAppDispatch } from "store/store";
-import { UPDATE_PREFERENCES } from "store/userdata/userdata.slice";
+import { IMPORT_DATA, UPDATE_PREFERENCES } from "store/userdata/userdata.slice";
+import { ADD_ERROR_TOAST, ADD_SUCCESS_TOAST } from "store/ui/ui.slice";
 import { selectPreferences } from "store/userdata/userdata.selectors";
 import { IPreferences, Theme } from "store/userdata/userdata.types";
 import {
   Button,
   Checkbox,
+  FileInput,
   ISelectOption,
   PageHeader,
   SelectBox,
@@ -32,6 +34,8 @@ import {
   EXPORT_FORMATS,
   exportData,
 } from "helpers/exportHelper";
+import { IMPORTERS, ImportError } from "helpers/importers";
+import { prepareImport } from "helpers/importHelper";
 
 // form value of "use the country's value" ("" is a real choice: no separator)
 const COUNTRY_DEFAULT = "default";
@@ -223,6 +227,84 @@ const DataExport = () => {
       </div>
       <div>
         <Button type="submit">{t("preferences.exportButton")}</Button>
+      </div>
+    </form>
+  );
+};
+
+// Adds the items of a file exported by the chosen app.
+const importSchema = z.object({
+  source: z.string(),
+  file: z.instanceof(File),
+});
+
+const DataImport = () => {
+  const { t } = useTranslation();
+  const dispatch = useDispatch<TAppDispatch>();
+  const { userdata } = useSelector((state: AppState) => state.data);
+  const { control, handleSubmit, resetField, validationErrors } = useAppForm(
+    importSchema,
+    { source: IMPORTERS[0].source }
+  );
+  const source = useWatch({ control, name: "source" });
+  // remounts the file picker to clear it
+  const [fileKey, setFileKey] = useState(0);
+
+  const handleImport = handleSubmit(async ({ source, file }) => {
+    const importer = IMPORTERS.find((i) => i.source === source)!;
+    try {
+      const { prepared, skipped } = prepareImport(
+        userdata,
+        importer.parse(await file.text())
+      );
+      dispatch(IMPORT_DATA(prepared));
+      dispatch(
+        ADD_SUCCESS_TOAST(
+          t("preferences.imported", { count: prepared.items.length })
+        )
+      );
+      if (skipped) {
+        dispatch(
+          ADD_ERROR_TOAST(t("preferences.importSkipped", { count: skipped }))
+        );
+      }
+    } catch (err) {
+      dispatch(
+        ADD_ERROR_TOAST(
+          t(
+            err instanceof ImportError
+              ? err.message
+              : "preferences.importInvalid"
+          )
+        )
+      );
+    }
+    resetField("file");
+    setFileKey((k) => k + 1);
+  });
+
+  return (
+    <form className="data-import" onSubmit={handleImport}>
+      <h3>{t("preferences.import")}</h3>
+      <div className="crud">
+        <SelectBox
+          name="source"
+          control={control}
+          label="preferences.importSource"
+          options={IMPORTERS.map((i) => ({ value: i.source, label: i.label }))}
+        />
+        <FileInput
+          key={fileKey}
+          name="file"
+          control={control}
+          label="preferences.importFile"
+          accept={IMPORTERS.find((i) => i.source === source)?.accept}
+        />
+      </div>
+      <div>
+        <Button type="submit" disabled={validationErrors.length > 0}>
+          {t("preferences.importButton")}
+        </Button>
       </div>
     </form>
   );
@@ -442,6 +524,7 @@ const PreferencesForm = () => {
           </section>
         </form>
         <DataExport />
+        <DataImport />
       </div>
       {/* apart from the settings, so it stays in view while changing them */}
       <aside className="preview-panel">

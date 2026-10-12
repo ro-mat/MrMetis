@@ -1,5 +1,6 @@
 import moment from "moment";
 import { DATE_FORMAT } from "helpers/dateHelper";
+import { csvCell } from "helpers/csvHelper";
 import {
   BudgetTypeExtra,
   BudgetTypeUser,
@@ -14,16 +15,7 @@ export const EXPORT_FORMATS = ["csv", "json"] as const;
 export type ExportEntity = (typeof EXPORT_ENTITIES)[number];
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];
 
-type Cell = string | number | boolean | undefined;
-type Row = Record<string, Cell>;
-
-export const csvCell = (value: Cell) => {
-  if (value === undefined) {
-    return "";
-  }
-  const str = String(value);
-  return /[",\r\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
-};
+type Row = Record<string, string | number | boolean | undefined>;
 
 // nested lists don't fit a cell, so they stay JSON
 const nested = (value: unknown[] | undefined) =>
@@ -79,7 +71,8 @@ const rows = (userdata: IUserdata, entity: ExportEntity): Row[] => {
   }
 };
 
-const COLUMNS: Record<ExportEntity, string[]> = {
+// the csv columns after "app"
+export const EXPORT_COLUMNS: Record<ExportEntity, string[]> = {
   statements: [
     "id",
     "date",
@@ -111,7 +104,7 @@ const COLUMNS: Record<ExportEntity, string[]> = {
 };
 
 export const toCsv = (userdata: IUserdata, entity: ExportEntity) => {
-  const columns = COLUMNS[entity];
+  const columns = EXPORT_COLUMNS[entity];
   const lines = rows(userdata, entity).map((row) =>
     [APP_CODE, ...columns.map((c) => row[c])].map(csvCell).join(",")
   );
@@ -141,7 +134,7 @@ export const exportData = (
   // the BOM makes Excel read the file as UTF-8 (e.g. Cyrillic names)
   const blob =
     format === "csv"
-      ? new Blob(["﻿", toCsv(userdata, entity)], {
+      ? new Blob(["\uFEFF", toCsv(userdata, entity)], {
           type: "text/csv;charset=utf-8",
         })
       : new Blob([toJson(userdata, entity)], { type: "application/json" });
