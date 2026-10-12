@@ -261,7 +261,9 @@ const DataImport = () => {
       dispatch(importData(prepared));
       dispatch(
         ADD_SUCCESS_TOAST(
-          t("preferences.imported", { count: prepared.items.length })
+          prepared.entity === "preferences"
+            ? t("preferences.importedPreferences")
+            : t("preferences.imported", { count: prepared.items.length })
         )
       );
       if (skipped) {

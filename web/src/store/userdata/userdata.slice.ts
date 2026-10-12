@@ -220,8 +220,12 @@ const userdataSlice = createSlice({
 
     // items from prepareImport (new ids, links checked)
     IMPORT_DATA: (state, { payload }: IAction<Imported>) => {
-      const list: IHaveMetadata[] = state.userdata[payload.entity];
-      list.push(...payload.items);
+      if (payload.entity === "preferences") {
+        state.userdata.preferences = withDefaults(payload.items[0]);
+      } else {
+        const list: IHaveMetadata[] = state.userdata[payload.entity];
+        list.push(...payload.items);
+      }
       if (payload.entity === "statements") {
         // also to closed budgets, their stored sums follow (what is left
         // after closed months: see importData)

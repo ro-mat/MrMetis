@@ -281,7 +281,8 @@
     "exportEntities": {
       "statements": "Statements",
       "budgets": "Budgets",
-      "accounts": "Accounts"
+      "accounts": "Accounts",
+      "preferences": "Preferences"
     },
     "import": "Import data",
     "importSource": "Exported from",
@@ -289,6 +290,7 @@
     "importButton": "Import",
     "imported_one": "{{count}} item imported",
     "imported_other": "{{count}} items imported",
+    "importedPreferences": "Preferences imported",
     "importSkipped_one": "{{count}} item skipped: its account or budget doesn't exist",
     "importSkipped_other": "{{count}} items skipped: their account or budget doesn't exist",
     "importNotMrmetis": "This is not a file exported from MrMetis",

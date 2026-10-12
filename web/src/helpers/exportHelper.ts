@@ -10,7 +10,12 @@ import {
 // Marks every exported file as ours, so an import can recognize it.
 export const APP_CODE = "mrmetis";
 
-export const EXPORT_ENTITIES = ["statements", "budgets", "accounts"] as const;
+export const EXPORT_ENTITIES = [
+  "statements",
+  "budgets",
+  "accounts",
+  "preferences",
+] as const;
 export const EXPORT_FORMATS = ["csv", "json"] as const;
 export type ExportEntity = (typeof EXPORT_ENTITIES)[number];
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];
@@ -68,6 +73,21 @@ const rows = (userdata: IUserdata, entity: ExportEntity): Row[] => {
         dateCreated: a.dateCreated,
         dateModified: a.dateModified,
       }));
+    // one row; locale and currency as json, so a "" separator (none) stays
+    // apart from an unset one (the country's)
+    case "preferences": {
+      const p = userdata.preferences;
+      return [
+        {
+          language: p.language,
+          showLanguageInHeader: p.showLanguageInHeader,
+          idleTimeoutMinutes: p.idleTimeoutMinutes,
+          theme: p.theme,
+          locale: JSON.stringify(p.locale),
+          currency: JSON.stringify(p.currency),
+        },
+      ];
+    }
   }
 };
 
@@ -101,7 +121,19 @@ export const EXPORT_COLUMNS: Record<ExportEntity, string[]> = {
     "dateModified",
   ],
   accounts: ["id", "name", "leftFromPrevMonth", "dateCreated", "dateModified"],
+  preferences: [
+    "language",
+    "showLanguageInHeader",
+    "idleTimeoutMinutes",
+    "theme",
+    "locale",
+    "currency",
+  ],
 };
+
+// a list for every entity; the preferences are one item
+const items = (userdata: IUserdata, entity: ExportEntity) =>
+  entity === "preferences" ? [userdata.preferences] : userdata[entity];
 
 export const toCsv = (userdata: IUserdata, entity: ExportEntity) => {
   const columns = EXPORT_COLUMNS[entity];
@@ -117,7 +149,7 @@ export const toJson = (userdata: IUserdata, entity: ExportEntity) =>
       app: APP_CODE,
       entity,
       exportedAt: new Date().toISOString(),
-      items: userdata[entity],
+      items: items(userdata, entity),
     },
     undefined,
     2

@@ -6,6 +6,12 @@ import {
   EXPORT_ENTITIES,
   ExportEntity,
 } from "helpers/exportHelper";
+import {
+  DATE_ORDERS,
+  DATE_SEPARATORS,
+  DECIMAL_SEPARATORS,
+  THOUSANDS_SEPARATORS,
+} from "helpers/localeHelper";
 import { BudgetTypeExtra, BudgetTypeUser } from "store/userdata/userdata.types";
 import { IImporter, Imported, ImportError } from "./importer";
 
@@ -70,6 +76,30 @@ const SCHEMAS = {
     name: z.string(),
     leftFromPrevMonth: z.array(monthAmountPair).default([]),
   }),
+  preferences: z.object({
+    language: optional(z.string()),
+    showLanguageInHeader: optional(z.boolean()),
+    idleTimeoutMinutes: optional(z.number().int().positive()),
+    theme: optional(z.enum(["auto", "light", "dark"])),
+    locale: optional(
+      z.object({
+        country: z.string(),
+        dateOrder: optional(z.enum(DATE_ORDERS)),
+        dateSeparator: optional(z.enum(DATE_SEPARATORS)),
+        decimalSeparator: optional(z.enum(DECIMAL_SEPARATORS)),
+        thousandsSeparator: optional(z.enum(THOUSANDS_SEPARATORS)),
+        firstDayOfWeek: optional(z.number().int().min(0).max(6)),
+      })
+    ),
+    currency: optional(
+      z.object({
+        symbol: optional(z.string()),
+        position: optional(z.enum(["before", "after"])),
+        decimals: optional(z.union([z.literal(0), z.literal(2)])),
+        negativeStyle: optional(z.enum(["minus", "parentheses"])),
+      })
+    ),
+  }),
 };
 
 const NUMBER_COLUMNS = [
@@ -80,9 +110,21 @@ const NUMBER_COLUMNS = [
   "parentId",
   "fromAccountId",
   "toAccountId",
+  "idleTimeoutMinutes",
 ];
-const BOOLEAN_COLUMNS = ["isEssential", "closeAfterOneStatement"];
-const JSON_COLUMNS = ["amounts", "overrides", "closed", "leftFromPrevMonth"];
+const BOOLEAN_COLUMNS = [
+  "isEssential",
+  "closeAfterOneStatement",
+  "showLanguageInHeader",
+];
+const JSON_COLUMNS = [
+  "amounts",
+  "overrides",
+  "closed",
+  "leftFromPrevMonth",
+  "locale",
+  "currency",
+];
 
 // back from what toCsv wrote; anything wrong is left to the schema
 const cellValue = (column: string, cell: string): unknown => {
@@ -152,7 +194,10 @@ export const mrmetisImporter: IImporter = {
       ? fromJson(text)
       : fromCsv(text);
     const parsed = z.array(SCHEMAS[entity]).safeParse(items);
-    if (!parsed.success) {
+    if (
+      !parsed.success ||
+      (entity === "preferences" && parsed.data.length !== 1)
+    ) {
       throw new ImportError("preferences.importInvalid");
     }
     return { entity, items: parsed.data } as Imported;

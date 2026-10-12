@@ -4,7 +4,10 @@ import { parseCsv } from "helpers/csvHelper";
 import { IMPORTERS, ImportError } from "helpers/importers";
 import { prepareImport } from "helpers/importHelper";
 import { getData } from "helpers/demoData";
-import reducer, { SET_USERDATA } from "store/userdata/userdata.slice";
+import reducer, {
+  IMPORT_DATA,
+  SET_USERDATA,
+} from "store/userdata/userdata.slice";
 import "locales/i18n";
 import {
   BudgetTypeUser,
@@ -145,6 +148,65 @@ describe("importing stored data", () => {
   });
 });
 
+describe("preferences", () => {
+  const prefs = (): IUserdata["preferences"] => ({
+    ...defaultPreferences(),
+    locale: { country: "DE", thousandsSeparator: "", firstDayOfWeek: 0 },
+    language: "ru",
+    currency: {
+      symbol: "€",
+      position: "before",
+      decimals: 0,
+      negativeStyle: "parentheses",
+    },
+    idleTimeoutMinutes: 30,
+  });
+
+  it('read back from csv and json, a "" separator too', () => {
+    const data = { ...userdata(), preferences: prefs() };
+    for (const text of [
+      toCsv(data, "preferences"),
+      toJson(data, "preferences"),
+    ]) {
+      expect(mrmetis.parse(text)).toEqual({
+        entity: "preferences",
+        items: [prefs()],
+      });
+    }
+  });
+
+  it("replace the current ones, missing values are the defaults", () => {
+    let s = reducer(undefined, SET_USERDATA({ preferences: prefs() }));
+    s = reducer(
+      s,
+      IMPORT_DATA(
+        mrmetis.parse(
+          JSON.stringify({
+            app: "mrmetis",
+            entity: "preferences",
+            items: [{ theme: "dark" }],
+          })
+        )
+      )
+    );
+    expect(s.userdata.preferences).toEqual({
+      ...defaultPreferences(),
+      theme: "dark",
+    });
+  });
+
+  it("refuses invalid values and more than one item", () => {
+    const fails = (items: unknown[]) =>
+      expect(() =>
+        mrmetis.parse(
+          JSON.stringify({ app: "mrmetis", entity: "preferences", items })
+        )
+      ).toThrow(new ImportError("preferences.importInvalid"));
+    fails([{ theme: "pink" }]);
+    fails([{}, {}]);
+  });
+});
+
 describe("prepareImport", () => {
   it("adds statements with new ids, also to closed months, skipping missing links", () => {
     const data = userdata();
@@ -180,10 +242,9 @@ describe("prepareImport", () => {
       data,
       mrmetis.parse(toCsv(data, "budgets"))
     );
-    expect(prepared.items.map((b) => b.id)).toEqual([4, 5]);
-    expect(
-      (prepared.items as IUserdata["budgets"]).map((b) => b.parentId)
-    ).toEqual([undefined, 4]);
+    const budgets = prepared.items as IUserdata["budgets"];
+    expect(budgets.map((b) => b.id)).toEqual([4, 5]);
+    expect(budgets.map((b) => b.parentId)).toEqual([undefined, 4]);
   });
 
   it("moves an account's own amounts to its new id", () => {

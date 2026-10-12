@@ -69,6 +69,8 @@ export const prepareImport = (
         skipped: imported.items.length - valid.length,
       };
     }
+    case "preferences":
+      return { prepared: imported, skipped: 0 };
     case "accounts": {
       const { ids, items } = withNewIds<IAccount>(
         imported.items,

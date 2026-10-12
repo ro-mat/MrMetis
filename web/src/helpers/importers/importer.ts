@@ -1,11 +1,18 @@
-import { IAccount, IBudget, IStatement } from "store/userdata/userdata.types";
+import {
+  IAccount,
+  IBudget,
+  IPreferences,
+  IStatement,
+} from "store/userdata/userdata.types";
 
 // Items read from a file; their ids are only used to link items of the same
-// file, each one gets a new id when added.
+// file, each one gets a new id when added. Preferences are one item that
+// replaces the current ones (missing values: the defaults).
 export type Imported =
   | { entity: "statements"; items: IStatement[] }
   | { entity: "budgets"; items: IBudget[] }
-  | { entity: "accounts"; items: IAccount[] };
+  | { entity: "accounts"; items: IAccount[] }
+  | { entity: "preferences"; items: Partial<IPreferences>[] };
 
 // Reads the files of one app or bank.
 export interface IImporter {

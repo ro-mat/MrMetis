@@ -290,7 +290,8 @@
     "exportEntities": {
       "statements": "Транзакции",
       "budgets": "Бюджеты",
-      "accounts": "Счета"
+      "accounts": "Счета",
+      "preferences": "Настройки"
     },
     "import": "Импорт данных",
     "importSource": "Экспортировано из",
@@ -300,6 +301,7 @@
     "imported_few": "Импортировано {{count}} элемента",
     "imported_many": "Импортировано {{count}} элементов",
     "imported_other": "Импортировано {{count}} элемента",
+    "importedPreferences": "Настройки импортированы",
     "importSkipped_one": "Пропущен {{count}} элемент: нет его счета или бюджета",
     "importSkipped_few": "Пропущено {{count}} элемента: нет их счета или бюджета",
     "importSkipped_many": "Пропущено {{count}} элементов: нет их счета или бюджета",
