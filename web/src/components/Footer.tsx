@@ -10,7 +10,7 @@ const Footer = () => {
         >
           GitHub
         </a>{" "}
-        MrMetis 2023 &copy;
+        MrMetis {new Date().getFullYear()} &copy;
       </div>
     </footer>
   );
