@@ -7,8 +7,8 @@ type IFileInputProps<T extends FieldValues> = IFieldProps &
   IBindProps<T> &
   Omit<ComponentProps<"input">, "className" | "name" | "type" | "value">;
 
-// File picker; the form gets the picked File (undefined when none). The
-// browser keeps the picked file's name, so clear it by remounting (`key`).
+// File picker; the form gets the picked File (undefined when none). Resetting
+// the field clears the picker too.
 const FileInput = <T extends FieldValues>({
   name,
   control,
@@ -32,7 +32,11 @@ const FileInput = <T extends FieldValues>({
           aria-required={required}
           {...inputProps}
           {...(field && {
-            ref: field.ref,
+            // runs on every render: the browser keeps the picked file's name
+            ref: (el: HTMLInputElement | null) => {
+              field.ref(el);
+              if (el && field.value === undefined) el.value = "";
+            },
             onBlur: field.onBlur,
             onChange: (e) => field.onChange(e.currentTarget.files?.[0]),
           })}

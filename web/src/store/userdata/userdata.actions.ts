@@ -20,6 +20,7 @@ import { SET_ISDEMO } from "store/auth/auth.slice";
 import { ADD_ERROR_TOAST, ADD_SUCCESS_TOAST } from "store/ui/ui.slice";
 import i18n from "i18next";
 import { Imported } from "helpers/importers";
+import { prepareImport } from "helpers/importHelper";
 import { recalculateClosedMonths } from "services/closedMonthsRecalculation";
 
 interface IUserdataResponse {
@@ -113,27 +114,39 @@ export const startDemo = (): TAppThunk => (dispatch) => {
   dispatch(SET_ISDEMO(true));
 };
 
-// Adds items from prepareImport. Imported statements also change what is left
-// after the closed months from theirs on; when that can't be calculated (a
-// broken formula) the stored left stays and a toast says so.
+// Adds what a file holds (see prepareImport) and tells what happened.
+// Imported statements also change what is left after the closed months from
+// theirs on; when that can't be calculated (a broken formula) the stored left
+// stays and a toast says so.
 export const importData =
   (imported: Imported): TAppThunk =>
   (dispatch, getState) => {
-    dispatch(IMPORT_DATA(imported));
-    if (imported.entity !== "statements") return;
+    const { prepared, skipped } = prepareImport(
+      getState().data.userdata,
+      imported
+    );
+    dispatch(IMPORT_DATA(prepared));
+    dispatch(
+      ADD_SUCCESS_TOAST(
+        prepared.entity === "preferences"
+          ? i18n.t("preferences.importedPreferences")
+          : i18n.t("preferences.imported", { count: prepared.items.length })
+      )
+    );
+    if (skipped) {
+      dispatch(
+        ADD_ERROR_TOAST(i18n.t("preferences.importSkipped", { count: skipped }))
+      );
+    }
 
-    const first = imported.items.map((s) => s.date).sort()[0];
-    if (!first) return;
-    const userdata = getState().data.userdata;
-    // the state is frozen, the recalculation sets copies
-    const accounts = userdata.accounts.map((a) => ({ ...a }));
+    if (prepared.entity !== "statements" || !prepared.items.length) return;
+    const first = prepared.items.map((s) => s.date).sort()[0];
     try {
-      recalculateClosedMonths({ ...userdata, accounts }, first);
+      const left = recalculateClosedMonths(getState().data.userdata, first);
+      if (left) dispatch(SET_LEFT_FROM_PREV_MONTH(left));
     } catch {
       dispatch(
         ADD_ERROR_TOAST(i18n.t("preferences.importLeftNotRecalculated"))
       );
-      return;
     }
-    dispatch(SET_LEFT_FROM_PREV_MONTH(accounts));
   };

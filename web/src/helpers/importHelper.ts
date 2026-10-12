@@ -53,14 +53,11 @@ export const prepareImport = (
       );
       const { ids, items } = withNewIds<IBudget>(valid, userdata.budgets);
       // a parent from the file follows its new id (none when it was skipped)
-      const parentId = (id?: number) =>
-        !id
-          ? id
-          : inFile.has(id)
-            ? ids.get(id)
-            : budgetIds.has(id)
-              ? id
-              : undefined;
+      const parentId = (id?: number) => {
+        if (!id) return id;
+        if (inFile.has(id)) return ids.get(id);
+        return budgetIds.has(id) ? id : undefined;
+      };
       return {
         prepared: {
           entity: "budgets",

@@ -5,6 +5,7 @@ import {
   EXPORT_COLUMNS,
   EXPORT_ENTITIES,
   ExportEntity,
+  readCell,
 } from "helpers/exportHelper";
 import {
   DATE_ORDERS,
@@ -12,6 +13,7 @@ import {
   DECIMAL_SEPARATORS,
   THOUSANDS_SEPARATORS,
 } from "helpers/localeHelper";
+import { getEnumArray } from "helpers/enumHelper";
 import { BudgetTypeExtra, BudgetTypeUser } from "store/userdata/userdata.types";
 import { IImporter, Imported, ImportError } from "./importer";
 
@@ -32,9 +34,9 @@ const monthAmountPair = z.object({
   accountId: optional(id),
 });
 const budgetTypes = [
-  ...Object.values(BudgetTypeUser),
-  ...Object.values(BudgetTypeExtra),
-].filter((v) => typeof v === "number");
+  ...getEnumArray(BudgetTypeUser),
+  ...getEnumArray(BudgetTypeExtra),
+];
 
 // unknown keys (e.g. the account name of a csv statement) are dropped
 const SCHEMAS = {
@@ -102,64 +104,23 @@ const SCHEMAS = {
   }),
 };
 
-const NUMBER_COLUMNS = [
-  "id",
-  "amount",
-  "accountId",
-  "budgetId",
-  "parentId",
-  "fromAccountId",
-  "toAccountId",
-  "idleTimeoutMinutes",
-];
-const BOOLEAN_COLUMNS = [
-  "isEssential",
-  "closeAfterOneStatement",
-  "showLanguageInHeader",
-];
-const JSON_COLUMNS = [
-  "amounts",
-  "overrides",
-  "closed",
-  "leftFromPrevMonth",
-  "locale",
-  "currency",
-];
-
-// back from what toCsv wrote; anything wrong is left to the schema
-const cellValue = (column: string, cell: string): unknown => {
-  if (cell === "") return undefined;
-  if (NUMBER_COLUMNS.includes(column)) return Number(cell);
-  if (BOOLEAN_COLUMNS.includes(column)) {
-    return cell === "true" ? true : cell === "false" ? false : cell;
-  }
-  if (JSON_COLUMNS.includes(column)) {
-    try {
-      return JSON.parse(cell);
-    } catch {
-      return cell;
-    }
-  }
-  if (column === "type") {
-    return (
-      BudgetTypeUser[cell as keyof typeof BudgetTypeUser] ??
-      BudgetTypeExtra[cell as keyof typeof BudgetTypeExtra] ??
-      cell
-    );
-  }
-  return cell;
-};
-
 const fromCsv = (text: string) => {
   const [header = [], ...rows] = parseCsv(text);
   const entity = EXPORT_ENTITIES.find(
-    (e) => ["app", ...EXPORT_COLUMNS[e]].join() === header.join()
+    (e) =>
+      ["app", ...EXPORT_COLUMNS[e].map((c) => c.key)].join() === header.join()
   );
   if (!entity || rows.some((r) => r[0] !== APP_CODE)) {
     throw new ImportError("preferences.importNotMrmetis");
   }
+  // the cells after "app"
   const items = rows.map((row) =>
-    Object.fromEntries(header.map((c, i) => [c, cellValue(c, row[i] ?? "")]))
+    Object.fromEntries(
+      EXPORT_COLUMNS[entity].map((c, i) => [
+        c.key,
+        readCell(c.kind, row[i + 1] ?? ""),
+      ])
+    )
   );
   return { entity, items };
 };

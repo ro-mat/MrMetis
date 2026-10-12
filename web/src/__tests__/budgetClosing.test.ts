@@ -478,7 +478,10 @@ describe("recalculating closed months", () => {
     };
     closeMonth(d, may, []);
     closeMonth(d, month, []);
-    recalculateClosedMonths(d, may);
+    for (const { id, leftFromPrevMonth } of recalculateClosedMonths(d, may)!) {
+      d.accounts.find((a) => a.id === id)!.leftFromPrevMonth =
+        leftFromPrevMonth;
+    }
     return d;
   };
   const leftFor = (d: ClosingData, m: moment.Moment) =>
@@ -519,6 +522,8 @@ describe("recalculating closed months", () => {
     return store.getState();
   };
 
+  const imported = { appearance: "success", message: "1 item imported" };
+
   it("an import into a closed month passes the change on to the next ones", () => {
     const d = closed();
     const june = leftFor(d, month)!;
@@ -527,7 +532,7 @@ describe("recalculating closed months", () => {
     const { data, ui } = importToMay(d);
     expect(leftFor(data.userdata, month)).toBe(june - 5);
     expect(leftFor(data.userdata, july)).toBe(julyLeft - 5);
-    expect(ui.messages).toEqual([]);
+    expect(ui.messages).toEqual([imported]);
   });
 
   it("an import tells when the left can't be recalculated", () => {
@@ -540,6 +545,7 @@ describe("recalculating closed months", () => {
     expect(data.userdata.statements).toHaveLength(3);
     expect(leftFor(data.userdata, month)).toBe(june);
     expect(ui.messages).toEqual([
+      imported,
       {
         appearance: "error",
         message: i18n.t("preferences.importLeftNotRecalculated"),
@@ -547,7 +553,7 @@ describe("recalculating closed months", () => {
     ]);
   });
 
-  it("a broken formula changes nothing", () => {
+  it("a broken formula throws, the data stays", () => {
     const d = closed();
     const before = JSON.stringify(d.accounts);
     d.budgets[0].amounts[0].amount = "unknown(";

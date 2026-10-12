@@ -150,21 +150,24 @@ export const recalculateClosed = (
   data: ClosingData,
   statements: Pick<IStatement, "budgetId" | "date">[]
 ) => {
-  const done = new Set<string>();
-  for (const { budgetId, date } of statements) {
-    const key = `${budgetId} ${monthKey(date)}`;
-    const budget = data.budgets.find((b) => b.id === budgetId);
-    if (done.has(key) || !budget?.closed) continue;
-    done.add(key);
+  const key = (budgetId: number, month: MomentInput) =>
+    `${budgetId} ${monthKey(month)}`;
+  // the statements of each budget and month to recalculate, in one pass
+  const changed = new Map<string, IStatement[]>(
+    statements.map((s) => [key(s.budgetId, s.date), []])
+  );
+  for (const s of data.statements) {
+    changed.get(key(s.budgetId, s.date))?.push(s);
+  }
 
-    const month = monthStatements(budgetId, date, data.statements);
-    budget.closed
-      .filter((c) => isSameMonth(c.month, date))
-      .forEach((c) => {
-        c.actual = sumStatements(
-          c.accountId ? month.filter((s) => s.accountId === c.accountId) : month
-        );
-      });
+  for (const budget of data.budgets) {
+    for (const c of budget.closed ?? []) {
+      const month = changed.get(key(budget.id, c.month));
+      if (!month) continue;
+      c.actual = sumStatements(
+        c.accountId ? month.filter((s) => s.accountId === c.accountId) : month
+      );
+    }
   }
 };
 

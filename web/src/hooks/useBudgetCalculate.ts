@@ -1,53 +1,17 @@
 import moment from "moment";
 import { useSelector } from "react-redux";
 import { AppState } from "store/store";
-import { range } from "helpers/arrayHelper";
 import {
   BudgetCalculationError,
-  buildBudgetPairsForMonth,
+  buildBudgetPairsForMonths,
   ProblemFormula,
 } from "services/budgetBuilder";
-import { BudgetPair } from "services/budgetPair";
 import { BudgetPairArray } from "services/budgetPairArray";
-import { IAccount, IBudget, IStatement } from "store/userdata/userdata.types";
 import { useMemo } from "react";
 
 export type CalculateError = {
   message: string;
   problems: ProblemFormula[]; // empty when the failure isn't about formulas
-};
-
-const buildBudgetPairs = (
-  start: number,
-  end: number,
-  budgets: IBudget[],
-  statements: IStatement[],
-  accounts: IAccount[],
-  closedMonths: string[]
-) => {
-  let prevMonthPairs = buildBudgetPairsForMonth(
-    moment().add(start - 1, "M"),
-    budgets,
-    statements,
-    accounts,
-    [],
-    closedMonths
-  );
-
-  const budgetPairs: BudgetPair[] = [];
-  for (const relativeMonth of range(start, end)) {
-    prevMonthPairs = buildBudgetPairsForMonth(
-      moment().add(relativeMonth, "M"),
-      budgets,
-      statements,
-      accounts,
-      prevMonthPairs.list,
-      closedMonths
-    );
-    budgetPairs.push(...prevMonthPairs.list);
-  }
-
-  return new BudgetPairArray(budgetPairs);
 };
 
 // Builds budget pairs for months [start, end] relative to the current month.
@@ -73,13 +37,10 @@ export const useBudgetCalculate = (
 
     try {
       return {
-        budgetPairArray: buildBudgetPairs(
-          start,
-          end,
-          budgets,
-          statements,
-          accounts,
-          closedMonths
+        budgetPairArray: buildBudgetPairsForMonths(
+          moment().add(start, "M"),
+          moment().add(end, "M"),
+          { budgets, statements, accounts, closedMonths }
         ),
       };
     } catch (e) {

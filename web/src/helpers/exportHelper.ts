@@ -20,115 +20,106 @@ export const EXPORT_FORMATS = ["csv", "json"] as const;
 export type ExportEntity = (typeof EXPORT_ENTITIES)[number];
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];
 
-type Row = Record<string, string | number | boolean | undefined>;
+// How a column is written to a csv cell and read back: numbers and booleans as
+// text, nested values as json, budget types by name; plain text otherwise.
+type CellKind = "number" | "boolean" | "json" | "budgetType";
 
-// nested lists don't fit a cell, so they stay JSON
-const nested = (value: unknown[] | undefined) =>
-  value === undefined ? undefined : JSON.stringify(value);
+interface IColumn {
+  key: string;
+  kind?: CellKind;
+  // not the item's own value, e.g. a name looked up
+  get?: (item: Item, names: INames) => unknown;
+}
 
-const budgetTypeName = (type: number) =>
-  BudgetTypeUser[type] ?? BudgetTypeExtra[type] ?? type;
+type Item = Record<string, unknown>;
+interface INames {
+  accounts: Map<number, string>;
+  budgets: Map<number, string>;
+}
 
-// Values stay raw (dates as DATE_FORMAT, "." decimals), not formatted with the
-// preferences, so the file can be read back.
-const rows = (userdata: IUserdata, entity: ExportEntity): Row[] => {
-  switch (entity) {
-    case "statements": {
-      const accounts = new Map(userdata.accounts.map((a) => [a.id, a.name]));
-      const budgets = new Map(userdata.budgets.map((b) => [b.id, b.name]));
-      return userdata.statements.map((s) => ({
-        id: s.id,
-        date: s.date,
-        amount: s.amount,
-        comment: s.comment,
-        accountId: s.accountId,
-        account: accounts.get(s.accountId),
-        budgetId: s.budgetId,
-        budget: budgets.get(s.budgetId),
-        dateCreated: s.dateCreated,
-        dateModified: s.dateModified,
-      }));
-    }
-    case "budgets":
-      return userdata.budgets.map((b) => ({
-        id: b.id,
-        name: b.name,
-        type: budgetTypeName(b.type),
-        parentId: b.parentId,
-        fromAccountId: b.fromAccountId,
-        toAccountId: b.toAccountId,
-        isEssential: b.isEssential,
-        closeAfterOneStatement: b.closeAfterOneStatement,
-        amounts: nested(b.amounts),
-        overrides: nested(b.overrides),
-        closed: nested(b.closed),
-        dateCreated: b.dateCreated,
-        dateModified: b.dateModified,
-      }));
-    case "accounts":
-      return userdata.accounts.map((a) => ({
-        id: a.id,
-        name: a.name,
-        leftFromPrevMonth: nested(a.leftFromPrevMonth),
-        dateCreated: a.dateCreated,
-        dateModified: a.dateModified,
-      }));
-    // one row; locale and currency as json, so a "" separator (none) stays
-    // apart from an unset one (the country's)
-    case "preferences": {
-      const p = userdata.preferences;
-      return [
-        {
-          language: p.language,
-          showLanguageInHeader: p.showLanguageInHeader,
-          idleTimeoutMinutes: p.idleTimeoutMinutes,
-          theme: p.theme,
-          locale: JSON.stringify(p.locale),
-          currency: JSON.stringify(p.currency),
-        },
-      ];
-    }
-  }
-};
+const column = (key: string, kind?: CellKind): IColumn => ({ key, kind });
+const id = column("id", "number");
+const dates = [column("dateCreated"), column("dateModified")];
 
-// the csv columns after "app"
-export const EXPORT_COLUMNS: Record<ExportEntity, string[]> = {
+// the csv columns after "app"; values stay raw (dates as DATE_FORMAT, "."
+// decimals), not formatted with the preferences, so the file can be read back
+export const EXPORT_COLUMNS: Record<ExportEntity, IColumn[]> = {
   statements: [
-    "id",
-    "date",
-    "amount",
-    "comment",
-    "accountId",
-    "account",
-    "budgetId",
-    "budget",
-    "dateCreated",
-    "dateModified",
+    id,
+    column("date"),
+    column("amount", "number"),
+    column("comment"),
+    column("accountId", "number"),
+    {
+      key: "account",
+      get: (s, names) => names.accounts.get(s.accountId as number),
+    },
+    column("budgetId", "number"),
+    {
+      key: "budget",
+      get: (s, names) => names.budgets.get(s.budgetId as number),
+    },
+    ...dates,
   ],
   budgets: [
-    "id",
-    "name",
-    "type",
-    "parentId",
-    "fromAccountId",
-    "toAccountId",
-    "isEssential",
-    "closeAfterOneStatement",
-    "amounts",
-    "overrides",
-    "closed",
-    "dateCreated",
-    "dateModified",
+    id,
+    column("name"),
+    column("type", "budgetType"),
+    column("parentId", "number"),
+    column("fromAccountId", "number"),
+    column("toAccountId", "number"),
+    column("isEssential", "boolean"),
+    column("closeAfterOneStatement", "boolean"),
+    column("amounts", "json"),
+    column("overrides", "json"),
+    column("closed", "json"),
+    ...dates,
   ],
-  accounts: ["id", "name", "leftFromPrevMonth", "dateCreated", "dateModified"],
+  accounts: [id, column("name"), column("leftFromPrevMonth", "json"), ...dates],
+  // locale and currency as json, so a "" separator (none) stays apart from an
+  // unset one (the country's)
   preferences: [
-    "language",
-    "showLanguageInHeader",
-    "idleTimeoutMinutes",
-    "theme",
-    "locale",
-    "currency",
+    column("language"),
+    column("showLanguageInHeader", "boolean"),
+    column("idleTimeoutMinutes", "number"),
+    column("theme"),
+    column("locale", "json"),
+    column("currency", "json"),
   ],
+};
+
+const writeCell = (kind: CellKind | undefined, value: unknown) => {
+  if (value === undefined) return undefined;
+  if (kind === "json") return JSON.stringify(value);
+  if (kind === "budgetType") {
+    return BudgetTypeUser[value as number] ?? BudgetTypeExtra[value as number];
+  }
+  return value as string | number | boolean;
+};
+
+// back from what toCsv wrote; anything wrong is left to the import's schema
+export const readCell = (kind: CellKind | undefined, cell: string): unknown => {
+  if (cell === "") return undefined;
+  switch (kind) {
+    case "number":
+      return Number(cell);
+    case "boolean":
+      return cell === "true" ? true : cell === "false" ? false : cell;
+    case "json":
+      try {
+        return JSON.parse(cell);
+      } catch {
+        return cell;
+      }
+    case "budgetType":
+      return (
+        BudgetTypeUser[cell as keyof typeof BudgetTypeUser] ??
+        BudgetTypeExtra[cell as keyof typeof BudgetTypeExtra] ??
+        cell
+      );
+    default:
+      return cell;
+  }
 };
 
 // a list for every entity; the preferences are one item
@@ -137,10 +128,23 @@ const items = (userdata: IUserdata, entity: ExportEntity) =>
 
 export const toCsv = (userdata: IUserdata, entity: ExportEntity) => {
   const columns = EXPORT_COLUMNS[entity];
-  const lines = rows(userdata, entity).map((row) =>
-    [APP_CODE, ...columns.map((c) => row[c])].map(csvCell).join(",")
+  const names: INames = {
+    accounts: new Map(userdata.accounts.map((a) => [a.id, a.name])),
+    budgets: new Map(userdata.budgets.map((b) => [b.id, b.name])),
+  };
+  const lines = (items(userdata, entity) as unknown as Item[]).map((item) =>
+    [
+      APP_CODE,
+      ...columns.map((c) =>
+        writeCell(c.kind, c.get ? c.get(item, names) : item[c.key])
+      ),
+    ]
+      .map(csvCell)
+      .join(",")
   );
-  return [["app", ...columns].join(","), ...lines].join("\r\n");
+  return [["app", ...columns.map((c) => c.key)].join(","), ...lines].join(
+    "\r\n"
+  );
 };
 
 export const toJson = (userdata: IUserdata, entity: ExportEntity) =>
@@ -155,7 +159,7 @@ export const toJson = (userdata: IUserdata, entity: ExportEntity) =>
     2
   );
 
-export const exportFileName = (entity: ExportEntity, format: ExportFormat) =>
+const exportFileName = (entity: ExportEntity, format: ExportFormat) =>
   `${APP_CODE}-${entity}-${moment().format(DATE_FORMAT)}.${format}`;
 
 export const exportData = (

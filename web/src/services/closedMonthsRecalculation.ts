@@ -1,6 +1,6 @@
-import moment, { Moment, MomentInput } from "moment";
-import { buildBudgetPairsForMonth } from "./budgetBuilder";
-import { BudgetPair } from "./budgetPair";
+import moment, { MomentInput } from "moment";
+import { IAccount } from "store/userdata/userdata.types";
+import { buildBudgetPairsForMonths } from "./budgetBuilder";
 import {
   ClosingData,
   getLeftForNextMonth,
@@ -8,15 +8,16 @@ import {
   storeLeftForNextMonth,
 } from "./budgetClosing";
 
-// Stores again what is left after every closed month from `from` on, as
-// closing them did, e.g. after statements were added to them. Months are
-// built one after the other, so each closed month passes its new left on.
-// Throws like buildBudgetPairsForMonth (e.g. a broken formula), changing
-// nothing.
+// What is left after every closed month from `from` on, stored again as
+// closing them did (e.g. after statements were added to them): each account
+// with its new left from prev month, nothing when no month that late is
+// closed. Months are built one after the other, so each closed month passes
+// its new left on. Throws like buildBudgetPairsForMonth (e.g. a broken
+// formula).
 export const recalculateClosedMonths = (
   data: ClosingData,
   from: MomentInput
-) => {
+): Pick<IAccount, "id" | "leftFromPrevMonth">[] | undefined => {
   const start = moment(from).startOf("M");
   const last = data.closedMonths
     .map((m) => moment(m))
@@ -25,29 +26,13 @@ export const recalculateClosedMonths = (
     .pop();
   if (!last) return;
 
-  // stored in copies until every month is done
+  // copies, read by the months after the one they are stored for
   const accounts = data.accounts.map((a) => ({
     ...a,
     leftFromPrevMonth: [...a.leftFromPrevMonth],
   }));
   const work = { ...data, accounts };
-  const build = (month: Moment, prev: BudgetPair[]) =>
-    buildBudgetPairsForMonth(
-      month,
-      data.budgets,
-      data.statements,
-      accounts,
-      prev,
-      data.closedMonths
-    );
-
-  let prev = build(start.clone().add(-1, "M"), []);
-  for (
-    const month = start.clone();
-    !month.isAfter(last, "M");
-    month.add(1, "M")
-  ) {
-    const pairs = build(month.clone(), prev.list);
+  buildBudgetPairsForMonths(start, last, work, (month, pairs) => {
     if (isMonthClosed(data.closedMonths, month)) {
       storeLeftForNextMonth(
         work,
@@ -55,10 +40,9 @@ export const recalculateClosedMonths = (
         getLeftForNextMonth(pairs, accounts, month)
       );
     }
-    prev = pairs;
-  }
-
-  data.accounts.forEach(
-    (a, i) => (a.leftFromPrevMonth = accounts[i].leftFromPrevMonth)
-  );
+  });
+  return accounts.map(({ id, leftFromPrevMonth }) => ({
+    id,
+    leftFromPrevMonth,
+  }));
 };

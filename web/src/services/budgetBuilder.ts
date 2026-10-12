@@ -1,4 +1,4 @@
-import moment, { Moment } from "moment";
+import moment, { Moment, MomentInput } from "moment";
 import {
   BudgetTypeExtra,
   BudgetTypeUser,
@@ -194,4 +194,51 @@ export const buildBudgetPairsForMonth = (
 
   // rebuild so the lookup index covers the finished tree
   return new BudgetPairArray(tree.list);
+};
+
+const monthOf = (date: MomentInput) => moment(date).format("YYYY-MM");
+
+// Builds the months from `from` to `to` one after the other, each on the one
+// before (the month before `from` is built too). Statements are grouped by
+// month once, as a month only reads its own. `onMonth` sees each month before
+// the next one is built, e.g. to store what is left after it.
+export const buildBudgetPairsForMonths = (
+  from: Moment,
+  to: Moment,
+  data: {
+    budgets: IBudget[];
+    statements: IStatement[];
+    accounts: IAccount[];
+    closedMonths: string[];
+  },
+  onMonth?: (month: Moment, pairs: BudgetPairArray) => void
+) => {
+  const byMonth = new Map<string, IStatement[]>();
+  for (const s of data.statements) {
+    const list = byMonth.get(monthOf(s.date));
+    if (list) {
+      list.push(s);
+    } else {
+      byMonth.set(monthOf(s.date), [s]);
+    }
+  }
+  const build = (month: Moment, prev: BudgetPair[]) =>
+    buildBudgetPairsForMonth(
+      month,
+      data.budgets,
+      byMonth.get(monthOf(month)) ?? [],
+      data.accounts,
+      prev,
+      data.closedMonths
+    );
+
+  let prev = build(from.clone().add(-1, "M"), []);
+  const pairs: BudgetPair[] = [];
+  for (let month = from.clone(); !month.isAfter(to, "M");) {
+    prev = build(month, prev.list);
+    onMonth?.(month, prev);
+    pairs.push(...prev.list);
+    month = month.clone().add(1, "M");
+  }
+  return new BudgetPairArray(pairs);
 };

@@ -41,23 +41,4 @@ i18n
   });
 setMomentLocale();
 
-// dev: i18next copies the resources once, so edited translations need to be
-// handed over again (otherwise new keys show up only after a reload)
-if (import.meta.hot) {
-  import.meta.hot.accept(["./en.json", "./ru.json"], ([enModule, ruModule]) => {
-    [enModule, ruModule].forEach((module, i) => {
-      if (module) {
-        i18n.addResourceBundle(
-          ["en", "ru"][i],
-          "translation",
-          module.default,
-          true,
-          true
-        );
-      }
-    });
-    i18n.changeLanguage(i18n.resolvedLanguage ?? i18n.language);
-  });
-}
-
 export default i18n;
