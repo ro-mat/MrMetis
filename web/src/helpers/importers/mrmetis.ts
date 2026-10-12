@@ -9,16 +9,21 @@ import {
 import { BudgetTypeExtra, BudgetTypeUser } from "store/userdata/userdata.types";
 import { IImporter, Imported, ImportError } from "./importer";
 
+// Checks what the app needs; stored data leaves out more than its types say
+// (e.g. the account of an amount), or has null for it.
+const optional = <T extends z.ZodType>(schema: T) =>
+  schema.nullish().transform((v) => v ?? undefined);
+
 const id = z.number().int();
 const metadata = {
   id,
-  dateCreated: z.string().optional(),
-  dateModified: z.string().optional(),
+  dateCreated: optional(z.string()),
+  dateModified: optional(z.string()),
 };
 const monthAmountPair = z.object({
   month: z.string(),
   amount: z.number(),
-  accountId: id,
+  accountId: optional(id),
 });
 const budgetTypes = [
   ...Object.values(BudgetTypeUser),
@@ -30,7 +35,7 @@ const SCHEMAS = {
   statements: z.object({
     ...metadata,
     amount: z.number(),
-    comment: z.string().optional(),
+    comment: optional(z.string()),
     date: z.string(),
     budgetId: id,
     accountId: id,
@@ -38,30 +43,32 @@ const SCHEMAS = {
   budgets: z.object({
     ...metadata,
     name: z.string(),
-    parentId: id.optional(),
-    fromAccountId: id.optional(),
-    toAccountId: id,
-    isEssential: z.boolean(),
+    parentId: optional(id),
+    fromAccountId: optional(id),
+    toAccountId: optional(id),
+    isEssential: z.boolean().default(false),
     amounts: z.array(
       z.object({
         amount: z.string(),
-        fromAccountId: id,
+        fromAccountId: optional(id),
         frequency: z.number(),
         startDate: z.string(),
-        endDate: z.string().optional(),
+        endDate: optional(z.string()),
       })
     ),
-    overrides: z.array(monthAmountPair),
+    overrides: z.array(monthAmountPair).default([]),
     type: z.number().refine((t) => budgetTypes.includes(t)),
     closeAfterOneStatement: z.boolean().default(false),
-    closed: z
-      .array(z.object({ month: z.string(), accountId: id, actual: z.number() }))
-      .optional(),
+    closed: optional(
+      z.array(
+        z.object({ month: z.string(), accountId: id, actual: z.number() })
+      )
+    ),
   }),
   accounts: z.object({
     ...metadata,
     name: z.string(),
-    leftFromPrevMonth: z.array(monthAmountPair),
+    leftFromPrevMonth: z.array(monthAmountPair).default([]),
   }),
 };
 
@@ -138,7 +145,10 @@ export const mrmetisImporter: IImporter = {
   label: "MrMetis",
   accept: ".csv,.json",
   parse: (text) => {
-    const { entity, items } = text.replace(/^\uFEFF/, "").trimStart().startsWith("{")
+    const { entity, items } = text
+      .replace(/^\uFEFF/, "")
+      .trimStart()
+      .startsWith("{")
       ? fromJson(text)
       : fromCsv(text);
     const parsed = z.array(SCHEMAS[entity]).safeParse(items);

@@ -47,7 +47,8 @@ export const prepareImport = (
       const inFile = new Set(imported.items.map((b) => b.id));
       const valid = imported.items.filter(
         (b) =>
-          accountIds.has(b.toAccountId) &&
+          // 0 or none: no account
+          (!b.toAccountId || accountIds.has(b.toAccountId)) &&
           (!b.fromAccountId || accountIds.has(b.fromAccountId))
       );
       const { ids, items } = withNewIds<IBudget>(valid, userdata.budgets);
@@ -78,10 +79,11 @@ export const prepareImport = (
           entity: "accounts",
           items: items.map((a) => ({
             ...a,
-            leftFromPrevMonth: a.leftFromPrevMonth.map((l) => ({
-              ...l,
-              accountId: ids.get(l.accountId) ?? l.accountId,
-            })),
+            leftFromPrevMonth: a.leftFromPrevMonth.map((l) =>
+              l.accountId === undefined
+                ? l
+                : { ...l, accountId: ids.get(l.accountId) ?? l.accountId }
+            ),
           })),
         },
         skipped: 0,

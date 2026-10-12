@@ -3,7 +3,14 @@ import { toCsv, toJson } from "helpers/exportHelper";
 import { parseCsv } from "helpers/csvHelper";
 import { IMPORTERS, ImportError } from "helpers/importers";
 import { prepareImport } from "helpers/importHelper";
-import { BudgetTypeUser, IUserdata } from "store/userdata/userdata.types";
+import { getData } from "helpers/demoData";
+import reducer, { SET_USERDATA } from "store/userdata/userdata.slice";
+import "locales/i18n";
+import {
+  BudgetTypeUser,
+  IUserdata,
+  IUserdataDto,
+} from "store/userdata/userdata.types";
 
 const mrmetis = IMPORTERS[0];
 
@@ -103,6 +110,38 @@ describe("mrmetis import", () => {
       '{"app":"mrmetis","entity":"accounts","items":[{"id":"x"}]}',
       "preferences.importInvalid"
     );
+  });
+});
+
+describe("importing stored data", () => {
+  // the demo data is shaped like stored data: it leaves out fields its
+  // types require (e.g. the account of an amount)
+  const stored = reducer(
+    undefined,
+    SET_USERDATA(getData() as unknown as IUserdataDto)
+  ).userdata;
+
+  it.each(["statements", "budgets", "accounts"] as const)(
+    "%s export back without skipping",
+    (entity) => {
+      for (const text of [toCsv(stored, entity), toJson(stored, entity)]) {
+        const { prepared, skipped } = prepareImport(
+          stored,
+          mrmetis.parse(text)
+        );
+        expect(skipped).toBe(0);
+        expect(prepared.items).toHaveLength(stored[entity].length);
+      }
+    }
+  );
+
+  it("reads null as not set", () => {
+    const budget = { ...stored.budgets[0], parentId: null, closed: null };
+    const imported = mrmetis.parse(
+      JSON.stringify({ app: "mrmetis", entity: "budgets", items: [budget] })
+    );
+    expect(imported.items[0]).not.toHaveProperty("parentId", null);
+    expect(imported.items[0]).not.toHaveProperty("closed", null);
   });
 });
 
