@@ -53,7 +53,7 @@ form {
       }
 
       // an amount or override reads as a sentence: its fields look like the
-      // words around them until hovered or focused
+      // words around them, with a faint outline, until hovered or focused
       & > .sentence {
         flex-wrap: wrap;
         align-items: baseline;
@@ -67,7 +67,7 @@ form {
           min-width: 1ch;
           margin: 0;
           padding: 0 2px;
-          border: 1px solid transparent;
+          border: 1px solid rgba(0, 0, 0, 0.12);
           border-radius: 3px;
           background: none;
           color: inherit;
@@ -77,7 +77,7 @@ form {
 
           &:hover,
           &:focus {
-            border-color: #ccc;
+            border-color: #999;
             background-color: #fff;
             outline: none;
           }
