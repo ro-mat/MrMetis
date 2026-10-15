@@ -61,7 +61,7 @@ const TableHeader: FC<ITableHeaderProps> = ({ months, budgetPairArray }) => {
               {(isClosed || !month.isAfter(moment(), "M")) && (
                 <Button
                   variant="plain"
-                  className="ml-1"
+                  className="month-toggle ml-1"
                   title={t(
                     isClosed ? "planning.openMonth" : "planning.closeMonth"
                   )}
