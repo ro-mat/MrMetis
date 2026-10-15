@@ -1,6 +1,6 @@
 import { TAppThunk } from "store/store";
 import { FETCHING, SET_FILTER } from "./ui.slice";
-import { IUi } from "./ui.types";
+import { FilterName, IFilter, IUi } from "./ui.types";
 
 export const fetchUi =
   (): TAppThunk =>
@@ -8,9 +8,21 @@ export const fetchUi =
     dispatch(FETCHING());
 
     const jsonString = localStorage.getItem("ui");
-    const ui = (jsonString ? JSON.parse(jsonString) : {}) as IUi;
+    // stored before each page had its own range: one filter, for planning
+    const ui = (jsonString ? JSON.parse(jsonString) : {}) as Partial<IUi> & {
+      filter?: IFilter;
+    };
 
-    dispatch(
-      SET_FILTER(ui?.filter ?? { fromRelativeMonth: -2, toRelativeMonth: 5 })
-    );
+    const stored: Record<FilterName, IFilter | undefined> = {
+      planning: ui.filters?.planning ?? ui.filter,
+      charts: ui.filters?.charts,
+    };
+    for (const [name, filter] of Object.entries(stored)) {
+      dispatch(
+        SET_FILTER({
+          name: name as FilterName,
+          filter: filter ?? { fromRelativeMonth: -2, toRelativeMonth: 5 },
+        })
+      );
+    }
   };

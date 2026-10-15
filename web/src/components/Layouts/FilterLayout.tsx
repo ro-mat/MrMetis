@@ -7,17 +7,21 @@ import { AppState, TAppDispatch } from "store/store";
 import { SET_FILTER } from "store/ui/ui.slice";
 import useLocale from "hooks/useLocale";
 import { formatInLanguage } from "helpers/dateHelper";
+import { FilterName } from "store/ui/ui.types";
 
-export interface ISideNavProps {}
+export interface ISideNavProps {
+  // whose month range it shows and changes
+  name: FilterName;
+}
 
-const FilterLayout: FC<ISideNavProps> = () => {
+const FilterLayout: FC<ISideNavProps> = ({ name }) => {
   const dispatch = useDispatch<TAppDispatch>();
   const { formatMonth } = useLocale();
 
   const minThreshHold = 0;
   const maxThreshHold = 1;
 
-  const { filter } = useSelector((state: AppState) => state.ui.ui);
+  const filter = useSelector((state: AppState) => state.ui.ui.filters[name]);
   const [filterValues, setFilterValues] = useState<number[]>([
     filter?.fromRelativeMonth ?? -1,
     filter?.toRelativeMonth ?? 5,
@@ -40,8 +44,11 @@ const FilterLayout: FC<ISideNavProps> = () => {
   const handleChangeCommitted = () => {
     dispatch(
       SET_FILTER({
-        fromRelativeMonth: filterValues[0],
-        toRelativeMonth: filterValues[1],
+        name,
+        filter: {
+          fromRelativeMonth: filterValues[0],
+          toRelativeMonth: filterValues[1],
+        },
       })
     );
   };

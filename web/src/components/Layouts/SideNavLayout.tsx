@@ -10,6 +10,7 @@ import ErrorBoundary from "components/ErrorBoundary";
 const navItems = [
   { to: "/dashboard", section: "/dashboard", labelKey: "nav.dashboard" },
   { to: "/planning/accounts", section: "/planning", labelKey: "nav.planning" },
+  { to: "/charts", section: "/charts", labelKey: "nav.charts" },
   { to: "/list", section: "/list", labelKey: "nav.statements" },
   { to: "/budget", section: "/budget", labelKey: "nav.budget" },
   { to: "/accounts", section: "/accounts", labelKey: "nav.accounts" },

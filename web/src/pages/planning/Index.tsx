@@ -27,7 +27,9 @@ const subnavItems = [
 const Planning = () => {
   const { t } = useTranslation();
   const location = useLocation();
-  const { filter } = useSelector((state: AppState) => state.ui.ui);
+  const filter = useSelector(
+    (state: AppState) => state.ui.ui.filters.planning
+  );
   const { loaded } = useSelector((state: AppState) => state.data);
 
   const { budgetPairArray, isReady, error } = useBudgetCalculate(

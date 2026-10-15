@@ -168,6 +168,34 @@ describe("budgetClosing", () => {
     expect(closedOf(d, 3)).toHaveLength(0);
   });
 
+  it("closing the last child closes a parent with nothing planned", () => {
+    const d = data();
+    d.budgets.push(
+      budget(7, []),
+      budget(8, [[MAIN, 8]], { parentId: 7 }),
+      budget(9, [[CARD, 9]], { parentId: 7 })
+    );
+    d.statements.push(statement(5, 7, MAIN, 3));
+
+    closeBudget(d, 8, month);
+    expect(closedOf(d, 7)).toHaveLength(0);
+
+    closeBudget(d, 9, month, CARD);
+    expect(closedOf(d, 7)).toContainEqual({
+      month: day(1),
+      accountId: 0,
+      actual: 3,
+    });
+  });
+
+  it("a parent with a plan stays open when its children close", () => {
+    const d = data();
+    closeBudget(d, 2, month);
+
+    expect(closedOf(d, 2).map((c) => c.accountId)).toContain(0);
+    expect(closedOf(d, 1)).toHaveLength(0);
+  });
+
   it("opening a child opens its parent and the month", () => {
     const d = data();
     closeMonth(d, month, []);

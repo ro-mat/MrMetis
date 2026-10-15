@@ -9,7 +9,8 @@
     "planning": "Nothing to plan yet. Add an account and a budget first.",
     "statements": "No statements yet. Press + to add one.",
     "budget": "No budgets yet. Press + to add one.",
-    "accounts": "No accounts yet. Press + to add one."
+    "accounts": "No accounts yet. Press + to add one.",
+    "charts": "No data yet. Add an account and a budget first."
   },
   "nav": {
     "login": "Login",
@@ -17,6 +18,7 @@
     "logout": "Logout",
     "dashboard": "Dashboard",
     "planning": "Planning",
+    "charts": "Charts",
     "statements": "List",
     "budget": "Budget",
     "accounts": "Accounts",
@@ -50,6 +52,28 @@
     "email": "Email",
     "password": "Password",
     "code": "Invitation code"
+  },
+  "charts": {
+    "header": "Charts",
+    "allAccounts": "All accounts",
+    "total": "Total",
+    "forecast": "Forecast",
+    "now": "Now",
+    "balance": "Balance at the end of month",
+    "balanceHint": "Actual amounts so far, planned ones after that.",
+    "incomeOutgoings": "Income and outgoings",
+    "income": "Income",
+    "outgoings": "Outgoings",
+    "net": "Net",
+    "budgetComparison": "Planned and actual by budget",
+    "budgetComparisonHint": "Click a budget to see its parts.",
+    "back": "Back to all budgets",
+    "planned": "Planned",
+    "actual": "Actual",
+    "overspent": "over plan",
+    "spendingBreakdown": "Spending by budget",
+    "other": "Other",
+    "nothing": "Nothing to show for this period."
   },
   "dashboard": {
     "header": "Welcome to dashboard",

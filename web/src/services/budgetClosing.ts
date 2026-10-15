@@ -11,7 +11,7 @@ import { IMonthAmountPair } from "types/IMonthAmountPair";
 import { DATE_FORMAT } from "helpers/dateHelper";
 import { flattenBudgetPairs } from "helpers/budgetMapper";
 import { roundTo } from "helpers/numberHelper";
-import { getRelevantFormulas } from "./budgetFormula";
+import { getRelevantFormulas, isPlannedInMonth } from "./budgetFormula";
 import { calculateForNextMonth } from "./budgetTotals";
 import { BudgetPairArray } from "./budgetPairArray";
 
@@ -105,7 +105,7 @@ const targetAccount = (
 // Closes the budget and its children for one account (no accountId: for every
 // account). Once every account the budget uses is closed, it is closed for the
 // whole month too.
-export const closeBudget = (
+const closeWithChildren = (
   data: ClosingData,
   budgetId: number,
   month: MomentInput,
@@ -141,7 +141,42 @@ export const closeBudget = (
 
   data.budgets
     .filter((b) => b.parentId === budgetId)
-    .forEach((child) => closeBudget(data, child.id, month, target));
+    .forEach((child) => closeWithChildren(data, child.id, month, target));
+};
+
+// A parent with nothing planned of its own is only there for its children, so
+// it closes once all of them are closed for the whole month.
+const closeEmptyParents = (
+  data: ClosingData,
+  budget: IBudget,
+  month: MomentInput
+) => {
+  const parent = data.budgets.find((b) => b.id === budget.parentId);
+  if (
+    !parent ||
+    findClosed(parent, month, 0) ||
+    isPlannedInMonth(moment(month).toDate(), parent) ||
+    data.budgets.some(
+      (b) => b.parentId === parent.id && !findClosed(b, month, 0)
+    )
+  )
+    return;
+
+  closeWithChildren(data, parent.id, month);
+  closeEmptyParents(data, parent, month);
+};
+
+// Closes the budget as closeWithChildren does, and then its parents left with
+// nothing to wait for, see closeEmptyParents.
+export const closeBudget = (
+  data: ClosingData,
+  budgetId: number,
+  month: MomentInput,
+  accountId?: number
+) => {
+  closeWithChildren(data, budgetId, month, accountId);
+  const budget = data.budgets.find((b) => b.id === budgetId);
+  if (budget) closeEmptyParents(data, budget, month);
 };
 
 // Updates the statement sums stored for the closed pairs of the statements'
