@@ -61,9 +61,9 @@ docker compose down -v   # stop and delete the database
 
 ## QA environment
 
-Every push to `main` runs [deploy-qa.yml](.github/workflows/deploy-qa.yml): it runs the API tests, builds the `mrmetis-web` and `mrmetis-api` images to GHCR, then triggers the private `ro-mat/MrMetis-deploy` repo, whose runner on the home server starts that build in `/srv/apps/mrmetis-qa` after approval. The site is https://mrmetis-qa.romkats.eu.
+Every push to `main` runs [deploy-qa.yml](.github/workflows/deploy-qa.yml): it runs the API tests, builds the `mrmetis-web` and `mrmetis-api` images to GHCR, then calls the home server's deploy receiver (`ro-mat/homeserver-infra`, `deployer/`) with the job's GitHub OIDC token, which starts that build in `/srv/apps/mrmetis-qa`. The site is https://mrmetis-qa.romkats.eu.
 
-One-time setup in GitHub, Settings → Environments → `qa`, add these secrets:
+One-time setup: in GitHub, set the `DEPLOY_URL` variable (`https://deploy.romkats.eu`) and limit the `qa` environment to the `main` branch. `compose.yml` and `.env` live on the server in `/srv/apps/mrmetis-qa`; `.env` holds `TAG` (the receiver updates it on each deploy) and these secrets:
 
 - `MSSQL_SA_PASSWORD`, `DB_APP_PASSWORD`: SQL Server passwords. They need upper case, lower case and digits, and must not contain `;` or `'`, for example `openssl rand -base64 32 | tr -d '/+='`
 - `JWT_SECRET`: at least 32 characters, for example `openssl rand -hex 32`
