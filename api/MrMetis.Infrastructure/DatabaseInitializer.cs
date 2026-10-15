@@ -6,13 +6,12 @@ using Microsoft.Extensions.Options;
 using MrMetis.Core.Entities;
 using MrMetis.Core.Options;
 using MrMetis.Infrastructure.Contexts;
-using MrMetis.Infrastructure.Extensions;
 
 namespace MrMetis.Infrastructure;
 
 /// <summary>
 /// Creates the database, its login and role if missing, applies migrations and seeds local data.
-/// Only meant for Development, Test and QA environments.
+/// Only meant for Development and QA environments.
 /// </summary>
 public class DatabaseInitializer(
     MrMetisContext context,
@@ -128,8 +127,7 @@ public class DatabaseInitializer(
 
     private async Task CreateDb(string masterConnectionString, string databaseName, CancellationToken ct)
     {
-        var name = environment.IsTest() ? "mrmetis-test" : databaseName;
-        await RunCommand(masterConnectionString, $"create database [{name}]", ct);
+        await RunCommand(masterConnectionString, $"create database [{databaseName}]", ct);
     }
 
     private async Task RunCommand(string connectionString, string commandText, CancellationToken ct)

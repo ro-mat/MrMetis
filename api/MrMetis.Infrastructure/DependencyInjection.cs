@@ -33,7 +33,7 @@ public static class DependencyInjection
 
         services.AddSingleton(TimeProvider.System);
 
-        var enableSensitiveDataLogging = builder.Environment.IsDevelopmentOrTest();
+        var enableSensitiveDataLogging = builder.Environment.IsDevelopment();
         services.AddDbContext<MrMetisContext>((sp, options) =>
         {
             var database = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
