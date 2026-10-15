@@ -2,7 +2,7 @@
 
 ### Introduction
 
-The db is created by running api, which creates and migrates the db on startup. Locally the SQL Server itself runs in a container, see "Local development" in the [root README](../../README.md).
+The db is created by running api, which creates and migrates the db on startup. Locally the SQL Server itself runs in a container, see "Local development" in [DEVELOPMENT.md](../../DEVELOPMENT.md).
 All other (meant also for test/prod environments, not just local) tables/views/data is created by EF Core migrations when running the database update command.
 
 ### Changing schema/data
