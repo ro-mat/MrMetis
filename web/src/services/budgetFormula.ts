@@ -102,6 +102,15 @@ const isAmountInMonth = (monthStart: Moment, amount: IAmount) => {
   );
 };
 
+// Whether the budget has its own amount or override that month.
+export const isPlannedInMonth = (month: Date, budget: IBudget) => {
+  const monthStart = moment(month).startOf("M");
+  return (
+    budget.overrides.some((o) => moment(o.month).isSame(month, "M")) ||
+    budget.amounts.some((a) => isAmountInMonth(monthStart, a))
+  );
+};
+
 // One formula per account the budget is planned on this month, or a single
 // 0 formula when it isn't planned at all.
 export const getRelevantFormulas = (
