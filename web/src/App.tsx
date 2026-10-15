@@ -17,6 +17,7 @@ import Header from "components/Header";
 import Footer from "components/Footer";
 import Planning from "pages/planning/Index";
 import Dashboard from "pages/Dashboard";
+import ChartsPage from "pages/ChartsPage";
 import PlanningAll from "pages/planning/PlanningAll";
 import PlanningAccounts from "pages/planning/PlanningAccounts";
 import Authenticated from "components/Authenticated";
@@ -129,7 +130,9 @@ const App: FunctionComponent = () => {
             <Route element={<Authenticated />}>
               <Route element={<SideNavLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route element={<FilterLayout />}>
+                <Route
+                  element={<FilterLayout key="planning" name="planning" />}
+                >
                   <Route path="/planning" element={<Planning />}>
                     <Route path="/planning/all" element={<PlanningAll />} />
                     <Route
@@ -137,6 +140,9 @@ const App: FunctionComponent = () => {
                       element={<PlanningAccounts />}
                     />
                   </Route>
+                </Route>
+                <Route element={<FilterLayout key="charts" name="charts" />}>
+                  <Route path="/charts" element={<ChartsPage />} />
                 </Route>
                 <Route path="/list/:id?" element={<StatementsPage />} />
                 <Route path="/budget/:id?" element={<BudgetPage />} />

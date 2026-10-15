@@ -161,4 +161,5 @@ $control-height: $control-line-height + 2 * $control-padding + 2px;
 // page specific
 @import "index";
 @import "dashboard";
+@import "charts";
 @import "preferences";

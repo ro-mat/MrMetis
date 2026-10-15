@@ -1,14 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { IFilter, IUiState } from "./ui.types";
+import { FilterName, IFilter, IUiState } from "./ui.types";
 import { IAction } from "types/IAction";
 
 const initialState: IUiState = {
   err: null,
   isFetching: false,
   ui: {
-    filter: {
-      fromRelativeMonth: -1,
-      toRelativeMonth: 5,
+    filters: {
+      planning: { fromRelativeMonth: -1, toRelativeMonth: 5 },
+      charts: { fromRelativeMonth: -1, toRelativeMonth: 5 },
     },
     previewStatements: {},
   },
@@ -27,8 +27,11 @@ const uiSlice = createSlice({
       state.isFetching = false;
     },
 
-    SET_FILTER: (state, action: IAction<IFilter>) => {
-      state.ui.filter = action.payload;
+    SET_FILTER: (
+      state,
+      action: IAction<{ name: FilterName; filter: IFilter }>,
+    ) => {
+      state.ui.filters[action.payload.name] = action.payload.filter;
       localStorage.setItem("ui", JSON.stringify(state.ui));
 
       state.isFetching = false;

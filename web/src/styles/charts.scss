@@ -1,0 +1,124 @@
+// Chart colors: the categorical slots go in this order, never cycled
+// (see components/charts/chartStyle.ts).
+.charts {
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #6250d6;
+  --series-8: #e34948;
+  --status-critical: #d03b3b;
+  --chart-other: #a9a8a0;
+  --chart-surface: #fff;
+  --chart-text: #0b0b0b;
+  --chart-muted: #6f6d68;
+  --chart-grid: #e1e0d9;
+  --chart-axis: #c3c2b7;
+  --chart-forecast: #f4f3ef;
+}
+
+body.dark .charts {
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+  --chart-other: #6b6a65;
+  --chart-surface: #333;
+  --chart-text: #f0efec;
+  --chart-muted: #b0afa6;
+  --chart-grid: #45453f;
+  --chart-axis: #5a5a54;
+  --chart-forecast: #3b3b37;
+}
+
+.chart-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin: 0.5em 0 1em;
+}
+
+.charts {
+  // see components/charts/MasonryGrid.tsx: items span rows by their height
+  // (row 4px, 24px under each item), so each keeps its height and moves up
+  // under a shorter one
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr));
+  grid-auto-rows: 4px;
+  column-gap: 1.5em;
+  margin-bottom: 2em;
+
+  .chart-card {
+    min-width: 0;
+    // its own height, not the rows it spans
+    align-self: start;
+
+    h3 {
+      margin-bottom: 0.25em;
+    }
+
+    .month-select {
+      margin: 0.25em 0;
+    }
+  }
+
+  .chart-hint {
+    color: var(--chart-muted);
+    font-size: 0.85em;
+    margin: 0 0 0.5em;
+  }
+
+  .recharts-legend-item-text {
+    color: var(--chart-text) !important;
+  }
+
+  // no focus box around the chart when clicked
+  .recharts-wrapper,
+  .recharts-surface {
+    outline: none;
+  }
+}
+
+.chart-tooltip {
+  background: var(--chart-surface);
+  color: var(--chart-text);
+  border: 1px solid var(--chart-grid);
+  border-radius: 4px;
+  padding: 0.4em 0.6em;
+  font-size: 0.85em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+
+  .chart-tooltip-label {
+    font-weight: bold;
+    margin-bottom: 0.25em;
+  }
+
+  td {
+    padding: 0 0.3em;
+    border: none;
+
+    &:last-child {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  .chart-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 0.4em;
+  }
+
+  .chart-tooltip-note {
+    margin-top: 0.25em;
+    font-weight: bold;
+  }
+}

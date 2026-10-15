@@ -5,8 +5,11 @@ export interface IUiState extends IBaseState {
   messages: IToast[];
 }
 
+// pages with their own month range
+export type FilterName = "planning" | "charts";
+
 export interface IUi {
-  filter: IFilter;
+  filters: Record<FilterName, IFilter>;
   previewStatements: IStatementPreview;
 }
 
