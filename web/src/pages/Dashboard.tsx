@@ -9,6 +9,7 @@ import { Button, NoData } from "components/ui";
 import { useSelector } from "react-redux";
 import { AppState } from "store/store";
 import useLocale from "hooks/useLocale";
+import CalculationError from "components/CalculationError";
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -21,7 +22,7 @@ const Dashboard = () => {
     [relativeMonthNr]
   );
 
-  const { budgetPairArray, isReady } = useBudgetCalculate(
+  const { budgetPairArray, isReady, error } = useBudgetCalculate(
     relativeMonthNr,
     relativeMonthNr
   );
@@ -47,7 +48,9 @@ const Dashboard = () => {
           </Button>
         </div>
       </div>
-      {isReady ? (
+      {error ? (
+        <CalculationError error={error} />
+      ) : isReady ? (
         <div className="dashboard-body">
           <CurrentBalance
             month={relativeMonth}

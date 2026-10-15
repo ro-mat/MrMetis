@@ -47,7 +47,7 @@ const SideNavLayout = () => {
       </div>
       <div className="content" ref={contentRef}>
         {isDemo && <DemoTopBar />}
-        <ErrorBoundary>
+        <ErrorBoundary resetKey={location.pathname}>
           <Outlet />
         </ErrorBoundary>
       </div>

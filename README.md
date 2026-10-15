@@ -1,87 +1,103 @@
-### Description
+<p align="center">
+  <img src="web/public/logo.png" alt="MrMetis" width="120">
+</p>
 
-Personal finance tool to help plan your budget in a secure way.
+<h1 align="center">MrMetis</h1>
 
-### Closed beta
+<p align="center">
+  <b>Plan your money months ahead, and see where it actually went.</b><br>
+  A private, open-source budget planner for people who like their numbers to add up.
+</p>
 
-Currently the project status is in closed beta (registration via invitation code only), but you can pull it and run it locally.
+<p align="center">
+  <a href="https://mrmetis-qa.romkats.eu"><b>▶ Try the live demo</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/ro-mat/MrMetis/issues">Request a feature</a>
+  &nbsp;·&nbsp;
+  <a href="DEVELOPMENT.md">Run it yourself</a>
+</p>
 
-### Local development
+<p align="center">
+  <img src="docs/screenshots/planning.png" alt="Planning table: planned and actual amounts for each budget item, month by month" width="900">
+</p>
 
-The client works on its own in demo mode. Registration, login and persistent data need the API and a SQL Server database.
+---
 
-#### Prerequisites
+## Why MrMetis?
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [Node.js 24](https://nodejs.org/)
-- Docker or Podman, used to run SQL Server. With Podman, either install `podman-compose`, or enable the Docker-compatible socket for the `docker-compose` provider: `systemctl --user enable --now podman.socket`
+Most budgeting apps tell you what you **already** spent. MrMetis is built around what you **will** spend: you write down your income, bills, savings and transfers once, and it lays out your next months for you. As the month goes on, every statement you add is set against the plan, so you see right away which items are on track and which have run over.
 
-#### 1. Start the database
+And your data stays yours. Everything is encrypted in your browser before it is sent anywhere. The server can't read your budget, and neither can we.
 
-From the repository root:
+## Features
 
-```sh
-docker compose up -d   # or: podman compose up -d
-```
+### 📅 Plan months ahead
 
-This starts SQL Server 2022 on `localhost:1433`, with its data kept in the `mrmetis-sql` volume.
+The planning table shows every budget item, month by month, with **planned** and **actual** amounts side by side. Opening balance, total spending and closing balance are worked out for each month. Whatever is left at the end of a month rolls into the next one. View all your accounts together, or one at a time.
 
-#### 2. Run the API
+### 🧮 Amounts that work themselves out
 
-```sh
-dotnet dev-certs https                 # once; the certificate doesn't need to be trusted
-dotnet run --project api/MrMetis.Api
-```
+A budget amount doesn't have to be a fixed number. Build it from other budget items, totals of a type (all spending on an account, for example), the number of days in the month, or how many Fridays it has, and combine them with `+ − × ÷`. You can use this month's values or last month's.
 
-On startup the API (in the `Development` environment) creates the `mrmetis-local` database, applies migrations and seeds the invitation code **`local-dev`**. Codes are single-use, so a fresh one is seeded whenever no unused code is left, for example after the next restart. The API listens on `https://localhost:5001`. If it can't reach SQL Server within about a minute, it stops with an error.
+Savings can be *"whatever is left after spending, loans and transfers"*. Gym visits can be *"8 × number of Tuesdays"*. When something changes, the plan updates itself.
 
-#### 3. Run the client
+<p align="center">
+  <img src="docs/screenshots/budget-edit.png" alt="Budget editor: the amount is built from opening balance minus spending, loan return and transfers" width="800">
+</p>
 
-```sh
-cd web
-npm install
-npm start
-```
+Recurring items can repeat every *n* months, have start and end dates, and take one-off overrides for a single month.
 
-Open http://localhost:3000 and register with invitation code `local-dev`. The Vite dev server forwards `/api` to the API, so you don't need to trust a certificate or configure CORS.
+### ⚡ Add a payment in seconds
 
-#### Reset or stop
+Type `gro`, Tab, `credit`, Tab, `12.5`, Tab, `yesterday`, Tab, then a comment, and press Enter. Quick add sits at the top of every page and suggests budgets, accounts and dates as you type.
 
-```sh
-docker compose down      # stop; data is kept
-docker compose down -v   # stop and delete the database
-```
+<p align="center">
+  <img src="docs/screenshots/quickadd.png" alt="Quick add: one input filled from the keyboard with budget, account, date, amount and comment" width="700">
+</p>
 
-#### Troubleshooting
+### 📊 See where you stand today
 
-- **SQL Server exits with `Error 87 (The parameter is incorrect)` opening `master.mdf`**: the volume sits on a filesystem that doesn't support `O_DIRECT`, such as an ecryptfs-encrypted home directory with rootless Podman. Put the data on another filesystem by creating a `.env` file in the repository root (it is git-ignored):
+The dashboard shows your current balance on every account, what's still left to spend in each budget, and this month's statements.
 
-  ```sh
-  mkdir -p /var/tmp/mrmetis-sql && chmod 777 /var/tmp/mrmetis-sql
-  echo "MSSQL_DATA=/var/tmp/mrmetis-sql" > .env
-  ```
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard with current balances, remaining planned expenses and this month's statements" width="900">
+</p>
 
-  Any directory outside the encrypted home works. Many distributions delete files in `/var/tmp` that haven't been used for about 30 days.
+### And also
 
-- Migrations and schema changes: see [api/MrMetis.Infrastructure/README.md](api/MrMetis.Infrastructure/README.md).
+- **Multiple accounts and transfers**: a main account, a credit card and cash, with planned transfers between them.
+- **Nested budgets**: group Electricity, Water and Gas under Bills.
+- **Close a month** when it's done, so old numbers stay as they were.
+- **Your formats**: date order, separators, currency symbol and decimals all follow your preferences. Available in English and Russian.
+- **Export and import** to CSV or JSON at any time. Your data isn't locked in.
+- **Auto logout** when you're away from the screen.
 
-### QA environment
+## Your data is private by design
 
-Every push to `main` runs [deploy-qa.yml](.github/workflows/deploy-qa.yml): it runs the API tests, builds the `mrmetis-web` and `mrmetis-api` images to GHCR, then triggers the private `ro-mat/MrMetis-deploy` repo, whose runner on the home server starts that build in `/srv/apps/mrmetis-qa` after approval. The site is https://mrmetis-qa.romkats.eu.
+|                                  | MrMetis | Typical budgeting apps  | Spreadsheets         |
+| -------------------------------- | :-----: | :---------------------: | :------------------: |
+| Data encrypted on your device    | ✅      | ❌ the provider can read it | depends where you keep it |
+| Plans months ahead, not just tracks | ✅   | partly                  | ✅ if you build it   |
+| Amounts calculated from other items | ✅   | ❌                      | ✅ with formulas to maintain |
+| Planned and actual side by side  | ✅      | partly                  | ✅ if you build it   |
+| Needs your bank login            | ❌      | sometimes               | ❌                   |
+| Free and open source             | ✅      | ❌ usually a subscription | —                 |
 
-One-time setup in GitHub, Settings → Environments → `qa`, add these secrets:
+How it works:
 
-- `MSSQL_SA_PASSWORD`, `DB_APP_PASSWORD`: SQL Server passwords. They need upper case, lower case and digits, and must not contain `;` or `'`, for example `openssl rand -base64 32 | tr -d '/+='`
-- `JWT_SECRET`: at least 32 characters, for example `openssl rand -hex 32`
+- Your budget is encrypted in the browser with **AES-256-GCM** before it is saved. The key comes from your password and never leaves your device.
+- The server stores only your email address in readable form. Everything else is ciphertext.
+- No bank connections, no ads, no selling or sharing of data.
+- The code is open ([GPL-3.0](LICENSE.txt)), so you can check all of this yourself. The full walkthrough is on the [How your data is encrypted](https://mrmetis-qa.romkats.eu/encryption) page.
 
-On the first start the API creates the `mrmetis-qa` database and its login, and migrations run on every start. To change `DB_APP_PASSWORD` later, change the login's password in SQL Server too. Invitation codes are not seeded in QA; add one on the server:
+## Try it
 
-```sh
-cd /srv/apps/mrmetis-qa
-docker compose exec db sh -c '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d mrmetis-qa \
-  -Q "INSERT INTO dbo.InvitationCodes (Code, IsActive, Created, Modified) VALUES (N'\''my-code'\'', 1, SYSUTCDATETIME(), SYSUTCDATETIME())"'
-```
+👉 **[Open the demo](https://mrmetis-qa.romkats.eu)** and press **Try Demo**. You don't need an account. The demo comes with a sample household budget that you can change as much as you like. Demo data stays in your browser.
 
-### Contributing
+MrMetis is in **closed beta**: registration needs an invitation code. You can also [run it locally](DEVELOPMENT.md) in a few minutes.
 
-Feel free to leave a bug report, improvement suggestion or request new functionality here in [issues](https://github.com/ro-mat/MrMetis/issues).
+## Feedback
+
+Found a bug or missing something? [Open an issue](https://github.com/ro-mat/MrMetis/issues). Ideas and pull requests are welcome.
+
+Developers: see [DEVELOPMENT.md](DEVELOPMENT.md) for local setup, the QA environment and database migrations.

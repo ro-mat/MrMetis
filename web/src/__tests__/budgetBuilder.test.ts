@@ -174,10 +174,18 @@ describe("budgetBuilder", () => {
     expect(kidsAllowance.isActive()).toBe(true);
     expect(kidsAllowance.children).toHaveLength(0);
 
+    // a transfer counts once, not again on the receiving account
     const sendToCC = prevMonthBudgetPairs.getBudgetPair(17, prevMonthMoment)!;
     expect(sendToCC).not.toBe(undefined);
-    expect(sendToCC.planned).toBe(780 * 2);
-    expect(sendToCC.actual).toBe(780 * 2);
+    expect(sendToCC.planned).toBe(780);
+    expect(sendToCC.actual).toBe(780);
+    // per account it shows on both sides
+    for (const account of [1, 2]) {
+      expect(
+        prevMonthBudgetPairs.getBudgetPair(17, prevMonthMoment, account)!
+          .planned
+      ).toBe(780);
+    }
     expect(sendToCC.isActive()).toBe(true);
     expect(sendToCC.children).toHaveLength(0);
 
@@ -186,8 +194,8 @@ describe("budgetBuilder", () => {
       prevMonthMoment
     )!;
     expect(cashWithdrawal).not.toBe(undefined);
-    expect(cashWithdrawal.planned).toBe(170 * 2);
-    expect(cashWithdrawal.actual).toBe(170 * 2);
+    expect(cashWithdrawal.planned).toBe(170);
+    expect(cashWithdrawal.actual).toBe(170);
     expect(cashWithdrawal.isActive()).toBe(true);
     expect(cashWithdrawal.children).toHaveLength(0);
 
@@ -381,8 +389,8 @@ describe("budgetBuilder", () => {
 
     const sendToCC = curMonthBudgetPairs.getBudgetPair(17, curMonthMoment)!;
     expect(sendToCC).not.toBe(undefined);
-    expect(sendToCC.planned).toBe(730 * 2);
-    expect(sendToCC.actual).toBe(730 * 2);
+    expect(sendToCC.planned).toBe(730);
+    expect(sendToCC.actual).toBe(730);
     expect(sendToCC.isActive()).toBe(true);
     expect(sendToCC.children).toHaveLength(0);
 
@@ -391,8 +399,8 @@ describe("budgetBuilder", () => {
       curMonthMoment
     )!;
     expect(cashWithdrawal).not.toBe(undefined);
-    expect(cashWithdrawal.planned).toBe(170 * 2);
-    expect(cashWithdrawal.actual).toBe(170 * 2);
+    expect(cashWithdrawal.planned).toBe(170);
+    expect(cashWithdrawal.actual).toBe(170);
     expect(cashWithdrawal.isActive()).toBe(true);
     expect(cashWithdrawal.children).toHaveLength(0);
 
@@ -463,7 +471,6 @@ describe("BudgetPair children", () => {
       BudgetTypeUser.spending,
       planned,
       actual,
-      false,
       statements,
       parentId
     );
@@ -547,7 +554,7 @@ describe("parent and child on different accounts", () => {
 
   const budget = (
     id: number,
-    amount: string,
+    amount: number,
     fromAccountId: number,
     frequency: number,
     parentId?: number
@@ -559,18 +566,23 @@ describe("parent and child on different accounts", () => {
     toAccountId: 0,
     isEssential: false,
     amounts: [
-      { amount, fromAccountId, frequency, startDate: start.toISOString() },
+      {
+        expression: [{ kind: "number", value: amount }],
+        fromAccountId,
+        frequency,
+        startDate: start.toISOString(),
+      },
     ],
     overrides: [],
     type: BudgetTypeUser.spending,
-    expectOneStatement: false,
+    closeAfterOneStatement: false,
     dateCreated: start.toISOString(),
   });
 
   const build = (month: moment.Moment) =>
     buildBudgetPairsForMonth(
       month,
-      [budget(1, "0", CARD, 1), budget(2, "15", MAIN, 6, 1)],
+      [budget(1, 0, CARD, 1), budget(2, 15, MAIN, 6, 1)],
       [],
       [account(MAIN, "Main"), account(CARD, "Card")],
       []

@@ -1,5 +1,5 @@
 import { Moment } from "moment";
-import { BudgetType } from "store/userdata/userdata.types";
+import { BudgetType, BudgetTypeExtra } from "store/userdata/userdata.types";
 import { flattenBudgetPairs } from "helpers/budgetMapper";
 import { BudgetPair } from "./budgetPair";
 
@@ -78,28 +78,29 @@ export class BudgetPairArray {
     }
 
     // may be empty when the budget itself is planned on another account only,
-    // its children can still belong to this account
-    const budgetPairs = monthPairs.filter(
-      (i) =>
-        accountId === undefined ||
-        i.accountId === accountId ||
-        i.accountId === 0
+    // its children can still belong to this account. Of all accounts, a
+    // transfer counts once: not again where it is received.
+    const budgetPairs = monthPairs.filter((i) =>
+      accountId === undefined
+        ? i.budgetType !== BudgetTypeExtra.transferFromAccount
+        : i.accountId === accountId || i.accountId === 0
     );
 
     const init = new BudgetPair(
       budgetId,
       accountId ?? 0,
       month,
-      monthPairs[0].budgetType,
+      (budgetPairs[0] ?? monthPairs[0]).budgetType,
       0,
       0,
-      monthPairs[0].expectOneStatement,
       []
     );
     // a child is attached to the first parent pair found, which may belong to
     // another account, so collect children from every parent pair of the month
     init.children = monthPairs.flatMap((i) => i.children);
 
+    init.isClosed =
+      budgetPairs.length > 0 && budgetPairs.every((p) => p.isClosed);
     for (const cur of budgetPairs) {
       init.planned += cur.planned;
       init.actual += cur.actual;
@@ -117,7 +118,6 @@ export class BudgetPairArray {
       budgetTypes[0],
       0,
       0,
-      true,
       []
     );
     budgetTypes.forEach((bt) => {
@@ -128,6 +128,7 @@ export class BudgetPairArray {
           i.month.isSame(month, "M") &&
           i.accountId === (accountId ?? 0)
       );
+      resultPair.isClosed = !!item?.isClosed;
       resultPair.planned += item?.planned ?? 0;
       resultPair.actual += item?.actual ?? 0;
     });

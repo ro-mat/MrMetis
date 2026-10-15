@@ -88,14 +88,14 @@ const TableCellPair: FC<ITableCellPairProps> = ({
     return [...pair.statements, ...childStatements];
   }, [pair, includeChildren, accountId]);
 
-  const showStatementList = useMemo(
-    () => statements.length > 0 && selectedPreviewStatements === pairId,
-    [statements, selectedPreviewStatements, pairId],
-  );
+  const showStatementList = selectedPreviewStatements === pairId && !!pair;
+
+  // a budget's cell opens even without statements, to close or open the budget
+  const canOpen = statements.length > 0 || !!pair?.budgetId;
 
   // clicking the cell opens its statements, clicking it again closes them
   const handleClick = () => {
-    if (statements.length === 0) {
+    if (!canOpen) {
       return;
     }
 
@@ -108,20 +108,25 @@ const TableCellPair: FC<ITableCellPairProps> = ({
 
   return (
     <>
-      <td className="bl">
+      <td className={`bl${pair?.isClosed ? " closed" : ""}`}>
         {isStrong ? <strong>{format(planned)}</strong> : format(planned)}
       </td>
       <td
         className={`statement-cell ${
           showStatementList ? "selected" : ""
-        } ${statements.length > 0 ? "has-statements" : ""} br ${progressClass}`}
+        } ${canOpen ? "has-statements" : ""} ${
+          pair?.isClosed ? "closed" : ""
+        } br ${progressClass}`}
         onClick={handleClick}
       >
         {isStrong ? <strong>{format(actual)}</strong> : format(actual)}
         {showStatementList && (
           <PreviewStatements
             statements={statements}
-            budgetId={pair?.budgetId}
+            budgetId={pair!.budgetId}
+            month={pair!.month}
+            accountId={accountId}
+            isClosed={pair!.isClosed}
           />
         )}
       </td>

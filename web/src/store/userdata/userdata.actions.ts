@@ -6,6 +6,8 @@ import {
   SAVE_FAILED,
   SAVE_SUCCEEDED,
   SAVED,
+  IMPORT_DATA,
+  SET_LEFT_FROM_PREV_MONTH,
   SET_STORAGE,
   SET_USERDATA,
 } from "./userdata.slice";
@@ -17,6 +19,9 @@ import { getDemoData, initDemoData, saveDemoData } from "helpers/demoHelper";
 import { SET_ISDEMO } from "store/auth/auth.slice";
 import { ADD_ERROR_TOAST, ADD_SUCCESS_TOAST } from "store/ui/ui.slice";
 import i18n from "i18next";
+import { Imported } from "helpers/importers";
+import { prepareImport } from "helpers/importHelper";
+import { recalculateClosedMonths } from "services/closedMonthsRecalculation";
 
 interface IUserdataResponse {
   data: string | null;
@@ -59,9 +64,15 @@ export const saveUserData =
       return;
     }
 
-    const { accounts, budgets, statements, preferences } =
+    const { accounts, budgets, statements, preferences, closedMonths } =
       getState().data.userdata;
-    const data: IUserdataDto = { accounts, budgets, statements, preferences };
+    const data: IUserdataDto = {
+      accounts,
+      budgets,
+      statements,
+      preferences,
+      closedMonths,
+    };
 
     if (getState().auth.isDemo) {
       saveDemoData(data);
@@ -102,3 +113,40 @@ export const startDemo = (): TAppThunk => (dispatch) => {
   dispatch(SET_USERDATA(initDemoData()));
   dispatch(SET_ISDEMO(true));
 };
+
+// Adds what a file holds (see prepareImport) and tells what happened.
+// Imported statements also change what is left after the closed months from
+// theirs on; when that can't be calculated (a broken formula) the stored left
+// stays and a toast says so.
+export const importData =
+  (imported: Imported): TAppThunk =>
+  (dispatch, getState) => {
+    const { prepared, skipped } = prepareImport(
+      getState().data.userdata,
+      imported
+    );
+    dispatch(IMPORT_DATA(prepared));
+    dispatch(
+      ADD_SUCCESS_TOAST(
+        prepared.entity === "preferences"
+          ? i18n.t("preferences.importedPreferences")
+          : i18n.t("preferences.imported", { count: prepared.items.length })
+      )
+    );
+    if (skipped) {
+      dispatch(
+        ADD_ERROR_TOAST(i18n.t("preferences.importSkipped", { count: skipped }))
+      );
+    }
+
+    if (prepared.entity !== "statements" || !prepared.items.length) return;
+    const first = prepared.items.map((s) => s.date).sort()[0];
+    try {
+      const left = recalculateClosedMonths(getState().data.userdata, first);
+      if (left) dispatch(SET_LEFT_FROM_PREV_MONTH(left));
+    } catch {
+      dispatch(
+        ADD_ERROR_TOAST(i18n.t("preferences.importLeftNotRecalculated"))
+      );
+    }
+  };

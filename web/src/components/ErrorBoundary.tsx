@@ -3,6 +3,8 @@ import { Component, ErrorInfo, JSX, ReactNode } from "react";
 export interface IErrorBoundaryProps {
   fallback?: JSX.Element | string;
   children?: ReactNode;
+  // the error is cleared when this value changes (e.g. on navigation)
+  resetKey?: unknown;
 }
 
 export interface IErrorBoundaryState {
@@ -22,6 +24,12 @@ class ErrorBoundary extends Component<
 
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
+  }
+
+  componentDidUpdate(prevProps: IErrorBoundaryProps) {
+    if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
+      this.setState({ hasError: false, error: undefined });
+    }
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {

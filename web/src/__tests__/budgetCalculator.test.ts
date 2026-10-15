@@ -6,19 +6,22 @@ import { BudgetPair } from "services/budgetPair";
 import {
   Calculate,
   RelevantFormula,
-  calculate,
   getRelevantFormulas,
 } from "services/budgetFormula";
+import { evaluateExpression } from "services/amountExpression";
+import { AmountToken } from "types/IAmount";
 import {
   calculateForNextMonth,
   getEstimation,
   getUserTotals,
   userTypes,
 } from "services/budgetTotals";
-import { BudgetTypeUser } from "store/userdata/userdata.types";
+import { BudgetTypeExtra, BudgetTypeUser } from "store/userdata/userdata.types";
 
 // the demo data and expected amounts depend on the calendar (e.g. groceries are planned
 // per Saturday), so pin "today" to a month with 4 Saturdays after one with 5
+const num = (value: number): AmountToken => ({ kind: "number", value });
+
 vi.useFakeTimers({ toFake: ["Date"], now: new Date(2026, 5, 11, 12) });
 afterAll(() => {
   vi.useRealTimers();
@@ -49,7 +52,7 @@ describe("budgetCalculator", () => {
     expect(formulas.length).toBe(1);
 
     expect(formulas[0].accountId).toBe(1);
-    expect(formulas[0].formula).toBe("1630");
+    expect(formulas[0].expression).toEqual([num(1630)]);
   });
 
   it("getRelevantFormulas from non-zero current budget amount should return correct formulas", () => {
@@ -64,7 +67,7 @@ describe("budgetCalculator", () => {
     expect(formulas.length).toBe(1);
 
     expect(formulas[0].accountId).toBe(1);
-    expect(formulas[0].formula).toBe("119");
+    expect(formulas[0].expression).toEqual([num(119)]);
   });
 
   it("getRelevantFormulas from zero budget amount should return correct formulas", () => {
@@ -76,7 +79,7 @@ describe("budgetCalculator", () => {
     expect(formulas.length).toBe(1);
 
     expect(formulas[0].accountId).toBe(1);
-    expect(formulas[0].formula).toBe("0");
+    expect(formulas[0].expression).toEqual([num(0)]);
   });
 
   it("getRelevantFormulas from zero current budget amount should return correct formulas", () => {
@@ -88,16 +91,16 @@ describe("budgetCalculator", () => {
     expect(formulas.length).toBe(1);
 
     expect(formulas[0].accountId).toBe(1);
-    expect(formulas[0].formula).toBe("0");
+    expect(formulas[0].expression).toEqual([num(0)]);
   });
 
   it("getUserTotals should return correct totals and sub-totals", () => {
     const month = moment();
     const { accounts } = getDemoData();
     const calculatedPairs: BudgetPair[] = [
-      new BudgetPair(1, 1, month, BudgetTypeUser.income, 100, 101, true, []),
-      new BudgetPair(2, 1, month, BudgetTypeUser.income, 102, 103, true, []),
-      new BudgetPair(1, 2, month, BudgetTypeUser.income, 104, 105, true, []),
+      new BudgetPair(1, 1, month, BudgetTypeUser.income, 100, 101, []),
+      new BudgetPair(2, 1, month, BudgetTypeUser.income, 102, 103, []),
+      new BudgetPair(1, 2, month, BudgetTypeUser.income, 104, 105, []),
     ];
     const relevantFormulas: RelevantFormula[] = [];
 
@@ -170,84 +173,84 @@ describe("budgetCalculator", () => {
       month: moment().add(-1, "M"),
       planned: 20,
       actual: 10,
-      expectOneStatement: true,
+      isClosed: true,
       result: 10,
     },
     {
       month: moment().add(-1, "M"),
       planned: 20,
       actual: 10,
-      expectOneStatement: undefined,
+      isClosed: undefined,
       result: 10,
     },
     {
       month: moment().add(-1, "M"),
       planned: 20,
       actual: 10,
-      expectOneStatement: false,
+      isClosed: false,
       result: 10,
     },
     {
       month: moment().add(-1, "M"),
       planned: 10,
       actual: 20,
-      expectOneStatement: true,
-      result: 20,
-    },
-    {
-      month: moment().add(-1, "M"),
-      planned: 10,
-      actual: 20,
-      expectOneStatement: undefined,
+      isClosed: true,
       result: 20,
     },
     {
       month: moment().add(-1, "M"),
       planned: 10,
       actual: 20,
-      expectOneStatement: false,
+      isClosed: undefined,
+      result: 20,
+    },
+    {
+      month: moment().add(-1, "M"),
+      planned: 10,
+      actual: 20,
+      isClosed: false,
       result: 20,
     },
     {
       month: moment(),
       planned: 20,
       actual: 10,
-      expectOneStatement: true,
+      isClosed: true,
       result: 10,
     },
     {
       month: moment(),
       planned: 20,
       actual: 10,
-      expectOneStatement: undefined,
-      result: 10,
+      isClosed: undefined,
+      result: 20,
     },
     {
       month: moment(),
       planned: 20,
       actual: 10,
-      expectOneStatement: false,
+      isClosed: false,
       result: 20,
     },
     {
       month: moment().add(1, "M"),
       planned: 20,
       actual: 10,
-      expectOneStatement: true,
+      isClosed: true,
       result: 10,
     },
     {
       month: moment().add(1, "M"),
       planned: 20,
       actual: 10,
-      expectOneStatement: undefined,
-      result: 10,
+      isClosed: undefined,
+      result: 20,
     },
     {
       month: moment().add(1, "M"),
       planned: 20,
       actual: 10,
-      expectOneStatement: false,
+      isClosed: false,
       result: 20,
     },
   ])("getEstimation should return correct estimation", (params: any) => {
@@ -255,7 +258,7 @@ describe("budgetCalculator", () => {
       params.month,
       params.planned,
       params.actual,
-      params.expectOneStatement
+      params.isClosed
     );
     expect(estimation).toBe(params.result);
   });
@@ -342,99 +345,35 @@ describe("budgetCalculator", () => {
     }
   );
 
-  it.each([
+  it.each<{ tokens: AmountToken[]; result: number }>([
+    { tokens: [num(0)], result: 0 },
+    { tokens: [num(123)], result: 123 },
+    { tokens: [{ kind: "daysInMonth" }], result: 30 },
+    { tokens: [{ kind: "daysInMonth", prevMonth: true }], result: 31 },
+    { tokens: [{ kind: "weekdays", weekday: 0 }], result: 4 },
+    { tokens: [{ kind: "weekdays", weekday: 1 }], result: 5 },
+    { tokens: [{ kind: "weekdays", weekday: 2 }], result: 5 },
+    { tokens: [{ kind: "weekdays", weekday: 3 }], result: 4 },
+    { tokens: [{ kind: "weekdays", weekday: 4 }], result: 4 },
+    { tokens: [{ kind: "weekdays", weekday: 5 }], result: 4 },
+    { tokens: [{ kind: "weekdays", weekday: 6 }], result: 4 },
+    { tokens: [{ kind: "weekdays", weekday: 0, prevMonth: true }], result: 5 },
+    { tokens: [{ kind: "weekdays", weekday: 1, prevMonth: true }], result: 4 },
+    { tokens: [{ kind: "weekdays", weekday: 2, prevMonth: true }], result: 4 },
+    { tokens: [{ kind: "weekdays", weekday: 3, prevMonth: true }], result: 4 },
+    { tokens: [{ kind: "weekdays", weekday: 4, prevMonth: true }], result: 4 },
+    { tokens: [{ kind: "weekdays", weekday: 5, prevMonth: true }], result: 5 },
+    { tokens: [{ kind: "weekdays", weekday: 6, prevMonth: true }], result: 5 },
+    // previous month values of a month that wasn't built count as 0
+    { tokens: [{ kind: "budget", budgetId: 1, prevMonth: true }], result: 0 },
     {
-      formula: "0",
+      tokens: [{ kind: "total", budgetType: BudgetTypeUser.income }],
       result: 0,
     },
-    {
-      formula: "123",
-      result: 123,
-    },
-    {
-      formula: "cur_month.getDaysInMonth()",
-      result: 30,
-    },
-    {
-      formula: "prev_month.getDaysInMonth()",
-      result: 31,
-    },
-    {
-      formula: "cur_month.getWeekdaysInMonth(0)",
-      result: "Day can only be from 1 to 7!",
-    },
-    {
-      formula: "cur_month.getWeekdaysInMonth(1)",
-      result: 5,
-    },
-    {
-      formula: "cur_month.getWeekdaysInMonth(2)",
-      result: 5,
-    },
-    {
-      formula: "cur_month.getWeekdaysInMonth(3)",
-      result: 4,
-    },
-    {
-      formula: "cur_month.getWeekdaysInMonth(4)",
-      result: 4,
-    },
-    {
-      formula: "cur_month.getWeekdaysInMonth(5)",
-      result: 4,
-    },
-    {
-      formula: "cur_month.getWeekdaysInMonth(6)",
-      result: 4,
-    },
-    {
-      formula: "cur_month.getWeekdaysInMonth(7)",
-      result: 4,
-    },
-    {
-      formula: "cur_month.getWeekdaysInMonth(8)",
-      result: "Day can only be from 1 to 7!",
-    },
-    {
-      formula: "prev_month.getWeekdaysInMonth(0)",
-      result: "Day can only be from 1 to 7!",
-    },
-    {
-      formula: "prev_month.getWeekdaysInMonth(1)",
-      result: 4,
-    },
-    {
-      formula: "prev_month.getWeekdaysInMonth(2)",
-      result: 4,
-    },
-    {
-      formula: "prev_month.getWeekdaysInMonth(3)",
-      result: 4,
-    },
-    {
-      formula: "prev_month.getWeekdaysInMonth(4)",
-      result: 4,
-    },
-    {
-      formula: "prev_month.getWeekdaysInMonth(5)",
-      result: 5,
-    },
-    {
-      formula: "prev_month.getWeekdaysInMonth(6)",
-      result: 5,
-    },
-    {
-      formula: "prev_month.getWeekdaysInMonth(7)",
-      result: 5,
-    },
-    {
-      formula: "prev_month.getWeekdaysInMonth(8)",
-      result: "Day can only be from 1 to 7!",
-    },
-  ])("calculate without data should return correct result", (params: any) => {
+  ])("calculate without data should return correct result", (params) => {
     const currentMonth = moment().year(2024).month(3);
-    const amount = calculate(
-      params.formula,
+    const amount = evaluateExpression(
+      params.tokens,
       new Calculate(currentMonth, []),
       new Calculate(currentMonth.clone().add(-1, "M"), [])
     );
@@ -444,187 +383,307 @@ describe("budgetCalculator", () => {
 
   it.each([
     {
-      formula: "prev_month.getItem(15)",
+      token: { kind: "budget", budgetId: 15, prevMonth: true },
       result: 250,
     },
     {
-      formula: "cur_month.getItem(4)",
+      token: { kind: "budget", budgetId: 4 },
       result: 60,
     },
     {
-      formula: "cur_month.getTotalIncome()",
+      token: { kind: "total", budgetType: BudgetTypeUser.income },
       result: 1630,
     },
     {
-      formula: "cur_month.getTotalIncome(1)",
+      token: { kind: "total", budgetType: BudgetTypeUser.income, accountId: 1 },
       result: 1630,
     },
     {
-      formula: "cur_month.getTotalIncome(2)",
+      token: { kind: "total", budgetType: BudgetTypeUser.income, accountId: 2 },
       result: 0,
     },
     {
-      formula: "cur_month.getTotalIncome(3)",
+      token: { kind: "total", budgetType: BudgetTypeUser.income, accountId: 3 },
       result: 0,
     },
     {
-      formula: "cur_month.getTotalSaving()",
+      token: { kind: "total", budgetType: BudgetTypeUser.savings },
       result: 355.7,
     },
     {
-      formula: "cur_month.getTotalSaving(1)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.savings,
+        accountId: 1,
+      },
       result: 355.7,
     },
     {
-      formula: "cur_month.getTotalSaving(2)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.savings,
+        accountId: 2,
+      },
       result: 0,
     },
     {
-      formula: "cur_month.getTotalSaving(3)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.savings,
+        accountId: 3,
+      },
       result: 0,
     },
     {
-      formula: "cur_month.getTotalLoanReturn()",
+      token: { kind: "total", budgetType: BudgetTypeUser.loanReturn },
       result: 480,
     },
     {
-      formula: "cur_month.getTotalLoanReturn(1)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.loanReturn,
+        accountId: 1,
+      },
       result: 480,
     },
     {
-      formula: "cur_month.getTotalLoanReturn(2)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.loanReturn,
+        accountId: 2,
+      },
       result: 0,
     },
     {
-      formula: "cur_month.getTotalLoanReturn(3)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.loanReturn,
+        accountId: 3,
+      },
       result: 0,
     },
     {
-      formula: "cur_month.getTotalSpending()",
+      token: { kind: "total", budgetType: BudgetTypeUser.spending },
       result: 879,
     },
     {
-      formula: "cur_month.getTotalSpending(1)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.spending,
+        accountId: 1,
+      },
       result: 149,
     },
     {
-      formula: "cur_month.getTotalSpending(2)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.spending,
+        accountId: 2,
+      },
       result: 560,
     },
     {
-      formula: "cur_month.getTotalSpending(3)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.spending,
+        accountId: 3,
+      },
       result: 170,
     },
     {
-      formula: "cur_month.getTotalKeepOnAccount()",
+      token: { kind: "total", budgetType: BudgetTypeUser.keepOnAccount },
       result: 0,
     },
     {
-      formula: "cur_month.getTotalKeepOnAccount(1)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.keepOnAccount,
+        accountId: 1,
+      },
       result: 0,
     },
     {
-      formula: "cur_month.getTotalKeepOnAccount(2)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.keepOnAccount,
+        accountId: 2,
+      },
       result: 0,
     },
     {
-      formula: "cur_month.getTotalKeepOnAccount(3)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.keepOnAccount,
+        accountId: 3,
+      },
       result: 0,
     },
     {
-      formula: "cur_month.getTotalToOtherAccount()",
+      token: { kind: "total", budgetType: BudgetTypeUser.transferToAccount },
       result: 900,
     },
     {
-      formula: "cur_month.getTotalToOtherAccount(1)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.transferToAccount,
+        accountId: 1,
+      },
       result: 730,
     },
     {
-      formula: "cur_month.getTotalToOtherAccount(2)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.transferToAccount,
+        accountId: 2,
+      },
       result: 170,
     },
     {
-      formula: "cur_month.getTotalToOtherAccount(3)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeUser.transferToAccount,
+        accountId: 3,
+      },
       result: 0,
     },
     {
-      formula: "cur_month.getTotalFromOtherAccount()",
+      token: { kind: "total", budgetType: BudgetTypeExtra.transferFromAccount },
       result: 900,
     },
     {
-      formula: "cur_month.getTotalFromOtherAccount(1)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.transferFromAccount,
+        accountId: 1,
+      },
       result: 0,
     },
     {
-      formula: "cur_month.getTotalFromOtherAccount(2)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.transferFromAccount,
+        accountId: 2,
+      },
       result: 730,
     },
     {
-      formula: "cur_month.getTotalFromOtherAccount(3)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.transferFromAccount,
+        accountId: 3,
+      },
       result: 170,
     },
     {
-      formula: "cur_month.getLeftFromPrevMonth()",
+      token: { kind: "total", budgetType: BudgetTypeExtra.leftFromPrevMonth },
       result: 191.5,
     },
     {
-      formula: "cur_month.getLeftFromPrevMonth(1)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.leftFromPrevMonth,
+        accountId: 1,
+      },
       result: 84.7,
     },
     {
-      formula: "cur_month.getLeftFromPrevMonth(2)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.leftFromPrevMonth,
+        accountId: 2,
+      },
       result: 66.8,
     },
     {
-      formula: "cur_month.getLeftFromPrevMonth(3)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.leftFromPrevMonth,
+        accountId: 3,
+      },
       result: 40,
     },
     {
-      formula: "cur_month.getOpeningBalance()",
+      token: { kind: "total", budgetType: BudgetTypeExtra.openingBalance },
       result: 2721.5,
     },
     {
-      formula: "cur_month.getOpeningBalance(1)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.openingBalance,
+        accountId: 1,
+      },
       result: 1714.7,
     },
     {
-      formula: "cur_month.getOpeningBalance(2)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.openingBalance,
+        accountId: 2,
+      },
       result: 796.8,
     },
     {
-      formula: "cur_month.getOpeningBalance(3)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.openingBalance,
+        accountId: 3,
+      },
       result: 210,
     },
     {
-      formula: "cur_month.getClosingBalance()",
+      token: { kind: "total", budgetType: BudgetTypeExtra.closingBalance },
       result: 106.8,
     },
     {
-      formula: "cur_month.getClosingBalance(1)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.closingBalance,
+        accountId: 1,
+      },
       result: 0,
     },
     {
-      formula: "cur_month.getClosingBalance(2)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.closingBalance,
+        accountId: 2,
+      },
       result: 66.8,
     },
     {
-      formula: "cur_month.getClosingBalance(3)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.closingBalance,
+        accountId: 3,
+      },
       result: 40,
     },
     {
-      formula: "cur_month.getMonthDelta()",
+      token: { kind: "total", budgetType: BudgetTypeExtra.monthDelta },
       result: -84.7,
     },
     {
-      formula: "cur_month.getMonthDelta(1)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.monthDelta,
+        accountId: 1,
+      },
       result: 645.3,
     },
     {
-      formula: "cur_month.getMonthDelta(2)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.monthDelta,
+        accountId: 2,
+      },
       result: -560,
     },
     {
-      formula: "cur_month.getMonthDelta(3)",
+      token: {
+        kind: "total",
+        budgetType: BudgetTypeExtra.monthDelta,
+        accountId: 3,
+      },
       result: -170,
     },
   ])("calculate with data should return correct result", (params: any) => {
@@ -647,8 +706,8 @@ describe("budgetCalculator", () => {
       prevMonthBudgetPairs.list
     );
 
-    const amount = calculate(
-      params.formula,
+    const amount = evaluateExpression(
+      [params.token],
       new Calculate(currentMonth, flattenBudgetPairs(curMonthBudgetPairs.list)),
       new Calculate(prevMonth, flattenBudgetPairs(prevMonthBudgetPairs.list))
     );

@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 const Privacy = () => {
   const { t } = useTranslation();
@@ -11,6 +12,9 @@ const Privacy = () => {
           <p>{t("privacy.text1")}</p>
           <p>{t("privacy.text2")}</p>
           <p>{t("privacy.text3")}</p>
+          <p>
+            <Link to="/encryption">{t("privacy.encryptionLink")}</Link>
+          </p>
         </div>
       </section>
     </div>

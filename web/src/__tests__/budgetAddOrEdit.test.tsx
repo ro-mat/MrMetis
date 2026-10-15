@@ -1,5 +1,11 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { Provider } from "react-redux";
 import { store } from "store/store";
 import { SET_USERDATA } from "store/userdata/userdata.slice";
@@ -24,11 +30,14 @@ const budget = (id: number, props: Record<string, unknown> = {}) =>
     toAccountId: 0,
     isEssential: false,
     type: BudgetTypeUser.spending,
-    expectOneStatement: false,
+    closeAfterOneStatement: false,
     amounts: [],
     overrides: [],
     ...props,
   }) as unknown as IBudget;
+
+// an expression of a single number
+const num = (value: number) => [{ kind: "number", value }];
 
 const renderBudget = (id: number) =>
   render(
@@ -104,8 +113,10 @@ describe("BudgetAddOrEdit", () => {
           budget(17, {
             fromAccountId: 1,
             // stored without a row account
-            amounts: [{ amount: "10", frequency: 1, startDate: "2026-01-01" }],
-            overrides: [{ month: "2026-02-01", amount: 5 }],
+            amounts: [
+              { expression: num(10), frequency: 1, startDate: "2026-01-01" },
+            ],
+            overrides: [{ month: "2026-02-01", expression: num(5) }],
           }),
         ],
       })
@@ -179,18 +190,18 @@ describe("BudgetAddOrEdit", () => {
             fromAccountId: 1,
             amounts: [
               // still in effect, however old
-              { amount: "1", frequency: 1, startDate: month(-12) },
+              { expression: num(1), frequency: 1, startDate: month(-12) },
               // ended long ago
               {
-                amount: "2",
+                expression: num(2),
                 frequency: 1,
                 startDate: month(-24),
                 endDate: month(-13),
               },
             ],
             overrides: [
-              { month: month(-1), amount: 3 },
-              { month: month(-3), amount: 4 },
+              { month: month(-1), expression: num(3) },
+              { month: month(-3), expression: num(4) },
             ],
           }),
         ],
@@ -198,7 +209,9 @@ describe("BudgetAddOrEdit", () => {
     );
     const { container } = renderBudget(1);
     const rows = (list: string) =>
-      container.querySelectorAll(`input[name^="${list}."][name$=".amount"]`);
+      container.querySelectorAll(
+        `input[name^="${list}."][name$=".expression.0.value"]`
+      );
 
     await waitFor(() => expect(rows("amounts")).toHaveLength(1));
     expect(rows("overrides")).toHaveLength(1);
@@ -212,5 +225,142 @@ describe("BudgetAddOrEdit", () => {
     expect(rows("overrides")).toHaveLength(1);
     fireEvent.click(showOverrides);
     expect(rows("overrides")).toHaveLength(2);
+  });
+
+  it("doesn't save an amount that isn't a valid expression", async () => {
+    store.dispatch(SET_USERDATA({ accounts: [account(1, "Cash")] }));
+    const { container } = renderBudget(0);
+    const [addAmount] = screen.getAllByText("+");
+    fireEvent.click(addAmount);
+    const row = container.querySelector<HTMLElement>(".list .sentence")!;
+    const click = (name: string, role = "button") =>
+      fireEvent.click(within(row).getByRole(role, { name }));
+    const name =
+      container.querySelector<HTMLInputElement>('input[name="name"]')!;
+    fireEvent.change(name, { target: { value: "Food" } });
+    fireEvent.blur(name);
+
+    // "0 ×": a value is missing
+    click("budget.expression.operator.*");
+    expect(
+      await within(row).findByText("errors.expressionInvalid")
+    ).toBeInTheDocument();
+    expect(screen.getByText("addOrEdit.add")).toBeDisabled();
+
+    // "0 × ( days in month": the parenthesis isn't closed
+    click("(");
+    click("budget.expression.addValue");
+    click("budget.expression.daysInMonth", "menuitem");
+    expect(
+      await within(row).findByText("errors.expressionParens")
+    ).toBeInTheDocument();
+
+    // "0 × ( days in month )"
+    click(")");
+    await waitFor(() =>
+      expect(screen.getByText("addOrEdit.add")).toBeEnabled()
+    );
+  });
+
+  it("saves an expression and only offers numbers for overrides", async () => {
+    store.dispatch(SET_USERDATA({ accounts: [account(1, "Cash")] }));
+    const { container } = renderBudget(0);
+    const [addAmount, addOverride] = screen.getAllByText("+");
+    fireEvent.click(addAmount);
+    fireEvent.click(addOverride);
+    const [amountRow, overrideRow] = container.querySelectorAll<HTMLElement>(
+      ".list .sentence"
+    );
+
+    // 0 × 3, then changed to 12 − 3
+    fireEvent.click(
+      within(amountRow).getByRole("button", {
+        name: "budget.expression.operator.*",
+      })
+    );
+    fireEvent.click(
+      within(amountRow).getByRole("button", {
+        name: "budget.expression.addValue",
+      })
+    );
+    fireEvent.click(
+      within(amountRow).getByRole("menuitem", {
+        name: "budget.expression.number",
+      })
+    );
+    const value = (index: number) =>
+      container.querySelector<HTMLInputElement>(
+        `input[name="amounts.0.expression.${index}.value"]`
+      )!;
+    fireEvent.change(value(0), { target: { value: "12" } });
+    fireEvent.change(value(2), { target: { value: "3" } });
+    // the operation can be changed in place
+    const operator = container.querySelector(
+      'select[name="amounts.0.expression.1.operator"]'
+    )!;
+    fireEvent.change(operator, { target: { value: "-" } });
+
+    // overrides add numbers directly, there is no other value to pick
+    expect(
+      within(overrideRow).queryByRole("button", {
+        name: "budget.expression.addValue",
+      })
+    ).toBeNull();
+    fireEvent.click(
+      within(overrideRow).getByRole("button", {
+        name: "budget.expression.operator.+",
+      })
+    );
+    fireEvent.click(
+      within(overrideRow).getByText("budget.expression.addNumber")
+    );
+
+    const name =
+      container.querySelector<HTMLInputElement>('input[name="name"]')!;
+    fireEvent.change(name, { target: { value: "Food" } });
+    fireEvent.blur(name);
+    fireEvent.click(await screen.findByText("addOrEdit.add"));
+
+    await waitFor(() =>
+      expect(store.getState().data.userdata.budgets).toHaveLength(1)
+    );
+    const [saved] = store.getState().data.userdata.budgets;
+    expect(saved.amounts[0].expression).toEqual([
+      { kind: "number", value: 12 },
+      { kind: "operator", operator: "-" },
+      { kind: "number", value: 3 },
+    ]);
+    expect(saved.overrides[0].expression).toEqual([
+      { kind: "number", value: 0 },
+      { kind: "operator", operator: "+" },
+      { kind: "number", value: 0 },
+    ]);
+  });
+
+  it("shows the formula a row had before expressions", async () => {
+    store.dispatch(
+      SET_USERDATA({
+        accounts: [account(1, "Cash")],
+        budgets: [
+          budget(1, {
+            fromAccountId: 1,
+            amounts: [
+              {
+                amount: "cur_month.getDaysInMonth()",
+                frequency: 1,
+                startDate: "2026-01-01",
+              },
+            ],
+          }),
+        ],
+      })
+    );
+    renderBudget(1);
+
+    expect(
+      await screen.findByText("budget.expression.legacy")
+    ).toBeInTheDocument();
+    // its expression has to be built before saving
+    expect(screen.getByText("addOrEdit.edit")).toBeDisabled();
   });
 });

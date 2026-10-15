@@ -61,15 +61,42 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
 
-  # The home server runner belongs to the private ro-mat/MrMetis-deploy repo, so pull
-  # requests here can never reach it. This only asks that repo to deploy the build;
-  # the deploy itself (and your approval) shows up in its Actions tab.
+  # The home server's deploy receiver (ro-mat/homeserver-infra, deployer/) only accepts this
+  # job's OIDC token: repo, environment `qa` and branch main must match its apps.json, and it
+  # deploys exactly the commit this job ran on. compose.yml and .env live on the server.
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment: qa
+    environment:
+      name: qa
+      url: https://mrmetis-qa.romkats.eu
+    permissions:
+      id-token: write
     steps:
-      - name: Trigger deploy in MrMetis-deploy
+      - name: Deploy to home server
         env:
-          GH_TOKEN: ${{ secrets.DEPLOY_DISPATCH_TOKEN }}
-        run: gh workflow run deploy-qa.yml -R ro-mat/MrMetis-deploy -f sha="$GITHUB_SHA"
+          DEPLOY_URL: ${{ vars.DEPLOY_URL }}
+        run: |
+          set -euo pipefail
+          token=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$DEPLOY_URL" | jq -r .value)
+          echo "::add-mask::$token"
+          # the output streams while compose runs; the last line says whether it worked
+          curl -fsSN "$DEPLOY_URL/deploy" \
+            -H "Authorization: Bearer $token" \
+            -H "Content-Type: application/json" \
+            -d '{"app":"mrmetis-qa"}' | tee deploy.log
+          tail -n 1 deploy.log | grep -q '^DEPLOY OK'
+
+      - name: Smoke test
+        run: |
+          # the first start waits for SQL Server and runs migrations, so allow up to 3 minutes
+          for i in $(seq 1 36); do
+            if curl -fsS https://mrmetis-qa.romkats.eu/health; then
+              echo
+              curl -fsS -o /dev/null https://mrmetis-qa.romkats.eu/
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1

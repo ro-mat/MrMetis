@@ -11,6 +11,7 @@ import useBudget from "hooks/useBudget";
 import useAccount from "hooks/useAccount";
 import useEditRoute from "hooks/useEditRoute";
 import useLocale from "hooks/useLocale";
+import CalculationError from "components/CalculationError";
 
 const BudgetPage = () => {
   const { t } = useTranslation();
@@ -26,7 +27,7 @@ const BudgetPage = () => {
 
   const showAddOrEdit = selectedId === 0 || !!getBudgetById(selectedId);
 
-  const { budgetPairArray } = useBudgetCalculate(0, 0);
+  const { budgetPairArray, error } = useBudgetCalculate(0, 0);
 
   const [filter, setFilter] = useState<string>("");
   const filteredBudgets = useMemo(() => {
@@ -42,6 +43,7 @@ const BudgetPage = () => {
       />
       {!isFetching && (
         <>
+          {error && <CalculationError error={error} />}
           {showAddOrEdit && (
             <BudgetAddOrEdit id={selectedId!} onClose={close} />
           )}
@@ -63,7 +65,7 @@ const BudgetPage = () => {
                     <th>{t("budget.parent")}</th>
                     <th>{t("budget.account")}</th>
                     <th>{t("budget.currentAmount")}</th>
-                    <th>{t("budget.expectOneStatement")}</th>
+                    <th>{t("budget.closeAfterOneStatement")}</th>
                     <th>&nbsp;</th>
                   </tr>
                 </thead>
@@ -80,13 +82,14 @@ const BudgetPage = () => {
                           : ""
                       }`}</td>
                       <td>
-                        {formatPlanned(
-                          budgetPairArray.getBudgetPair(b.id, moment())
-                            ?.planned,
-                        )}
+                        {!error &&
+                          formatPlanned(
+                            budgetPairArray.getBudgetPair(b.id, moment())
+                              ?.planned,
+                          )}
                       </td>
                       <td>
-                        {b.expectOneStatement
+                        {b.closeAfterOneStatement
                           ? t("general.yes")
                           : t("general.no")}
                       </td>

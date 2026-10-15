@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { store } from "store/store";
 import { CLEAR_USERDATA, SET_USERDATA } from "store/userdata/userdata.slice";
@@ -8,6 +8,8 @@ import Preferences from "pages/Preferences";
 import Header from "components/Header";
 import "locales/i18n";
 import { MemoryRouter } from "react-router-dom";
+import { vi } from "vitest";
+import { APP_CODE, toJson } from "helpers/exportHelper";
 
 const country = () => store.getState().data.userdata.preferences.locale.country;
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -106,5 +108,95 @@ describe("preferences page", () => {
     expect(
       store.getState().data.userdata.preferences.showLanguageInHeader
     ).toBe(false);
+  });
+
+  it("exports the chosen data without changing the preferences", async () => {
+    store.dispatch(
+      SET_USERDATA({
+        accounts: [
+          {
+            id: 1,
+            name: "Cash",
+            dateCreated: "2026-01-01",
+            leftFromPrevMonth: [],
+          },
+        ],
+      })
+    );
+    const prefs = store.getState().data.userdata.preferences;
+    let blob: Blob | undefined;
+    URL.createObjectURL = vi.fn((b: Blob) => {
+      blob = b;
+      return "blob:export";
+    });
+    URL.revokeObjectURL = vi.fn();
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        expect(this.download).toMatch(/^mrmetis-accounts-.*\.json$/);
+      });
+
+    render(
+      <Provider store={store}>
+        <Preferences />
+      </Provider>
+    );
+    fireEvent.change(document.querySelector('select[name="entity"]')!, {
+      target: { value: "accounts" },
+    });
+    fireEvent.change(document.querySelector('select[name="format"]')!, {
+      target: { value: "json" },
+    });
+    fireEvent.click(screen.getByText("Export"));
+
+    // the form validates before exporting
+    await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
+    const json = JSON.parse(await blob!.text());
+    expect(json.app).toBe(APP_CODE);
+    expect(json.items).toEqual([
+      expect.objectContaining({ id: 1, name: "Cash" }),
+    ]);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:export");
+
+    // longer than the save delay
+    await wait(600);
+    expect(store.getState().data.userdata.preferences).toBe(prefs);
+    click.mockRestore();
+  });
+
+  it("imports a mrmetis export as new items", async () => {
+    const account = {
+      id: 1,
+      name: "Cash",
+      dateCreated: "2026-01-01",
+      leftFromPrevMonth: [],
+    };
+    store.dispatch(SET_USERDATA({ accounts: [account] }));
+    render(
+      <Provider store={store}>
+        <Preferences />
+      </Provider>
+    );
+    const importButton = screen.getByText("Import").closest("button")!;
+    // nothing to import before a file is picked
+    expect(importButton.disabled).toBe(true);
+
+    const exported = toJson(store.getState().data.userdata, "accounts");
+    fireEvent.change(document.querySelector('input[name="file"]')!, {
+      target: { files: [new File([exported], "accounts.json")] },
+    });
+    await waitFor(() => expect(importButton.disabled).toBe(false));
+    fireEvent.click(importButton);
+
+    await waitFor(() =>
+      expect(store.getState().data.userdata.accounts).toEqual([
+        account,
+        expect.objectContaining({ id: 2, name: "Cash" }),
+      ])
+    );
+    expect(store.getState().ui.messages).toContainEqual({
+      appearance: "success",
+      message: "1 item imported",
+    });
   });
 });

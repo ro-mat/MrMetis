@@ -14,7 +14,7 @@ const PlanningAll = () => {
       <div>
         <table className="planning-table">
           <thead>
-            <TableHeader months={months} />
+            <TableHeader months={months} budgetPairArray={budgetPairArray} />
           </thead>
           <tbody>
             <TableBody budgetPairArray={budgetPairArray} months={months} />

@@ -22,6 +22,10 @@
   &:nth-child(odd) {
     background-color: $primary-color-dark;
     color: white;
+
+    a:not(.btn) {
+      color: $primary-color-highlight;
+    }
   }
 
   .sitewidth {
@@ -38,7 +42,7 @@
 
     & > div {
       min-width: 15em;
-      max-width: 20em;
+      max-width: 18em;
       display: flex;
       flex-direction: column;
     }
@@ -46,5 +50,84 @@
 
   .icon {
     font-size: 4em;
+  }
+
+  .tagline {
+    font-size: 1.3em;
+  }
+
+  .note {
+    font-size: 0.9em;
+    opacity: 0.85;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1em;
+    margin: 1.5em 0 0.5em;
+  }
+
+  .screenshot {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .showcase {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2em;
+    margin: 2em 0;
+    text-align: left;
+
+    & > div {
+      flex: 1 1 15em;
+    }
+
+    .screenshot {
+      flex: 2 1 25em;
+      min-width: 0;
+    }
+  }
+}
+
+// how your data is encrypted page
+.encryption {
+  .steps,
+  .meaning {
+    max-width: 50em;
+    margin: 0 auto;
+    text-align: left;
+  }
+
+  .steps li {
+    margin-bottom: 1em;
+
+    h4 {
+      margin: 0;
+    }
+  }
+
+  .meaning li {
+    margin-bottom: 0.5em;
+  }
+
+  .stored {
+    margin: 0 auto;
+    text-align: left;
+    color: #333;
+
+    th,
+    td {
+      padding: 0.5em 1em;
+      text-align: left;
+    }
   }
 }

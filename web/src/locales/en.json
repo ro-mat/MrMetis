@@ -71,7 +71,11 @@
     "openingBalance": "Opening balance",
     "closingBalance": "Closing balance",
     "totalSpendings": "Total spendings",
-    "monthDelta": "Month Delta"
+    "monthDelta": "Month Delta",
+    "closeItem": "Close: no more statements expected",
+    "openItem": "Open again",
+    "closeMonth": "Close the month and its budgets",
+    "openMonth": "Open the month again"
   },
   "statement": {
     "header": "Statement list",
@@ -94,7 +98,7 @@
     "account": "Account",
     "currentAmount": "Current amount",
     "isEssential": "Is essential",
-    "expectOneStatement": "Expect one statement",
+    "closeAfterOneStatement": "Close after one statement",
     "fromAccount": "From account",
     "toAccount": "To account",
 
@@ -109,8 +113,44 @@
 
     "amountPreview": "This month: {{value}}",
     "amountHint": {
-      "label": "Advanced amount",
-      "description": "[cur_month | prev_month]: Current month or previous month\n.[\ngetLeftFromPrevMonth([accountId]): Left from previous month with optional account specification\ngetTotalIncome([accountId]): Total of type 'Income' with optional account specification\ngetTotalSpending([accountId]): Total of type 'Spending' with optional account specification\ngetTotalLoanReturn([accountId]): Total of type 'Loan return' with optional account specification\ngetTotalSavings([accountId]): Total of type 'Savings' with optional account specification\ngetTotalToOtherAccount([accountId]): Total of type 'Transfer to other account' with optional account specification\ngetTotalFromOtherAccount([accountId]): Total of type 'Transfer from other account' with optional account specification\ngetTotalKeepOnAccount([accountId]): Total of type 'Keep on account' with optional account specification\ngetOpeningBalance([accountId]): = (getLeftFromPrevMonth + getTotalIncome + getTotalFromOtherAccount) with optional account specification\ngetClosingBalance([accountId]): = (getOpeningBalance - getTotalSavings - getTotalLoanReturn - getTotalSpending - totalToOtherAccount)  with optional account specification\ngetItem(<budgetId>[, accountId]): Gets amount of a specific budget item with optional account specification\ngetDaysInMonth(): Gets total of calendar days in a month (1 - 31)\ngetWeekdaysInMonth([1..7]): Gets total of a certain weekday in a month (e.g. getWeekdaysInMonth(2) = Tuesdays in a month)\n]"
+      "label": "About amounts",
+      "description": "The amount is built from:\n• numbers\n• other budget items\n• type totals, e.g. all spending on an account\n• days or weekdays in the month\nJoin them with + − × ÷ and parentheses.\nEach value can be taken from this or last month."
+    },
+    "sentence": {
+      "from": "From",
+      "until": "until",
+      "noEnd": "further notice",
+      "onAccount": "on account",
+      "every": "every",
+      "months": "months:",
+      "in": "In",
+      "amount": "amount:"
+    },
+    "expression": {
+      "addValue": "+ value",
+      "addNumber": "+ number",
+      "number": "Number",
+      "budget": "Budget item",
+      "total": "Type total",
+      "daysInMonth": "Days in month",
+      "weekdays": "Weekdays",
+      "weekdaysOf": "{{day}}s",
+      "days": "number of days",
+      "month": "Month",
+      "thisMonth": "this month's",
+      "lastMonth": "last month's",
+      "on": "on",
+      "account": "Account",
+      "allAccounts": "all accounts",
+      "prevMonth": "Previous month",
+      "legacy": "Previous formula: {{formula}}",
+      "operator": {
+        "label": "Operation",
+        "+": "Add",
+        "-": "Subtract",
+        "*": "Multiply",
+        "/": "Divide"
+      }
     }
   },
   "account": {
@@ -148,9 +188,15 @@
     "loanReturn": "Loan return",
     "savings": "Savings",
     "transferToAccount": "Transfer to Account",
-    "keepOnAccount": "Keep on Account"
+    "keepOnAccount": "Keep on Account",
+    "transferFromAccount": "Transfer from Account",
+    "leftFromPrevMonth": "Left from prev month",
+    "openingBalance": "Opening balance",
+    "closingBalance": "Closing balance",
+    "monthDelta": "Month Delta"
   },
   "errors": {
+    "calculation": "Budgets could not be calculated, check the formulas of these budgets:",
     "storageLimitExceeded": "Not saved: your storage limit is reached. Remove some data and try again.",
     "userNotFound": "User not found",
     "userDataNotFound": "Data not found",
@@ -178,38 +224,83 @@
     "toAccountEmpty": "Choose the account to transfer to",
     "frequencyEmpty": "Frequency cannot be empty",
     "frequencyInvalid": "Frequency must be a whole number of at least 1",
-    "symbolTooLong": "Currency symbol can be up to 5 characters"
+    "symbolTooLong": "Currency symbol can be up to 5 characters",
+    "statementClosed": "This budget is closed for this account and month, open it to change its statements",
+    "expressionEmpty": "Amount is empty",
+    "expressionInvalid": "Amount needs a value between operators",
+    "expressionParens": "Parentheses don't match",
+    "expressionNumbersOnly": "Only numbers can be used here",
+    "expressionNotFinite": "Amount can't be calculated (division by zero?)",
+    "expressionBudgetEmpty": "Choose a budget"
   },
   "landingPage": {
     "welcome": {
       "header": "Mr Metis",
-      "text1": "Personal finances helper tool.",
-      "text2": "Keep and track your personal finance records, setup budget rules, plan purchases.",
-      "buttonText": "Try Demo"
+      "text1": "Plan your money months ahead, and see where it actually went.",
+      "text2": "A private, open-source budget planner. Write down your income, bills, savings and transfers once, and MrMetis lays out the coming months for you. Every payment you add is set against the plan.",
+      "buttonText": "Try Demo",
+      "encryptionLink": "How your data is encrypted",
+      "demoNote": "No account needed. The demo comes with a sample household budget and stays in your browser."
     },
-    "about": {
-      "header": "About the tool",
-      "text1": "Keep track of your spending habits. Improve your financial planning. Set budget goals.",
-      "text2": "This tool is meant for personal use and is not aimed at companies."
+    "screenshots": {
+      "planning": "Planning table with planned and actual amounts for each budget item, month by month",
+      "budgetEdit": "Budget editor: savings are what is left after spending, loans and transfers",
+      "quickAdd": "Quick add: budget, account, date, amount and comment filled from the keyboard"
+    },
+    "features": {
+      "header": "What you can do",
+      "planAhead": {
+        "header": "Plan months ahead",
+        "text": "See every budget item month by month, planned next to actual. What is left at the end of a month rolls into the next."
+      },
+      "formulas": {
+        "header": "Amounts that work themselves out",
+        "text": "Build an amount from other budget items, type totals or the days in a month. When something changes, the plan follows."
+      },
+      "quickAdd": {
+        "header": "Add a payment in seconds",
+        "text": "Type a few letters, press Tab, and quick add fills in the budget, account, date and amount for you."
+      },
+      "dashboard": {
+        "header": "See where you stand",
+        "text": "Current balance on every account, what is left to spend in each budget, and this month's statements."
+      },
+      "accounts": {
+        "header": "Accounts and transfers",
+        "text": "Keep a main account, a credit card and cash, and plan the transfers between them."
+      },
+      "export": {
+        "header": "Your data, your files",
+        "text": "Export to CSV or JSON at any time and import it back. You are never locked in."
+      }
+    },
+    "showcase": {
+      "header": "A closer look",
+      "formulas": {
+        "header": "Savings that are whatever is left",
+        "text": "An amount can be built from numbers, other budget items, totals of a type, days or weekdays in the month, from this month or the last. Combine them with + − × ÷ and brackets. Items can repeat every few months, start and end on set dates, and be overridden for a single month."
+      },
+      "quickAdd": {
+        "header": "Made for the keyboard",
+        "text": "Quick add sits at the top of every page. Type \"gro\", Tab, \"credit\", Tab, \"12.5\", Tab, \"yesterday\", Tab, add a comment and press Enter."
+      }
     },
     "bulletPoints": {
       "header": "What sets this tool apart",
       "openSource": {
         "header": "Open source",
-        "text": "Project is open source. Feel free to review the code, submit bug reports and request functionalilty on our",
+        "text": "The project is open source. Feel free to review the code, submit bug reports and request functionality on our",
         "urlText": "GitHub page"
       },
       "private": {
         "header": "Private",
-        "text": "Your data is your own. The data is encrypted before it leaves your device. We will not share, sell or even see your data.",
-        "urlText": "Privacy policy"
+        "text": "Your data is your own. It is encrypted on your device before it is sent, with a key only you have. We will not share, sell or even see your data.",
+        "urlText": "How your data is encrypted"
+      },
+      "noBank": {
+        "header": "No bank login",
+        "text": "MrMetis never asks for your bank credentials. No ads, no tracking, no selling of data."
       }
-    },
-    "newsletter": {
-      "header": "Newsletter",
-      "text": "If you want to receive news about the tool, you can subscribe to our newsletter (TBA)",
-      "inputPlaceholder": "Email",
-      "buttonText": "Subscribe"
     }
   },
   "storage": {
@@ -267,14 +358,108 @@
     },
     "idleTimeout": "Log out when idle for",
     "minutes_one": "{{count}} minute",
-    "minutes_other": "{{count}} minutes"
+    "minutes_other": "{{count}} minutes",
+    "export": "Export data",
+    "exportEntity": "Data",
+    "exportFormat": "Format",
+    "exportButton": "Export",
+    "exportEntities": {
+      "statements": "Statements",
+      "budgets": "Budgets",
+      "accounts": "Accounts",
+      "preferences": "Preferences"
+    },
+    "import": "Import data",
+    "importSource": "Exported from",
+    "importFile": "File",
+    "importButton": "Import",
+    "imported_one": "{{count}} item imported",
+    "imported_other": "{{count}} items imported",
+    "importedPreferences": "Preferences imported",
+    "importSkipped_one": "{{count}} item skipped: its account or budget doesn't exist",
+    "importSkipped_other": "{{count}} items skipped: their account or budget doesn't exist",
+    "importNotMrmetis": "This is not a file exported from MrMetis",
+    "importInvalid": "The file could not be read",
+    "importLeftNotRecalculated": "What is left after the closed months could not be recalculated, as some budget formulas are broken. Fix them, then close those months again."
   },
 
   "privacy": {
     "header": "Privacy policy",
     "text1": "Your data is yours. We will not share it with anyone.",
     "text2": "Our database stores in plain text only your e-mail. The rest is encrypted before it leaves your device.",
-    "text3": "Anything we store on your device is related to functionality of the site only."
+    "text3": "Anything we store on your device is related to functionality of the site only.",
+    "encryptionLink": "How your data is encrypted"
+  },
+  "footer": {
+    "encryption": "Encryption",
+    "privacy": "Privacy"
+  },
+  "encryption": {
+    "header": "How your data is encrypted",
+    "summary": "Your budget is encrypted in your browser before it is sent to us, with a key made from your password. We store it, but we can't read it.",
+    "stepsHeader": "Step by step",
+    "steps": {
+      "password": {
+        "header": "Your password stays in the browser",
+        "text": "When you register or log in, your browser turns your password into a 256-bit master key with PBKDF2-SHA256, using 600,000 iterations and a random salt. The many iterations make guessing passwords slow. Your password itself is never sent."
+      },
+      "split": {
+        "header": "The master key is split in two",
+        "text": "HKDF turns the master key into two independent keys: one to log in with, and one to protect your data. Knowing the first tells nothing about the second."
+      },
+      "auth": {
+        "header": "Only the login key is sent",
+        "text": "Your browser sends the login key instead of your password. The server hashes it once more before storing it, just like a normal password."
+      },
+      "dataKey": {
+        "header": "A random key for your data",
+        "text": "When you register, your browser creates a random 256-bit data key. It is encrypted (wrapped) with the second key from step 2, and only that wrapped copy is stored on the server."
+      },
+      "save": {
+        "header": "Every save is encrypted",
+        "text": "Before your budget is sent, it is encrypted with the data key using AES-256-GCM and a fresh random value each time. GCM also detects if anyone has changed the stored data."
+      },
+      "login": {
+        "header": "Logging in unlocks it again",
+        "text": "When you log in, the server returns your salt and wrapped key. Your browser derives the keys again, unwraps the data key and keeps it in the browser so that scripts can use it but can't read it. It is removed when you log out."
+      }
+    },
+    "storedHeader": "What our server stores",
+    "storedWhat": "Data",
+    "storedHow": "How it is stored",
+    "stored": {
+      "email": {
+        "what": "Your e-mail address",
+        "how": "Readable, so you can log in"
+      },
+      "salt": {
+        "what": "Salt and number of iterations",
+        "how": "Readable, they are not secret"
+      },
+      "authHash": {
+        "what": "Login key",
+        "how": "Hashed, the key itself is not stored"
+      },
+      "wrappedKey": {
+        "what": "Data key",
+        "how": "Encrypted with a key only your browser can make"
+      },
+      "userdata": {
+        "what": "Accounts, budgets and statements",
+        "how": "Encrypted with AES-256-GCM"
+      }
+    },
+    "meaningHeader": "What this means for you",
+    "meaning": {
+      "cantRead": "We can't read your budget, and nobody with access to our server can either.",
+      "leak": "If our database ever leaked, it would contain your e-mail and encrypted data, but not your budget.",
+      "forgotten": "We can't reset your password for you: without it, your data can't be decrypted. Choose a password you will remember, and export your data from time to time.",
+      "device": "Anyone using your browser while you are logged in can see your data, as with any app. You are logged out automatically after some time without activity.",
+      "demo": "Demo data is not encrypted. It is not sent anywhere and stays only in your browser."
+    },
+    "verifyHeader": "Check it yourself",
+    "verifyText": "MrMetis is open source and uses only the encryption built into your browser (Web Crypto). You don't have to take our word for it: all of the above is in the code.",
+    "verifyLink": "See the encryption code on GitHub"
   },
   "demoData": {
     "localBar": "Local bar",
