@@ -88,7 +88,7 @@ How it works:
 - Your budget is encrypted in the browser with **AES-256-GCM** before it is saved. The key comes from your password and never leaves your device.
 - The server stores only your email address in readable form. Everything else is ciphertext.
 - No bank connections, no ads, no selling or sharing of data.
-- The code is open ([GPL-3.0](LICENSE.txt)), so you can check all of this yourself.
+- The code is open ([GPL-3.0](LICENSE.txt)), so you can check all of this yourself. The full walkthrough is on the [How your data is encrypted](https://mrmetis-qa.romkats.eu/encryption) page.
 
 ## Try it
 

@@ -1,4 +1,9 @@
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+
 const Footer = () => {
+  const { t } = useTranslation();
+
   return (
     <footer>
       <div className="sitewidth">
@@ -10,7 +15,9 @@ const Footer = () => {
         >
           GitHub
         </a>{" "}
-        MrMetis {new Date().getFullYear()} &copy;
+        <Link to="/encryption">{t("footer.encryption")}</Link>{" "}
+        <Link to="/privacy">{t("footer.privacy")}</Link> MrMetis{" "}
+        {new Date().getFullYear()} &copy;
       </div>
     </footer>
   );

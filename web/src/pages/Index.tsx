@@ -5,9 +5,32 @@ import { TAppDispatch } from "store/store";
 import { startDemo } from "store/userdata/userdata.actions";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { faLock } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBolt,
+  faBuildingColumns,
+  faCalculator,
+  faCalendarDays,
+  faChartPie,
+  faFileExport,
+  faLock,
+  faWallet,
+} from "@fortawesome/free-solid-svg-icons";
 import { CtaButton, TextInput } from "components/ui";
+import PlanningScreenshot from "styles/img/screenshot-planning.png";
+import BudgetEditScreenshot from "styles/img/screenshot-budget-edit.png";
+import QuickAddScreenshot from "styles/img/screenshot-quickadd.png";
+
+// key under landingPage.features
+const features: [string, IconDefinition][] = [
+  ["planAhead", faCalendarDays],
+  ["formulas", faCalculator],
+  ["quickAdd", faBolt],
+  ["dashboard", faChartPie],
+  ["accounts", faWallet],
+  ["export", faFileExport],
+];
 
 const Index = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -25,24 +48,90 @@ const Index = () => {
         <section>
           <div className="sitewidth">
             <h2>{t("landingPage.welcome.header")}</h2>
-            <p>{t("landingPage.welcome.text1")}</p>
+            <p className="tagline">{t("landingPage.welcome.text1")}</p>
             <p>{t("landingPage.welcome.text2")}</p>
-            <CtaButton type="button" size="normal" onClick={handleDemoClick}>
-              {t("landingPage.welcome.buttonText")}
-            </CtaButton>
+            <div className="actions">
+              <CtaButton type="button" size="big" onClick={handleDemoClick}>
+                {t("landingPage.welcome.buttonText")}
+              </CtaButton>
+              <Link to="/encryption" className="btn big secondary">
+                <FontAwesomeIcon icon={faLock} />{" "}
+                {t("landingPage.welcome.encryptionLink")}
+              </Link>
+            </div>
+            <p className="note">{t("landingPage.welcome.demoNote")}</p>
           </div>
         </section>
         <section>
           <div className="sitewidth">
-            <h3>{t("landingPage.about.header")}</h3>
-            <p>{t("landingPage.about.text1")}</p>
-            <p>{t("landingPage.about.text2")}</p>
+            <img
+              src={PlanningScreenshot}
+              alt={t("landingPage.screenshots.planning")}
+              className="screenshot"
+            />
+          </div>
+        </section>
+        <section>
+          <div className="sitewidth">
+            <h3>{t("landingPage.features.header")}</h3>
+            <div className="bulletPoints">
+              {features.map(([key, icon]) => (
+                <div key={key}>
+                  <div className="icon">
+                    <FontAwesomeIcon icon={icon} />
+                  </div>
+                  <h4>{t(`landingPage.features.${key}.header`)}</h4>
+                  <p>{t(`landingPage.features.${key}.text`)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section>
+          <div className="sitewidth">
+            <h3>{t("landingPage.showcase.header")}</h3>
+            <div className="showcase">
+              <div>
+                <h4>{t("landingPage.showcase.formulas.header")}</h4>
+                <p>{t("landingPage.showcase.formulas.text")}</p>
+              </div>
+              <img
+                src={BudgetEditScreenshot}
+                alt={t("landingPage.screenshots.budgetEdit")}
+                className="screenshot"
+                loading="lazy"
+              />
+            </div>
+            <div className="showcase">
+              <div>
+                <h4>{t("landingPage.showcase.quickAdd.header")}</h4>
+                <p>{t("landingPage.showcase.quickAdd.text")}</p>
+              </div>
+              <img
+                src={QuickAddScreenshot}
+                alt={t("landingPage.screenshots.quickAdd")}
+                className="screenshot"
+                loading="lazy"
+              />
+            </div>
           </div>
         </section>
         <section>
           <div className="sitewidth">
             <h3>{t("landingPage.bulletPoints.header")}</h3>
             <div className="bulletPoints">
+              <div>
+                <div className="icon">
+                  <FontAwesomeIcon icon={faLock} />
+                </div>
+                <h4>{t("landingPage.bulletPoints.private.header")}</h4>
+                <p>{t("landingPage.bulletPoints.private.text")}</p>
+                <p>
+                  <Link to="/encryption">
+                    {t("landingPage.bulletPoints.private.urlText")}
+                  </Link>
+                </p>
+              </div>
               <div>
                 <div className="icon">
                   <FontAwesomeIcon icon={faGithub} />
@@ -61,33 +150,11 @@ const Index = () => {
               </div>
               <div>
                 <div className="icon">
-                  <FontAwesomeIcon icon={faLock} />
+                  <FontAwesomeIcon icon={faBuildingColumns} />
                 </div>
-                <h4>{t("landingPage.bulletPoints.private.header")}</h4>
-                <p>{t("landingPage.bulletPoints.private.text")}</p>
-                <p>
-                  <Link to="privacy">
-                    {t("landingPage.bulletPoints.private.urlText")}
-                  </Link>
-                </p>
+                <h4>{t("landingPage.bulletPoints.noBank.header")}</h4>
+                <p>{t("landingPage.bulletPoints.noBank.text")}</p>
               </div>
-            </div>
-          </div>
-        </section>
-        <section>
-          <div className="sitewidth">
-            <h3>{t("landingPage.newsletter.header")}</h3>
-            <p>{t("landingPage.newsletter.text")}</p>
-            <div>
-              <form action="">
-                <TextInput
-                  disabled
-                  placeholder={t("landingPage.newsletter.inputPlaceholder")}
-                />
-                <CtaButton size="normal" disabled>
-                  {t("landingPage.newsletter.buttonText")}
-                </CtaButton>
-              </form>
             </div>
           </div>
         </section>

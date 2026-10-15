@@ -26,6 +26,7 @@ import { selectIsAuthenticated } from "store/auth/auth.selectors";
 import ToastMessages from "components/ToastMessages";
 import RawDataEditor from "components/RawDataEditor";
 import Privacy from "pages/Privacy";
+import Encryption from "pages/Encryption";
 import Preferences from "pages/Preferences";
 import { clearKey } from "services/keyStore";
 import { useTranslation } from "react-i18next";
@@ -123,6 +124,7 @@ const App: FunctionComponent = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/encryption" element={<Encryption />} />
 
             <Route element={<Authenticated />}>
               <Route element={<SideNavLayout />}>
