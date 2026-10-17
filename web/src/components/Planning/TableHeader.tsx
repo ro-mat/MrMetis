@@ -67,7 +67,7 @@ const TableHeader: FC<ITableHeaderProps> = ({ months, budgetPairArray }) => {
                   )}
                   onClick={() => toggleMonth(month)}
                 >
-                  <FontAwesomeIcon icon={isClosed ? faLockOpen : faLock} />
+                  <FontAwesomeIcon icon={isClosed ? faLock : faLockOpen} />
                 </Button>
               )}
             </th>

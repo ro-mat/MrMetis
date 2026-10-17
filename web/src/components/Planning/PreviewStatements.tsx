@@ -72,7 +72,7 @@ const PreviewStatements = ({
                 title={t(isClosed ? "planning.openItem" : "planning.closeItem")}
                 onClick={handleToggleClosed}
               >
-                <FontAwesomeIcon icon={isClosed ? faLockOpen : faLock} />
+                <FontAwesomeIcon icon={isClosed ? faLock : faLockOpen} />
               </Button>
             )}
           </div>
