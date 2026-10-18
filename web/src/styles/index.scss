@@ -79,6 +79,48 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 
+  .roadmap {
+    list-style: none;
+    max-width: 40em;
+    margin: 1em auto;
+    padding: 0;
+    text-align: left;
+
+    li {
+      display: flex;
+      gap: 1em;
+      padding: 0.5em 0 0.5em 1em;
+      border-left: 3px solid #ccc;
+      opacity: 0.7;
+
+      &.done {
+        border-left-color: $primary-color-dark;
+        opacity: 1;
+
+        .icon {
+          color: $primary-color-dark;
+        }
+      }
+    }
+
+    .icon {
+      font-size: 1.5em;
+      flex-shrink: 0;
+      margin-top: 0.15em;
+    }
+
+    h4 {
+      margin: 0;
+    }
+
+    .when {
+      font-weight: normal;
+      font-size: 0.85em;
+      opacity: 0.75;
+      white-space: nowrap;
+    }
+  }
+
   .showcase {
     display: flex;
     flex-wrap: wrap;

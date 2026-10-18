@@ -96,6 +96,20 @@ How it works:
 
 MrMetis is in **closed beta**: registration needs an invitation code. You can also [run it locally](DEVELOPMENT.md) in a few minutes.
 
+## Roadmap
+
+- [x] **First release** (May 2023): planning table, dashboard, statements, quick add and a demo budget, in English and Russian.
+- [x] **Smart amounts** (January 2024): a new calculation engine. Amounts built from other items, type totals and weekdays, and budget items across several accounts.
+- [x] **Rebuilt app** (October 2026): reworked forms, backend and layout, and updated in-browser encryption.
+- [x] **Closed beta** (October 2026): export and import, closing months, charts, and the live demo with registration by invitation.
+- [ ] **Production launch**: a public production site, separate from the demo.
+- [ ] **Persistent data option**: choose to keep your data saved between sessions.
+- [ ] **Self-hosting option**: run MrMetis on your own server.
+- [ ] **Shared account**: share a budget with a partner or your household.
+- [ ] **Bank data import**: import statements from your bank's export files. Still no bank login.
+
+Missing something? [Request a feature](https://github.com/ro-mat/MrMetis/issues).
+
 ## Feedback
 
 Found a bug or missing something? [Open an issue](https://github.com/ro-mat/MrMetis/issues). Ideas and pull requests are welcome.
