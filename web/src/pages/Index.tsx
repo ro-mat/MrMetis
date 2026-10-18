@@ -13,7 +13,9 @@ import {
   faCalculator,
   faCalendarDays,
   faChartPie,
+  faCircleCheck,
   faFileExport,
+  faHourglassHalf,
   faLock,
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
@@ -30,6 +32,19 @@ const features: [string, IconDefinition][] = [
   ["dashboard", faChartPie],
   ["accounts", faWallet],
   ["export", faFileExport],
+];
+
+// key under landingPage.roadmap.items, done
+const roadmap: [string, boolean][] = [
+  ["firstRelease", true],
+  ["smartAmounts", true],
+  ["rebuiltApp", true],
+  ["closedBeta", true],
+  ["productionLaunch", false],
+  ["persistentData", false],
+  ["selfHosting", false],
+  ["sharedAccount", false],
+  ["bankImport", false],
 ];
 
 const Index = () => {
@@ -156,6 +171,42 @@ const Index = () => {
                 <p>{t("landingPage.bulletPoints.noBank.text")}</p>
               </div>
             </div>
+          </div>
+        </section>
+        <section>
+          <div className="sitewidth">
+            <h3>{t("landingPage.roadmap.header")}</h3>
+            <ol className="roadmap">
+              {roadmap.map(([key, done]) => (
+                <li key={key} className={done ? "done" : ""}>
+                  <FontAwesomeIcon
+                    icon={done ? faCircleCheck : faHourglassHalf}
+                    className="icon"
+                  />
+                  <div>
+                    <h4>
+                      {t(`landingPage.roadmap.items.${key}.header`)}{" "}
+                      <span className="when">
+                        {done
+                          ? t(`landingPage.roadmap.items.${key}.when`)
+                          : t("landingPage.roadmap.planned")}
+                      </span>
+                    </h4>
+                    <p>{t(`landingPage.roadmap.items.${key}.text`)}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p>
+              {t("landingPage.roadmap.requestFeature")}{" "}
+              <a
+                href="https://github.com/ro-mat/MrMetis/issues"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t("landingPage.roadmap.requestFeatureLink")}
+              </a>
+            </p>
           </div>
         </section>
       </div>

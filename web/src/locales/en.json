@@ -36,7 +36,9 @@
     "budget": "Budget",
     "account": "Account",
     "statementAdded": "Statement added!",
-    "hint": "Start typing\nTab to fill field\nEnter to add statement"
+    "hint": "Open budgets with the most left are listed first\nStart typing\nTab to fill field\nEnter to add statement\nSeveral at once: coffee 4.5 yesterday",
+    "left": "{{amount}} left",
+    "closed": "closed"
   },
   "login": {
     "header": "Login",
@@ -325,6 +327,54 @@
         "header": "No bank login",
         "text": "MrMetis never asks for your bank credentials. No ads, no tracking, no selling of data."
       }
+    },
+    "roadmap": {
+      "header": "Roadmap",
+      "planned": "Planned",
+      "requestFeature": "Missing something?",
+      "requestFeatureLink": "Request a feature",
+      "items": {
+        "firstRelease": {
+          "header": "First release",
+          "when": "May 2023",
+          "text": "Planning table, dashboard, statements, quick add and a demo budget, in English and Russian."
+        },
+        "smartAmounts": {
+          "header": "Smart amounts",
+          "when": "January 2024",
+          "text": "A new calculation engine: amounts built from other items, type totals and weekdays, and budget items across several accounts."
+        },
+        "rebuiltApp": {
+          "header": "Rebuilt app",
+          "when": "October 2026",
+          "text": "Reworked forms, backend and layout, and updated in-browser encryption."
+        },
+        "closedBeta": {
+          "header": "Closed beta",
+          "when": "October 2026",
+          "text": "Export and import, closing months, charts, and the live demo with registration by invitation."
+        },
+        "productionLaunch": {
+          "header": "Production launch",
+          "text": "A public production site, separate from the demo."
+        },
+        "persistentData": {
+          "header": "Persistent data option",
+          "text": "Choose to keep your data saved between sessions."
+        },
+        "selfHosting": {
+          "header": "Self-hosting option",
+          "text": "Run MrMetis on your own server."
+        },
+        "sharedAccount": {
+          "header": "Shared account",
+          "text": "Share a budget with a partner or your household."
+        },
+        "bankImport": {
+          "header": "Bank data import",
+          "text": "Import statements from your bank's export files. Still no bank login."
+        }
+      }
     }
   },
   "storage": {
@@ -526,5 +576,13 @@
     "unplanned": "Unplanned",
     "borrow": "Filip borrowed",
     "parking": "Parking"
+  },
+  "filter": {
+    "months": "Months shown",
+    "summary_one": "{{from}} – {{to}} · {{count}} month",
+    "summary_other": "{{from}} – {{to}} · {{count}} months",
+    "from": "First month",
+    "to": "Last month",
+    "moveRange": "Move the range"
   }
 }

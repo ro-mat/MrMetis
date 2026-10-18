@@ -1,3 +1,5 @@
+@use "variables" as *;
+
 // List of choices under a text field (QuickAdd, filterable SelectBox)
 .dropdown-wrapper {
   position: absolute;

@@ -41,28 +41,52 @@ const QuickAdd = () => {
   const [isActive, setIsActive] = useState<boolean>(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  // the amount filled from a budget, not typed
+  const [prefilledAmount, setPrefilledAmount] = useState<number>();
   const { isLocked } = useClosing();
 
   const { searchText, setSearchText, filteredSuggestions } =
-    useStatementSuggestions();
+    useStatementSuggestions(statement.date, isActive);
   const {
     selectedId: selectedSuggestion,
     setSelectedId: setSelectedSuggestion,
     move: moveSelection,
   } = useListSelection(filteredSuggestions);
 
-  const isComplete = !!(
-    statement.budgetId &&
-    statement.accountId &&
-    statement.amount &&
-    statement.date
-  );
+  const isCompleteStatement = (s: IStatement) =>
+    !!(s.budgetId && s.accountId && s.amount && s.date);
+  const isComplete = isCompleteStatement(statement);
 
   const suggestionData = (id: string) =>
     filteredSuggestions.find((s) => s.id === id)?.obj ?? {};
 
+  // A budget's defaultAmount fills the amount unless one was typed (before
+  // or along with the budget); picking another budget replaces a filled amount.
+  // Changes nothing, so it also previews a suggestion.
+  const mergeSuggestion = (old: IStatement, id: string) => {
+    const { defaultAmount, ...data } = suggestionData(id);
+    const next: IStatement = { ...old, ...data };
+    let prefilled = prefilledAmount;
+    if (data.amount !== undefined) {
+      prefilled = undefined;
+    } else if (
+      data.budgetId !== undefined &&
+      (!old.amount || old.amount === prefilled)
+    ) {
+      next.amount = defaultAmount ?? 0;
+      prefilled = defaultAmount;
+    }
+    return { next, prefilled };
+  };
+
+  const withSuggestion = (old: IStatement, id: string): IStatement => {
+    const { next, prefilled } = mergeSuggestion(old, id);
+    setPrefilledAmount(prefilled);
+    return next;
+  };
+
   const applySuggestion = (id: string) =>
-    setStatement((old) => ({ ...old, ...suggestionData(id) }));
+    setStatement(withSuggestion(statement, id));
 
   const resetInput = () => {
     setSearchText("");
@@ -70,15 +94,16 @@ const QuickAdd = () => {
   };
 
   const saveStatement = () => {
-    if (!isComplete) {
+    // with nothing typed the list only offers budgets, Tab or a click picks one
+    const newStatement = searchText
+      ? withSuggestion(statement, selectedSuggestion)
+      : statement;
+    if (!isCompleteStatement(newStatement)) {
+      // the suggestion is kept, so only what is missing is left to fill
+      setStatement(newStatement);
       dispatch(ADD_ERROR_TOAST(t("errors.missingTransactionData")));
       return;
     }
-
-    const newStatement = {
-      ...statement,
-      ...suggestionData(selectedSuggestion),
-    };
     if (isLocked(newStatement)) {
       dispatch(ADD_ERROR_TOAST(t("errors.statementClosed")));
       return;
@@ -107,6 +132,7 @@ const QuickAdd = () => {
         setIsActive(false);
         setSearchText("");
         setStatement(createDefaultStatement());
+        setPrefilledAmount(undefined);
         inputRef.current?.blur();
         break;
       case "ArrowDown":
@@ -174,7 +200,14 @@ const QuickAdd = () => {
       </div>
       {isActive && (
         <>
-          <NewStatementPreview statement={statement} />
+          <NewStatementPreview
+            statement={statement}
+            preview={
+              selectedSuggestion
+                ? mergeSuggestion(statement, selectedSuggestion).next
+                : undefined
+            }
+          />
           <Dropdown
             items={filteredSuggestions}
             selectedId={selectedSuggestion}
