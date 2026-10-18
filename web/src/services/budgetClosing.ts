@@ -47,19 +47,25 @@ const findClosed = (budget: IBudget, month: MomentInput, accountId: number) =>
     (c) => c.accountId === accountId && isSameMonth(c.month, month)
   );
 
+// The accounts the budget is planned on that month.
+export const plannedAccounts = (budget: IBudget, month: MomentInput) => [
+  ...new Set(
+    getRelevantFormulas(moment(month).toDate(), budget)
+      .map((f) => f.accountId)
+      .filter((id) => id > 0)
+  ),
+];
+
 // The accounts the budget is planned on or has statements on that month.
 export const usedAccounts = (
   budget: IBudget,
   month: MomentInput,
   statements: IStatement[]
 ) => {
-  const planned = getRelevantFormulas(moment(month).toDate(), budget)
-    .map((f) => f.accountId)
-    .filter((id) => id > 0);
   const withStatements = monthStatements(budget.id, month, statements).map(
     (s) => s.accountId
   );
-  return [...new Set([...planned, ...withStatements])];
+  return [...new Set([...plannedAccounts(budget, month), ...withStatements])];
 };
 
 export const isMonthClosed = (closedMonths: string[], month: MomentInput) =>

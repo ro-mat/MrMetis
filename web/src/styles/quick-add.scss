@@ -30,6 +30,11 @@
     @include control-button;
   }
 
+  // what the highlighted suggestion would change; a missing value stays red
+  .statement-preview .changed:not(.error) {
+    color: #2e9d4b;
+  }
+
   &.active input {
     width: 25em;
   }

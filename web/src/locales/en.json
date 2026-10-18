@@ -36,7 +36,9 @@
     "budget": "Budget",
     "account": "Account",
     "statementAdded": "Statement added!",
-    "hint": "Start typing\nTab to fill field\nEnter to add statement"
+    "hint": "Open budgets with the most left are listed first\nStart typing\nTab to fill field\nEnter to add statement\nSeveral at once: coffee 4.5 yesterday",
+    "left": "{{amount}} left",
+    "closed": "closed"
   },
   "login": {
     "header": "Login",
