@@ -1,3 +1,5 @@
+@use "variables" as *;
+
 // Tables don't scroll on their own: they scroll with the page content, and
 // the header row (and first column) stick to it.
 // Borders are "separate", not "collapse": collapsed borders are drawn by the

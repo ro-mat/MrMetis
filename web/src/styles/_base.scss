@@ -1,0 +1,67 @@
+// Reset styles
+html,
+body,
+p,
+ul,
+ol,
+h1,
+h2,
+h3,
+h4,
+h5 {
+  margin: 0;
+  padding: 0;
+}
+
+// general stuff
+body {
+  font-family: "Calibri", Arial, Helvetica, sans-serif;
+  font-size: 18px;
+
+  &.dark {
+    background-color: #333;
+    color: #fff;
+  }
+}
+
+h1 {
+  font-size: 3rem;
+}
+
+h2 {
+  font-size: 2.5rem;
+}
+
+h3 {
+  font-size: 2rem;
+}
+
+h4 {
+  font-size: 1.5rem;
+}
+
+h5 {
+  font-size: 1.1rem;
+}
+
+// App frame: header and footer always visible, the page in between scrolls.
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh; // mobile browsers: exclude the address bar
+  overflow: hidden;
+}
+
+header,
+footer {
+  flex-shrink: 0;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0; // allow shrinking below the content height, so it scrolls
+  overflow-y: auto;
+}

@@ -1,3 +1,6 @@
+@use "sass:color";
+@use "variables" as *;
+
 button,
 .btn {
   display: inline-block;
@@ -25,7 +28,10 @@ button,
     color: #333;
 
     &:not(:disabled):hover {
-      background-color: darken($primary-color-highlight, 15%);
+      background-color: color.adjust(
+        $primary-color-highlight,
+        $lightness: -15%
+      );
     }
   }
 

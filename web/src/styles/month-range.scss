@@ -1,3 +1,5 @@
+@use "variables" as *;
+
 // Month range timeline (Planning, Charts): months scroll sideways, the
 // selected range is a band with draggable ends
 .month-range {
