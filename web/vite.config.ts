@@ -3,7 +3,7 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
 // Only scripts from our own origin may run (plus eval for formulas), so injected markup can't run code that uses the data key.
-// Build only: the dev server's HMR relies on inline scripts. Styles stay inline for MUI/emotion.
+// Build only: the dev server's HMR relies on inline scripts. Inline styles stay allowed (style attributes, e.g. charts and the month range).
 const contentSecurityPolicy = (): Plugin => {
   let apiRoot = "/";
   return {

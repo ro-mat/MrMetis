@@ -1,0 +1,170 @@
+// Month range timeline (Planning, Charts): months scroll sideways, the
+// selected range is a band with draggable ends
+.month-range {
+  --mr-text: #222;
+  --mr-muted: #777;
+  --mr-line: #ccc;
+  --mr-band: rgb(145 249 229 / 45%); // $primary-color
+  --mr-band-border: #{$primary-color-dark};
+  --mr-today: #{$primary-color-highlight};
+
+  margin: 0.5em 1em;
+
+  .month-range-header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.3em 1em;
+    margin-bottom: 0.3em;
+  }
+
+  .month-range-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: var(--mr-text);
+    cursor: pointer;
+  }
+
+  .month-range-summary {
+    color: var(--mr-muted);
+  }
+
+  .month-range-scroll {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.3em;
+
+    // faded edges where there are more months
+    --fade-left: #000;
+    --fade-right: #000;
+    mask-image: linear-gradient(
+      to right,
+      var(--fade-left),
+      #000 3em,
+      #000 calc(100% - 3em),
+      var(--fade-right)
+    );
+
+    &.fade-left {
+      --fade-left: transparent;
+    }
+
+    &.fade-right {
+      --fade-right: transparent;
+    }
+  }
+
+  .month-range-track {
+    position: relative;
+    display: flex;
+    user-select: none;
+    touch-action: pan-x;
+
+    &.dragging {
+      cursor: grabbing;
+    }
+  }
+
+  .month-cell {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+    cursor: pointer;
+    color: var(--mr-muted);
+
+    .year {
+      height: 1.3em;
+      font-size: 0.8em;
+      font-weight: bold;
+      color: var(--mr-text);
+    }
+
+    .month {
+      position: relative;
+      width: 100%;
+      padding: 0.5em 0;
+      text-align: center;
+      border-bottom: 2px solid var(--mr-line);
+    }
+
+    &.year-start .month {
+      border-left: 1px solid var(--mr-line);
+    }
+
+    &.selected .month {
+      color: var(--mr-text);
+      font-weight: bold;
+    }
+
+    // a dot under the current month
+    &.today .month::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0.15em;
+      width: 6px;
+      height: 6px;
+      margin-left: -3px;
+      border-radius: 50%;
+      background-color: var(--mr-today);
+    }
+  }
+
+  // over the month row, below the year labels
+  .month-range-band {
+    position: absolute;
+    top: 1.05em;
+    bottom: 0;
+    box-sizing: border-box;
+    background-color: var(--mr-band);
+    border: 2px solid var(--mr-band-border);
+    border-radius: 6px;
+    cursor: grab;
+    touch-action: none;
+
+    &:focus-visible {
+      outline: 2px solid var(--mr-band-border);
+      outline-offset: 2px;
+    }
+  }
+
+  .month-range-handle {
+    position: absolute;
+    top: 50%;
+    width: 8px;
+    height: 70%;
+    transform: translateY(-50%);
+    border-radius: 3px;
+    background-color: var(--mr-band-border);
+    cursor: ew-resize;
+    touch-action: none;
+
+    // inside the band, so they aren't cut off at the timeline's ends
+    &.from {
+      left: 2px;
+    }
+
+    &.to {
+      right: 2px;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--mr-today);
+    }
+  }
+}
+
+body.dark .month-range {
+  --mr-text: #f0efec;
+  --mr-muted: #b0afa6;
+  --mr-line: #5a5a54;
+  --mr-band: rgb(23 126 137 / 50%); // $primary-color-dark
+  --mr-band-border: #{$primary-color};
+}

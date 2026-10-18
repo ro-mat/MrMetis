@@ -528,5 +528,13 @@
     "unplanned": "Unplanned",
     "borrow": "Filip borrowed",
     "parking": "Parking"
+  },
+  "filter": {
+    "months": "Months shown",
+    "summary_one": "{{from}} – {{to}} · {{count}} month",
+    "summary_other": "{{from}} – {{to}} · {{count}} months",
+    "from": "First month",
+    "to": "Last month",
+    "moveRange": "Move the range"
   }
 }

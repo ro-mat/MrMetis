@@ -1,83 +1,69 @@
-import Slider from "@mui/material/Slider";
-import moment from "moment";
 import React, { FC, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router-dom";
 import { AppState, TAppDispatch } from "store/store";
 import { SET_FILTER } from "store/ui/ui.slice";
-import useLocale from "hooks/useLocale";
-import { formatInLanguage } from "helpers/dateHelper";
 import { FilterName } from "store/ui/ui.types";
+import { MonthRange } from "components/ui";
 
 export interface ISideNavProps {
   // whose month range it shows and changes
   name: FilterName;
 }
 
+const MIN_MONTH = -6;
+const MAX_MONTH = 18;
+
+const clamp = (value: number) => Math.min(Math.max(value, MIN_MONTH), MAX_MONTH);
+
+// per device (not in the user's settings), shared by every page with a range
+const COLLAPSED_KEY = "monthRangeCollapsed";
+
+const readCollapsed = () => {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) === "true";
+  } catch {
+    return false;
+  }
+};
+
 const FilterLayout: FC<ISideNavProps> = ({ name }) => {
   const dispatch = useDispatch<TAppDispatch>();
-  const { formatMonth } = useLocale();
-
-  const minThreshHold = 0;
-  const maxThreshHold = 1;
+  const { t } = useTranslation();
+  const [collapsed, setCollapsed] = useState(readCollapsed);
 
   const filter = useSelector((state: AppState) => state.ui.ui.filters[name]);
-  const [filterValues, setFilterValues] = useState<number[]>([
-    filter?.fromRelativeMonth ?? -1,
-    filter?.toRelativeMonth ?? 5,
-  ]);
+  // a stored range may reach past the timeline
+  const from = clamp(filter?.fromRelativeMonth ?? -1);
+  const to = Math.max(clamp(filter?.toRelativeMonth ?? 5), from);
 
-  const handleChange = (
-    _: Event,
-    newValue: number | number[],
-    activeThumb: number
-  ) => {
-    const val = newValue as number[];
-    if (
-      (activeThumb === 0 && val[activeThumb] <= minThreshHold) ||
-      (activeThumb === 1 && val[activeThumb] >= maxThreshHold)
-    ) {
-      setFilterValues([val[0], val[1]]);
-    }
-  };
-
-  const handleChangeCommitted = () => {
+  const handleChange = (fromRelativeMonth: number, toRelativeMonth: number) =>
     dispatch(
-      SET_FILTER({
-        name,
-        filter: {
-          fromRelativeMonth: filterValues[0],
-          toRelativeMonth: filterValues[1],
-        },
-      })
+      SET_FILTER({ name, filter: { fromRelativeMonth, toRelativeMonth } })
     );
-  };
 
-  const valueText = (value: number) => {
-    const month = moment().add(value, "M");
-    return `${formatMonth(month)} (${formatInLanguage(month, "MMM")})`;
+  const handleToggle = () => {
+    setCollapsed(!collapsed);
+    try {
+      localStorage.setItem(COLLAPSED_KEY, String(!collapsed));
+    } catch {
+      // not stored, e.g. in a private window
+    }
   };
 
   return (
     <div className="flex column">
-      <div>
-        <label>Relative range</label>
-        {/* inset: the end marks and thumbs reach past the slider's edges */}
-        <div className="range-slider">
-          <Slider
-            min={-3}
-            max={12}
-            value={[...filterValues]}
-            step={1}
-            marks={true}
-            onChange={handleChange}
-            onChangeCommitted={handleChangeCommitted}
-            valueLabelDisplay="auto"
-            valueLabelFormat={valueText}
-            disableSwap
-          />
-        </div>
-      </div>
+      <MonthRange
+        label={t("filter.months")}
+        from={from}
+        to={to}
+        min={MIN_MONTH}
+        max={MAX_MONTH}
+        collapsed={collapsed}
+        onToggle={handleToggle}
+        onChange={handleChange}
+      />
       <div className="sitewidth">
         <Outlet />
       </div>

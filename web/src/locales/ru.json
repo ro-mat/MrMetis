@@ -541,5 +541,15 @@
     "unplanned": "Незапланированное",
     "borrow": "Филип одолжил",
     "parking": "Парковка"
+  },
+  "filter": {
+    "months": "Показанные месяцы",
+    "summary_one": "{{from}} – {{to}} · {{count}} месяц",
+    "summary_few": "{{from}} – {{to}} · {{count}} месяца",
+    "summary_many": "{{from}} – {{to}} · {{count}} месяцев",
+    "summary_other": "{{from}} – {{to}} · {{count}} месяца",
+    "from": "Первый месяц",
+    "to": "Последний месяц",
+    "moveRange": "Сдвинуть диапазон"
   }
 }

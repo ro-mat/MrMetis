@@ -131,6 +131,7 @@ $control-height: $control-line-height + 2 * $control-padding + 2px;
 
 @import "dropdown";
 @import "quick-add";
+@import "month-range";
 @import "raw-data";
 @import "hint";
 
@@ -146,10 +147,6 @@ $control-height: $control-line-height + 2 * $control-padding + 2px;
   background-color: #ff4d36;
   padding: 0.5em 1em;
   border: 1px solid black;
-}
-
-.range-slider {
-  padding: 0 10px; // half an MUI slider thumb
 }
 
 #planning-subnav {

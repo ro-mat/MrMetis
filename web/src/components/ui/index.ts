@@ -17,3 +17,4 @@ export { default as OlderRowsToggle } from "./OlderRowsToggle";
 export { default as NoData } from "./NoData";
 export { default as Menu } from "./Menu";
 export type { IMenuItem } from "./Menu";
+export { default as MonthRange } from "./MonthRange";
