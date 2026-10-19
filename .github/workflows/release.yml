@@ -8,6 +8,11 @@ on:
   release:
     types: [published, released]
 
+run-name: >-
+  ${{ github.event.action == 'released' && format('Production {0}', github.event.release.tag_name)
+  || github.event.release.prerelease && format('QA {0} (pre-release)', github.event.release.tag_name)
+  || format('{0} published, not deployed', github.event.release.tag_name) }}
+
 permissions:
   contents: read
 
