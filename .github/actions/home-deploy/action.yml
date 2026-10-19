@@ -10,7 +10,7 @@ inputs:
     description: App name in the receiver's apps.json, e.g. mrmetis-qa
     required: true
   url:
-    description: The site's URL, without a trailing slash
+    description: The site's URL, without a trailing slash; the workflows pass the environment's APP_URL variable
     required: true
   deploy-url:
     description: The receiver's URL, also the token's audience
@@ -28,8 +28,13 @@ runs:
       env:
         APP: ${{ inputs.app }}
         DEPLOY_URL: ${{ inputs.deploy-url }}
+        SITE: ${{ inputs.url }}
       run: |
         set -euo pipefail
+        if [ -z "$SITE" ] || [ -z "$DEPLOY_URL" ]; then
+          echo "::error::Set the APP_URL variable on this job's GitHub environment, and DEPLOY_URL on the repo"
+          exit 1
+        fi
         token=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
           "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$DEPLOY_URL" | jq -r .value)
         echo "::add-mask::$token"

@@ -65,7 +65,7 @@ Every push to `main` runs [deploy-qa.yml](.github/workflows/deploy-qa.yml): it r
 
 One-time setup:
 
-- GitHub: set the `DEPLOY_URL` variable (`https://deploy.romkats.eu`). Limit the `qa` environment to branch `main` and tags `v*`, and the `production` environment to tags `v*`. Add a tag ruleset so that only you can create `v*` tags, because the deploy receiver trusts them. Create the labels `enhancement` and `bug`, which sort the release notes ([.github/release.yml](.github/release.yml)).
+- GitHub: set the `DEPLOY_URL` variable (`https://deploy.romkats.eu`). Limit the `qa` environment to branch `main` and tags `v*`, and the `production` environment to tags `v*`. Give each environment an `APP_URL` variable with its site's URL (`https://mrmetis-qa.romkats.eu`, `https://mrmetis.eu`); the deploy jobs link to it and smoke-test it. Add a tag ruleset so that only you can create `v*` tags, because the deploy receiver trusts them. Create the labels `enhancement` and `bug`, which sort the release notes ([.github/release.yml](.github/release.yml)).
 - Home server: the receiver's `apps.json` allows `mrmetis-qa` from `refs/heads/main` and `refs/tags/v*` (environment `qa`), and `mrmetis-prod` from `refs/tags/v*` (environment `production`). Cloudflare routes `mrmetis.eu` through the tunnel to Traefik, like the QA hostname.
 
 `compose.yml` and `.env` live on the server in `/srv/apps/mrmetis-qa` and `/srv/apps/mrmetis-prod`; each `.env` holds `TAG` (the receiver updates it on each deploy) and its own secrets:
