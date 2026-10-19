@@ -1,0 +1,63 @@
+name: Deploy to the home server
+description: >
+  Calls the home server's deploy receiver (ro-mat/homeserver-infra, deployer/) with this job's GitHub OIDC
+  token, then waits until the site is up. The receiver only accepts the token when the repo, environment and
+  ref match the app's entry in its apps.json, and it deploys the images tagged with the commit this job ran on.
+  compose.yml and .env live on the server in /srv/apps/<app>. The job needs `permissions: id-token: write`.
+
+inputs:
+  app:
+    description: App name in the receiver's apps.json, e.g. mrmetis-qa
+    required: true
+  url:
+    description: The site's URL, without a trailing slash
+    required: true
+  deploy-url:
+    description: The receiver's URL, also the token's audience
+    required: true
+  version:
+    description: If set, /api/version must report it before the deploy counts as done
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Deploy
+      shell: bash
+      env:
+        APP: ${{ inputs.app }}
+        DEPLOY_URL: ${{ inputs.deploy-url }}
+      run: |
+        set -euo pipefail
+        token=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+          "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$DEPLOY_URL" | jq -r .value)
+        echo "::add-mask::$token"
+        # the output streams while compose runs; the last line says whether it worked
+        curl -fsSN "$DEPLOY_URL/deploy" \
+          -H "Authorization: Bearer $token" \
+          -H "Content-Type: application/json" \
+          -d "{\"app\":\"$APP\"}" | tee deploy.log
+        tail -n 1 deploy.log | grep -q '^DEPLOY OK'
+
+    - name: Smoke test
+      shell: bash
+      env:
+        SITE: ${{ inputs.url }}
+        VERSION: ${{ inputs.version }}
+      run: |
+        # the first start waits for SQL Server and runs migrations, so allow up to 3 minutes
+        for i in $(seq 1 36); do
+          if curl -fsS "$SITE/health"; then
+            echo
+            curl -fsS -o /dev/null "$SITE/"
+            deployed=$(curl -fsS "$SITE/api/version" | jq -r .version || true)
+            if [ -z "$VERSION" ] || [ "$deployed" = "$VERSION" ]; then
+              echo "$SITE runs $deployed"
+              exit 0
+            fi
+            echo "still on $deployed, waiting for $VERSION"
+          fi
+          sleep 5
+        done
+        exit 1

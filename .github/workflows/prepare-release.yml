@@ -1,0 +1,86 @@
+name: prepare-release
+
+# Creates a draft pre-release with a suggested version and generated notes. Check or change the tag
+# and notes on GitHub, then publish it as a pre-release to deploy it to QA (see release.yml).
+# Run it on main for a new release, or on release/vX.Y for a fix to that release.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version, e.g. v0.9.0. Leave empty for the suggested one
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Suggest a version
+        id: version
+        env:
+          INPUT: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          tags() { git tag -l "$1" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true; }
+          case "$GITHUB_REF" in
+            refs/heads/main)
+              # next minor after the newest release
+              previous=$(tags 'v*')
+              if [ -n "$previous" ]; then
+                IFS=. read -r major minor patch <<< "${previous#v}"
+                suggested="v$major.$((minor + 1)).0"
+              else
+                suggested=v0.8.0
+              fi
+              ;;
+            refs/heads/release/v*)
+              # next patch in this release line
+              line=${GITHUB_REF#refs/heads/release/}
+              previous=$(tags "$line.*")
+              if [ -n "$previous" ]; then
+                IFS=. read -r major minor patch <<< "${previous#v}"
+                suggested="v$major.$minor.$((patch + 1))"
+              else
+                suggested="$line.0"
+              fi
+              ;;
+            *)
+              echo "::error::Run this on main for a new release, or on release/vX.Y for a fix"
+              exit 1
+              ;;
+          esac
+
+          version=${INPUT:-$suggested}
+          version=v${version#v}
+          if ! [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::$version isn't a version like v1.2.3"
+            exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/$version" >/dev/null; then
+            echo "::error::$version is already tagged"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "previous=$previous" >> "$GITHUB_OUTPUT"
+
+      - name: Create the draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          PREVIOUS: ${{ steps.version.outputs.previous }}
+        run: |
+          set -euo pipefail
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "::error::A release or draft $VERSION already exists, delete it or pass another version"
+            exit 1
+          fi
+          url=$(gh release create "$VERSION" --draft --prerelease --target "$GITHUB_SHA" --title "$VERSION" \
+            --generate-notes ${PREVIOUS:+--notes-start-tag "$PREVIOUS"})
+          echo "Draft [$VERSION]($url) from \`${GITHUB_REF#refs/heads/}\` at \`${GITHUB_SHA::7}\`. Check the tag and notes, then **publish it as a pre-release** to deploy it to QA." >> "$GITHUB_STEP_SUMMARY"

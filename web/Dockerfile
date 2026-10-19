@@ -3,6 +3,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+# the release tag, e.g. v0.8.0, passed in by release.yml; shown in the footer
+ARG APP_VERSION=dev
+ENV VITE_APP_VERSION=$APP_VERSION
 RUN npm run build
 
 FROM nginx:1.30-alpine

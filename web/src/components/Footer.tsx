@@ -7,7 +7,7 @@ const Footer = () => {
   return (
     <footer>
       <div className="sitewidth">
-        v0.7{" "}
+        {import.meta.env.VITE_APP_VERSION ?? "dev"}{" "}
         <a
           href="https://github.com/ro-mat/MrMetis"
           target="_blank"
