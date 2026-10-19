@@ -66,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: qa
-      url: https://mrmetis-qa.romkats.eu
+      url: ${{ vars.APP_URL }}
     permissions:
       id-token: write
     steps:
@@ -75,5 +75,5 @@ jobs:
       - uses: ./.github/actions/home-deploy
         with:
           app: mrmetis-qa
-          url: https://mrmetis-qa.romkats.eu
+          url: ${{ vars.APP_URL }}
           deploy-url: ${{ vars.DEPLOY_URL }}
