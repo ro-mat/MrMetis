@@ -9,7 +9,9 @@ COPY MrMetis.Api/MrMetis.Api.csproj MrMetis.Api/
 RUN dotnet restore MrMetis.Api/MrMetis.Api.csproj
 
 COPY . .
-RUN dotnet publish MrMetis.Api/MrMetis.Api.csproj -c Release -o /app --no-restore
+# the release tag, e.g. v0.8.0, passed in by release.yml; shown by GET /api/version
+ARG APP_VERSION=dev
+RUN dotnet publish MrMetis.Api/MrMetis.Api.csproj -c Release -o /app --no-restore -p:InformationalVersion=$APP_VERSION
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app

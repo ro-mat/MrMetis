@@ -1,0 +1,11 @@
+# Sections of the notes that GitHub generates for a release, by PR label
+changelog:
+  exclude:
+    labels: [skip-release-notes]
+  categories:
+    - title: Features
+      labels: [enhancement]
+    - title: Fixes
+      labels: [bug]
+    - title: Other changes
+      labels: ['*']

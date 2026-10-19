@@ -1,0 +1,139 @@
+name: release
+
+# Publishing a pre-release builds that commit and deploys it to QA. Changing the pre-release to a full
+# release deploys the same images to production. prepare-release.yml creates the drafts.
+on:
+  release:
+    types: [prereleased, released]
+
+permissions:
+  contents: read
+
+env:
+  TAG: ${{ github.event.release.tag_name }}
+
+jobs:
+  # the first pre-release of vX.Y.0 from main starts release/vX.Y, where its fixes go
+  branch:
+    if: github.event.action == 'prereleased'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Create release/vX.Y
+        run: |
+          set -euo pipefail
+          IFS=. read -r major minor patch <<< "${TAG#v}"
+          branch="release/v$major.$minor"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+            echo "$branch already exists"
+          elif git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            git push origin "$GITHUB_SHA:refs/heads/$branch"
+            echo "Created $branch at ${GITHUB_SHA::7}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "$TAG isn't on main, so no release branch is created"
+          fi
+
+  build:
+    if: github.event.action == 'prereleased'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - name: web
+            context: ./web
+          - name: api
+            context: ./api
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Lowercase owner for image names
+        run: echo "OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          platforms: linux/amd64
+          build-args: APP_VERSION=${{ env.TAG }}
+          tags: |
+            ghcr.io/${{ env.OWNER }}/mrmetis-${{ matrix.name }}:${{ github.sha }}
+            ghcr.io/${{ env.OWNER }}/mrmetis-${{ matrix.name }}:${{ env.TAG }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  deploy-qa:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: qa
+      url: https://mrmetis-qa.romkats.eu
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/home-deploy
+        with:
+          app: mrmetis-qa
+          url: https://mrmetis-qa.romkats.eu
+          deploy-url: ${{ vars.DEPLOY_URL }}
+          version: ${{ env.TAG }}
+
+  deploy-prod:
+    if: github.event.action == 'released'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://mrmetis.eu
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # The receiver deploys the images tagged with this commit. Point that tag at the images QA tested,
+      # in case a later main build of the same commit replaced it.
+      - name: Use the images tested on QA
+        run: |
+          set -euo pipefail
+          for name in web api; do
+            image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/mrmetis-$name"
+            if ! docker buildx imagetools inspect "$image:$TAG" >/dev/null; then
+              echo "::error::No $image:$TAG. Publish $TAG as a pre-release first, so it is built and tested on QA."
+              exit 1
+            fi
+            docker buildx imagetools create -t "$image:$GITHUB_SHA" "$image:$TAG"
+          done
+
+      - uses: ./.github/actions/home-deploy
+        with:
+          app: mrmetis-prod
+          url: https://mrmetis.eu
+          deploy-url: ${{ vars.DEPLOY_URL }}
+          version: ${{ env.TAG }}
