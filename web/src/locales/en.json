@@ -376,10 +376,6 @@
           "header": "Production launch",
           "text": "A public production site, separate from the demo."
         },
-        "persistentData": {
-          "header": "Persistent data option",
-          "text": "Choose to keep your data saved between sessions."
-        },
         "selfHosting": {
           "header": "Self-hosting option",
           "text": "Run MrMetis on your own server."
