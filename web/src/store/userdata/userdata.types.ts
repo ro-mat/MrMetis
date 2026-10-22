@@ -16,7 +16,9 @@ export interface IUserdataState extends IBaseState {
 
 export interface IStorageUsage {
   usedBytes: number;
-  limitBytes: number;
+  // an on-device profile has no limit of its own: this is the browser's quota
+  // for the site, unknown when the browser doesn't tell
+  limitBytes?: number;
 }
 
 export interface IUserdata {

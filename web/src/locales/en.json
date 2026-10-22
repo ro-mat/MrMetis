@@ -23,7 +23,8 @@
     "budget": "Budget",
     "accounts": "Accounts",
     "preferences": "Preferences",
-    "profile": "Profile"
+    "profile": "Profile",
+    "onThisDevice": "on this device"
   },
   "quickAdd": {
     "quickAdd": "Quick add",
@@ -45,7 +46,11 @@
     "login": "Login",
     "loggingIn": "Logging in...",
     "email": "Email",
-    "password": "Password"
+    "password": "Password",
+    "modeAccount": "Account",
+    "modeLocal": "On this device",
+    "profile": "Profile name",
+    "noProfiles": "There are no profiles on this device yet. Create one on the Register page."
   },
   "register": {
     "header": "Register",
@@ -53,7 +58,11 @@
     "registering": "Registering...",
     "email": "Email",
     "password": "Password",
-    "code": "Invitation code"
+    "code": "Invitation code",
+    "profile": "Profile name",
+    "passwordRepeat": "Repeat password",
+    "createProfile": "Create profile",
+    "localNote": "The profile and its data are stored encrypted only in this browser and never sent to a server. If you forget the password or clear the site data, the data is lost, so back it up with Export in Preferences."
   },
   "charts": {
     "header": "Charts",
@@ -257,7 +266,11 @@
     "expressionParens": "Parentheses don't match",
     "expressionNumbersOnly": "Only numbers can be used here",
     "expressionNotFinite": "Amount can't be calculated (division by zero?)",
-    "expressionBudgetEmpty": "Choose a budget"
+    "expressionBudgetEmpty": "Choose a budget",
+    "localUserExists": "A profile with this name already exists on this device",
+    "localStorageFull": "Not saved: the browser has no more space for this site. Remove some data or free up space and try again.",
+    "failedLocalLogin": "Wrong profile name or password",
+    "passwordsDiffer": "Passwords do not match"
   },
   "landingPage": {
     "welcome": {
@@ -326,6 +339,11 @@
       "noBank": {
         "header": "No bank login",
         "text": "MrMetis never asks for your bank credentials. No ads, no tracking, no selling of data."
+      },
+      "onDevice": {
+        "header": "No server needed",
+        "text": "Prefer not to use our server at all? Create a profile on this device: it is encrypted and stored only in your browser, and nothing is ever sent. Each person can have their own profile, no invitation needed.",
+        "urlText": "Create a profile on this device"
       }
     },
     "roadmap": {
@@ -353,6 +371,11 @@
           "header": "Closed beta",
           "when": "October 2026",
           "text": "Export and import, closing months, charts, and the live demo with registration by invitation."
+        },
+        "onDevice": {
+          "header": "On-device profiles",
+          "when": "October 2026",
+          "text": "Use MrMetis without an account: password-protected profiles that stay encrypted in your browser, several per device, and never touch the server."
         },
         "productionLaunch": {
           "header": "Production launch",
@@ -454,7 +477,17 @@
     "importSkipped_other": "{{count}} items skipped: their account or budget doesn't exist",
     "importNotMrmetis": "This is not a file exported from MrMetis",
     "importInvalid": "The file could not be read",
-    "importLeftNotRecalculated": "What is left after the closed months could not be recalculated, as some budget formulas are broken. Fix them, then close those months again."
+    "importLeftNotRecalculated": "What is left after the closed months could not be recalculated, as some budget formulas are broken. Fix them, then close those months again.",
+    "localProfile": "Profile on this device",
+    "localProfileText": "The profile “{{name}}” and its data are stored only in this browser.",
+    "deleteProfile": "Delete profile",
+    "deleteProfileConfirm": "Delete the profile “{{name}}” and all its data from this device? This cannot be undone.",
+    "storageProtectedLabel": "Protected",
+    "storageProtected": "The browser will not remove this data to free up space. Clearing the site data in the browser still deletes it, so keep a backup with Export.",
+    "storageNotProtectedLabel": "Not protected",
+    "storageNotProtected": "The browser may remove this data when it runs low on space. Keep a backup with Export.",
+    "protectStorage": "Protect data",
+    "storageProtectDeclined": "The browser declined. Bookmarking the site, installing it as an app or using it more often may help; try again later."
   },
 
   "privacy": {

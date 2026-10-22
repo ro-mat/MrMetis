@@ -11,7 +11,8 @@ export const selectStorage = (state: AppState) => state.data.storage;
 export const selectStorageWarning = (state: AppState) => {
   const storage = state.data.storage;
   return (
-    !!storage && storage.usedBytes >= storage.limitBytes * STORAGE_WARNING_RATIO
+    storage?.limitBytes !== undefined &&
+    storage.usedBytes >= storage.limitBytes * STORAGE_WARNING_RATIO
   );
 };
 

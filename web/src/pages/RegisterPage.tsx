@@ -5,22 +5,27 @@ import "styles/register.scss";
 import { AUTH_ERROR } from "store/auth/auth.slice";
 import { useTranslation } from "react-i18next";
 import RegisterForm from "components/register/RegisterForm";
+import LocalRegisterForm from "components/register/LocalRegisterForm";
+import AuthModeToggle from "components/login/AuthModeToggle";
+import useAuthMode from "hooks/useAuthMode";
 
 const RegisterPage = () => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
 
   const { err } = useSelector((state: AppState) => state.auth);
+  const [mode, setMode] = useAuthMode();
 
   useEffect(() => {
     dispatch(AUTH_ERROR(null));
-  }, [dispatch]);
+  }, [dispatch, mode]);
 
   return (
     <div id="register-content">
-      <h2>Register</h2>
+      <h2>{t("register.header")}</h2>
+      <AuthModeToggle mode={mode} onChange={setMode} />
       {err && <div className="error">{t(`errors.${err}`)}</div>}
-      <RegisterForm />
+      {mode === "local" ? <LocalRegisterForm /> : <RegisterForm />}
     </div>
   );
 };

@@ -1,4 +1,15 @@
 .preferences {
+  // whether the browser may evict an on-device profile's data
+  .storage-status {
+    &.protected {
+      color: #2e9d4b;
+    }
+
+    &.not-protected {
+      color: red;
+    }
+  }
+
   // settings on the left, the preview apart on the right
   .preferences-body {
     display: flex;

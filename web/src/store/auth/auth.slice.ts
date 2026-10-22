@@ -3,13 +3,19 @@ import { IAuthState } from "./auth.types";
 import { DemoDataKey } from "helpers/demoHelper";
 import { IAction } from "types/IAction";
 
+export const LocalUserKey = "localUser";
+
+const localUser = localStorage.getItem(LocalUserKey);
+
 const initialState: IAuthState = {
   err: null,
   isFetching: false,
 
   token: localStorage.getItem("token"),
-  user: null,
+  // a local profile needs no check with the server, its key is the session
+  user: localUser,
   isDemo: !!localStorage.getItem(DemoDataKey),
+  isLocal: !!localUser,
 };
 
 const authSlice = createSlice({
@@ -45,10 +51,29 @@ const authSlice = createSlice({
     SET_ISDEMO: (state, action: IAction<boolean>) => {
       state.isDemo = action.payload;
     },
+    SET_LOCAL_USER: (state, action: IAction<string | null>) => {
+      state.isFetching = false;
+      state.err = null;
+
+      state.isLocal = !!action.payload;
+      state.user = action.payload;
+
+      if (action.payload) {
+        localStorage.setItem(LocalUserKey, action.payload);
+      } else {
+        localStorage.removeItem(LocalUserKey);
+      }
+    },
   },
 });
 
-export const { AUTH_FETCHING, AUTH_ERROR, SET_TOKEN, SET_USER, SET_ISDEMO } =
-  authSlice.actions;
+export const {
+  AUTH_FETCHING,
+  AUTH_ERROR,
+  SET_TOKEN,
+  SET_USER,
+  SET_ISDEMO,
+  SET_LOCAL_USER,
+} = authSlice.actions;
 
 export default authSlice.reducer;

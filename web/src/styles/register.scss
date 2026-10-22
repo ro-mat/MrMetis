@@ -3,3 +3,17 @@
   flex-direction: column;
   align-items: center;
 }
+
+#register-content {
+  .auth-mode {
+    display: flex;
+    gap: 0.5em;
+    margin-bottom: 1em;
+  }
+
+  .note {
+    max-width: 24em;
+    font-size: 0.9em;
+    opacity: 0.85;
+  }
+}

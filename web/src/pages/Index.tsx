@@ -15,6 +15,7 @@ import {
   faChartPie,
   faCircleCheck,
   faFileExport,
+  faHardDrive,
   faHourglassHalf,
   faLock,
   faWallet,
@@ -40,6 +41,7 @@ const roadmap: [string, boolean][] = [
   ["smartAmounts", true],
   ["rebuiltApp", true],
   ["closedBeta", true],
+  ["onDevice", true],
   ["productionLaunch", false],
   ["persistentData", false],
   ["selfHosting", false],
@@ -169,6 +171,18 @@ const Index = () => {
                 </div>
                 <h4>{t("landingPage.bulletPoints.noBank.header")}</h4>
                 <p>{t("landingPage.bulletPoints.noBank.text")}</p>
+              </div>
+              <div>
+                <div className="icon">
+                  <FontAwesomeIcon icon={faHardDrive} />
+                </div>
+                <h4>{t("landingPage.bulletPoints.onDevice.header")}</h4>
+                <p>{t("landingPage.bulletPoints.onDevice.text")}</p>
+                <p>
+                  <Link to="/register?mode=local">
+                    {t("landingPage.bulletPoints.onDevice.urlText")}
+                  </Link>
+                </p>
               </div>
             </div>
           </div>

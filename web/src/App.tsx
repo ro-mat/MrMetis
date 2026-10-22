@@ -30,6 +30,7 @@ import Privacy from "pages/Privacy";
 import Encryption from "pages/Encryption";
 import Preferences from "pages/Preferences";
 import { clearKey } from "services/keyStore";
+import { LocalUserKey } from "store/auth/auth.slice";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
 import { selectPreferences } from "store/userdata/userdata.selectors";
@@ -87,6 +88,9 @@ const App: FunctionComponent = () => {
   }, [authenticated, isDemo, start, pause, reset]);
 
   useEffect(() => {
+    // an on-device profile has nothing to check with the server
+    if (localStorage.getItem(LocalUserKey)) return;
+
     const storageToken = localStorage.getItem("token");
     if (storageToken) {
       dispatch(attempt(storageToken));
