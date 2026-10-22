@@ -3,7 +3,7 @@ namespace MrMetis.Core.Requests;
 public record UserRegistrationRequest(
     string Email,
     string Password,
-    string InvitationCode,
+    string? InvitationCode,
     string Salt,
     int Iterations,
     string WrappedKey);

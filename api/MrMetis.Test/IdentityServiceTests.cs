@@ -116,6 +116,20 @@ public class IdentityServiceTests : DbTestBase
     }
 
     [Test]
+    public async Task Register_WithoutInvitationCodeFeature_ShouldNotNeedCode()
+    {
+        await AddInvitationCode();
+        _service = CreateService(new StorageOptions { DefaultLimitMegabytes = 10 }, invitationCode: false);
+
+        var result = await _service.RegisterAsync(Email, "password", null, Keys);
+
+        Assert.That(result.Success, Is.True);
+        // the code is left for when the feature is on again
+        await using var db = CreateContext();
+        Assert.That(await db.InvitationCodes.AnyAsync(), Is.True);
+    }
+
+    [Test]
     public async Task Register_ShouldReturnTokenWithUserClaims()
     {
         await AddInvitationCode();
@@ -204,8 +218,9 @@ public class IdentityServiceTests : DbTestBase
         Db.ChangeTracker.Clear();
     }
 
-    private IdentityService CreateService(StorageOptions storage) =>
-        new(Db, Options.Create(Jwt), Options.Create(storage), new TokenService(Options.Create(Jwt), TimeProvider.System),
+    private IdentityService CreateService(StorageOptions storage, bool invitationCode = true) =>
+        new(Db, Options.Create(Jwt), Options.Create(storage), new TestOptionsMonitor<FeatureOptions>(new FeatureOptions { InvitationCode = invitationCode }),
+            new TokenService(Options.Create(Jwt), TimeProvider.System),
             new PasswordHasher<User>(), TimeProvider.System);
 
     private Task AddInvitationCode(string code = InvitationCode) =>

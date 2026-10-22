@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
         builder.AddJwtAuthentication();
         builder.AddTelemetry();
 
+        builder.Services.AddMemoryCache();
         builder.Services.AddProblemDetails();
         builder.Services.AddExceptionHandler<MrMetisExceptionHandler>();
         builder.Services.AddOpenApi();

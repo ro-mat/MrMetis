@@ -342,7 +342,7 @@
       },
       "onDevice": {
         "header": "No server needed",
-        "text": "Prefer not to use our server at all? Create a profile on this device: it is encrypted and stored only in your browser, and nothing is ever sent. Each person can have their own profile, no invitation needed.",
+        "text": "Prefer not to use our server at all? Create a profile on this device: it is encrypted and stored only in your browser, and nothing is ever sent. Each person can have their own profile.",
         "urlText": "Create a profile on this device"
       }
     },
@@ -366,11 +366,6 @@
           "header": "Rebuilt app",
           "when": "October 2026",
           "text": "Reworked forms, backend and layout, and updated in-browser encryption."
-        },
-        "closedBeta": {
-          "header": "Closed beta",
-          "when": "October 2026",
-          "text": "Export and import, closing months, charts, and the live demo with registration by invitation."
         },
         "onDevice": {
           "header": "On-device profiles",

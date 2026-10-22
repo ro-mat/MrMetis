@@ -68,7 +68,6 @@ The dashboard shows your current balance on every account, what's still left to 
 Don't want your budget on anyone's server, even encrypted? Choose **On this device** when you register. Your profile is protected by a password, encrypted with the same AES-256-GCM scheme, and stored only in your browser. In this mode MrMetis makes no server calls at all.
 
 - **Several profiles per device**: everyone in the household gets their own, each with its own password.
-- **No invitation code needed.**
 - **Protected from clean-up**: MrMetis asks the browser to keep the data even when disk space runs low. Preferences shows whether the browser agreed.
 - **Back it up with Export**: the data lives only in this browser. Clearing the site's data or forgetting the password loses it. Export and import also move a budget between a device profile and an account.
 
@@ -104,14 +103,13 @@ How it works:
 
 👉 **[Open the demo](https://mrmetis-qa.romkats.eu)** and press **Try Demo**. You don't need an account. The demo comes with a sample household budget that you can change as much as you like. Demo data stays in your browser.
 
-MrMetis is in **closed beta**: registering an account needs an invitation code. A profile **on this device** doesn't: choose that option on the Register page. You can also [run it locally](DEVELOPMENT.md) in a few minutes.
+To keep your budget, register an account, or choose **On this device** on the Register page for a profile that stays in your browser. You can also [run it locally](DEVELOPMENT.md) in a few minutes.
 
 ## Roadmap
 
 - [x] **First release** (May 2023): planning table, dashboard, statements, quick add and a demo budget, in English and Russian.
 - [x] **Smart amounts** (January 2024): a new calculation engine. Amounts built from other items, type totals and weekdays, and budget items across several accounts.
 - [x] **Rebuilt app** (October 2026): reworked forms, backend and layout, and updated in-browser encryption.
-- [x] **Closed beta** (October 2026): export and import, closing months, charts, and the live demo with registration by invitation.
 - [x] **On-device profiles** (October 2026): use MrMetis without an account. Password-protected profiles stay encrypted in your browser, several per device, and never touch the server.
 - [ ] **Production launch**: a public production site, separate from the demo.
 - [ ] **Persistent data option**: choose to keep your data saved between sessions.

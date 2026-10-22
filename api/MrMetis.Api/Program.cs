@@ -20,6 +20,7 @@ app.UseApiPipeline();
 app.MapIdentityEndpoints();
 app.MapUserDataEndpoints();
 app.MapVersionEndpoints();
+app.MapFeatureEndpoints();
 app.MapHealthChecks("/health");
 app.MapSpaFallback();
 

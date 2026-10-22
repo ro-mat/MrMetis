@@ -1,4 +1,5 @@
 import useToggle from "hooks/useToggle";
+import useFeatures from "hooks/useFeatures";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,6 +17,7 @@ const RawDataEditor = () => {
 
   const { userdata } = useSelector((state: AppState) => state.data);
   const hasSession = useSelector(selectHasSession);
+  const features = useFeatures();
 
   const [isOpen, toggle] = useToggle(false);
   const [userdataStr, setUserdataStr] = useState("");
@@ -40,7 +42,7 @@ const RawDataEditor = () => {
     dispatch(loadUserdata());
   };
 
-  if (!hasSession) {
+  if (!hasSession || !features?.rawData) {
     return null;
   }
 

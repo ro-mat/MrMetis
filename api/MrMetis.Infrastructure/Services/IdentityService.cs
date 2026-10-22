@@ -17,6 +17,7 @@ public class IdentityService(
     MrMetisContext db,
     IOptions<JwtOptions> jwtOptions,
     IOptions<StorageOptions> storageOptions,
+    IOptionsMonitor<FeatureOptions> featureOptions,
     ITokenService tokenService,
     IPasswordHasher<User> passwordHasher,
     TimeProvider timeProvider) : IIdentityService
@@ -33,17 +34,21 @@ public class IdentityService(
             : new PreloginResponse(user.KdfSalt, user.KdfIterations);
     }
 
-    public async Task<AuthenticationResult> RegisterAsync(string email, string password, string invitationCode, KeyMaterial keys, CancellationToken ct = default)
+    public async Task<AuthenticationResult> RegisterAsync(string email, string password, string? invitationCode, KeyMaterial keys, CancellationToken ct = default)
     {
         if (!IsValid(keys))
         {
             return AuthenticationResult.Failed("kdfInvalid");
         }
 
-        var code = await db.InvitationCodes.FirstOrDefaultAsync(x => x.Code == invitationCode, ct);
-        if (code is null)
+        InvitationCode? code = null;
+        if (featureOptions.CurrentValue.InvitationCode)
         {
-            return AuthenticationResult.Failed("codeInvalid");
+            code = await db.InvitationCodes.FirstOrDefaultAsync(x => x.Code == invitationCode, ct);
+            if (code is null)
+            {
+                return AuthenticationResult.Failed("codeInvalid");
+            }
         }
 
         if (await db.Users.AnyAsync(x => x.Email == email, ct))
@@ -74,8 +79,11 @@ public class IdentityService(
         db.Users.Add(user);
 
         // soft delete, the code can be used only once
-        code.IsActive = false;
-        code.Modified = now;
+        if (code is not null)
+        {
+            code.IsActive = false;
+            code.Modified = now;
+        }
 
         await db.SaveChangesAsync(ct);
 

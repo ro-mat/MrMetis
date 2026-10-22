@@ -26,6 +26,8 @@ public static class DependencyInjection
             .BindConfiguration(JwtOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
+        services.AddOptions<FeatureOptions>()
+            .BindConfiguration(FeatureOptions.SectionName);
         services.AddOptions<StorageOptions>()
             .BindConfiguration(StorageOptions.SectionName)
             .ValidateDataAnnotations()

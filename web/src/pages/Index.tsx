@@ -40,7 +40,6 @@ const roadmap: [string, boolean][] = [
   ["firstRelease", true],
   ["smartAmounts", true],
   ["rebuiltApp", true],
-  ["closedBeta", true],
   ["onDevice", true],
   ["productionLaunch", false],
   ["persistentData", false],
