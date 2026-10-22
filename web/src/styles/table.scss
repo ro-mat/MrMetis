@@ -155,7 +155,7 @@ table {
       background-color: $primary-color-highlight;
     }
 
-    // close / reopen a month: small and faint until hovered
+    // close / reopen a month: small, faint until hovered once closed
     .month-toggle {
       padding: 0.05em 0.4em;
       border: 1px solid currentColor;
@@ -170,6 +170,10 @@ table {
       &:hover,
       &:focus-visible {
         opacity: 0.8;
+      }
+
+      &.is-open {
+        opacity: 1;
       }
     }
   }
