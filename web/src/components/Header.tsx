@@ -95,6 +95,11 @@ const Header = (): React.JSX.Element => {
         ]
       : []),
     {
+      key: "dashboard",
+      label: t("nav.dashboard"),
+      onClick: () => navigate("/dashboard"),
+    },
+    {
       key: "preferences",
       label: t("nav.preferences"),
       onClick: () => navigate("/preferences"),
