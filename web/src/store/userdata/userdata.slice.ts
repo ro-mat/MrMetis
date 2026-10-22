@@ -225,7 +225,13 @@ const userdataSlice = createSlice({
       { payload }: IAction<Imported & { overwrite?: boolean }>
     ) => {
       let removed: IStatement[] = [];
-      if (payload.entity === "preferences") {
+      if (payload.entity === "all") {
+        // as stored when exported, closed sums and what is left included
+        state.userdata = {
+          ...payload.data,
+          preferences: withDefaults(payload.data.preferences),
+        };
+      } else if (payload.entity === "preferences") {
         state.userdata.preferences = withDefaults(payload.items[0]);
       } else {
         const list: IHaveMetadata[] = state.userdata[payload.entity];

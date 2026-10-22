@@ -12,7 +12,17 @@ export type Imported =
   | { entity: "statements"; items: IStatement[] }
   | { entity: "budgets"; items: IBudget[] }
   | { entity: "accounts"; items: IAccount[] }
-  | { entity: "preferences"; items: Partial<IPreferences>[] };
+  | { entity: "preferences"; items: Partial<IPreferences>[] }
+  // everything, replacing all current data (ids as in the file)
+  | { entity: "all"; data: ImportedAll };
+
+export interface ImportedAll {
+  accounts: IAccount[];
+  budgets: IBudget[];
+  statements: IStatement[];
+  preferences: Partial<IPreferences>;
+  closedMonths: string[];
+}
 
 // Reads the files of one app or bank.
 export interface IImporter {

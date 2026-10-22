@@ -32,16 +32,22 @@ const DataImport = () => {
   const handleImport = handleSubmit(async ({ file, mode }) => {
     try {
       const imported = importer.parse(await file.text());
+      // a backup replaces everything, it can't be added to the current data
+      if (imported.entity === "all" && mode === "add") {
+        throw new ImportError("preferences.importAllOverwriteOnly");
+      }
       // preferences are always replaced, nothing to warn about
       if (
         mode === "overwrite" &&
         imported.entity !== "preferences" &&
         !window.confirm(
-          t("preferences.importOverwriteConfirm", {
-            entity: t(
-              `preferences.exportEntities.${imported.entity}`
-            ).toLocaleLowerCase(),
-          })
+          imported.entity === "all"
+            ? t("preferences.importOverwriteAllConfirm")
+            : t("preferences.importOverwriteConfirm", {
+                entity: t(
+                  `preferences.exportEntities.${imported.entity}`
+                ).toLocaleLowerCase(),
+              })
         )
       ) {
         return;

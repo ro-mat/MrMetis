@@ -1,7 +1,7 @@
 import { defaultPreferences } from "helpers/localeHelper";
-import { toCsv, toJson } from "helpers/exportHelper";
+import { toCsv, toJson, toJsonAll } from "helpers/exportHelper";
 import { parseCsv } from "helpers/csvHelper";
-import { IMPORTERS, ImportError } from "helpers/importers";
+import { IMPORTERS, Imported, ImportError } from "helpers/importers";
 import { prepareImport } from "helpers/importHelper";
 import { getData } from "helpers/demoData";
 import reducer, {
@@ -16,6 +16,12 @@ import {
 } from "store/userdata/userdata.types";
 
 const mrmetis = IMPORTERS[0];
+
+// the items of a file of one kind (not all data)
+const itemsOf = (imported: Imported) => {
+  if (imported.entity === "all") throw new Error("all data has no items");
+  return imported.items;
+};
 
 const userdata = (): IUserdata => ({
   accounts: [
@@ -90,14 +96,14 @@ describe("mrmetis import", () => {
       for (const text of [toCsv(data, entity), toJson(data, entity)]) {
         const imported = mrmetis.parse(text);
         expect(imported.entity).toBe(entity);
-        expect(imported.items).toEqual(data[entity]);
+        expect(itemsOf(imported)).toEqual(data[entity]);
       }
     }
   );
 
   it("reads a csv with a BOM", () => {
     const imported = mrmetis.parse("﻿" + toCsv(userdata(), "accounts"));
-    expect(imported.items).toHaveLength(1);
+    expect(itemsOf(imported)).toHaveLength(1);
   });
 
   it("refuses other files", () => {
@@ -133,7 +139,7 @@ describe("importing stored data", () => {
           mrmetis.parse(text)
         );
         expect(skipped).toBe(0);
-        expect(prepared.items).toHaveLength(stored[entity].length);
+        expect(itemsOf(prepared)).toHaveLength(stored[entity].length);
       }
     }
   );
@@ -143,8 +149,8 @@ describe("importing stored data", () => {
     const imported = mrmetis.parse(
       JSON.stringify({ app: "mrmetis", entity: "budgets", items: [budget] })
     );
-    expect(imported.items[0]).not.toHaveProperty("parentId", null);
-    expect(imported.items[0]).not.toHaveProperty("closed", null);
+    expect(itemsOf(imported)[0]).not.toHaveProperty("parentId", null);
+    expect(itemsOf(imported)[0]).not.toHaveProperty("closed", null);
   });
 });
 
@@ -230,7 +236,7 @@ describe("prepareImport", () => {
       items,
     });
     expect(skipped).toBe(1);
-    expect(prepared.items).toEqual([
+    expect(itemsOf(prepared)).toEqual([
       expect.objectContaining({ id: 5, date: "2026-02-03", accountId: 1 }),
       expect.objectContaining({ id: 6, date: "2026-01-15", accountId: 1 }),
     ]);
@@ -242,7 +248,7 @@ describe("prepareImport", () => {
       data,
       mrmetis.parse(toCsv(data, "budgets"))
     );
-    const budgets = prepared.items as IUserdata["budgets"];
+    const budgets = itemsOf(prepared) as IUserdata["budgets"];
     expect(budgets.map((b) => b.id)).toEqual([4, 5]);
     expect(budgets.map((b) => b.parentId)).toEqual([undefined, 4]);
   });
@@ -253,7 +259,7 @@ describe("prepareImport", () => {
       data,
       mrmetis.parse(toCsv(data, "accounts"))
     );
-    expect(prepared.items).toEqual([
+    expect(itemsOf(prepared)).toEqual([
       expect.objectContaining({
         id: 2,
         leftFromPrevMonth: [{ month: "2026-01-01", amount: 10, accountId: 2 }],
@@ -275,7 +281,7 @@ describe("overwriting", () => {
       "overwrite"
     );
     expect(skipped).toBe(1);
-    expect(prepared.items).toEqual([items[0]]);
+    expect(itemsOf(prepared)).toEqual([items[0]]);
   });
 
   it("drops a budget parent that isn't in the file", () => {
@@ -285,7 +291,7 @@ describe("overwriting", () => {
       { entity: "budgets", items: [data.budgets[1]] },
       "overwrite"
     );
-    expect(prepared.items).toEqual([
+    expect(itemsOf(prepared)).toEqual([
       expect.objectContaining({ id: 3, parentId: undefined }),
     ]);
   });
@@ -300,5 +306,29 @@ describe("overwriting", () => {
     expect(s.userdata.accounts).toEqual([account]);
     // other kinds stay
     expect(s.userdata.budgets).toHaveLength(2);
+  });
+});
+
+describe("all data", () => {
+  it("exports and imports back in place of everything", () => {
+    const data = { ...userdata(), closedMonths: ["2026-01-01"] };
+    const imported = mrmetis.parse(toJsonAll(data));
+    expect(imported).toEqual({ entity: "all", data });
+
+    let s = reducer(
+      undefined,
+      SET_USERDATA({ accounts: [{ ...data.accounts[0], id: 9 }] })
+    );
+    s = reducer(s, IMPORT_DATA({ ...imported, overwrite: true }));
+    expect(s.userdata).toEqual(data);
+  });
+
+  it("refuses a file missing a kind", () => {
+    const text = JSON.stringify({
+      app: "mrmetis",
+      entity: "all",
+      data: { accounts: [], budgets: [], preferences: {} },
+    });
+    expect(() => mrmetis.parse(text)).toThrow("preferences.importInvalid");
   });
 });

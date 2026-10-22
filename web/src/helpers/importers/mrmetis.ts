@@ -2,6 +2,7 @@ import { z } from "zod";
 import { parseCsv } from "helpers/csvHelper";
 import {
   APP_CODE,
+  EXPORT_ALL,
   EXPORT_COLUMNS,
   EXPORT_ENTITIES,
   ExportEntity,
@@ -134,15 +135,37 @@ const fromCsv = (text: string) => {
   return { entity, items };
 };
 
-const fromJson = (text: string) => {
-  let data: { app?: unknown; entity?: unknown; items?: unknown };
+// all data: every kind at once, the preferences one item
+const ALL_SCHEMA = z.object({
+  accounts: z.array(SCHEMAS.accounts),
+  budgets: z.array(SCHEMAS.budgets),
+  statements: z.array(SCHEMAS.statements),
+  preferences: SCHEMAS.preferences,
+  closedMonths: z.array(z.string()).default([]),
+});
+
+type JsonExport = {
+  app?: unknown;
+  entity?: unknown;
+  items?: unknown;
+  data?: unknown;
+};
+
+const readJson = (text: string) => {
+  let data: JsonExport;
   try {
     data = JSON.parse(text);
   } catch {
     throw new ImportError("preferences.importInvalid");
   }
+  if (data?.app !== APP_CODE) {
+    throw new ImportError("preferences.importNotMrmetis");
+  }
+  return data;
+};
+
+const fromJson = (data: JsonExport) => {
   if (
-    data?.app !== APP_CODE ||
     !EXPORT_ENTITIES.includes(data.entity as ExportEntity) ||
     !Array.isArray(data.items)
   ) {
@@ -151,18 +174,26 @@ const fromJson = (text: string) => {
   return { entity: data.entity as ExportEntity, items: data.items };
 };
 
-// Our own exports, csv or json (told apart by the content).
+const allFromJson = (data: JsonExport): Imported => {
+  const parsed = ALL_SCHEMA.safeParse(data.data);
+  if (!parsed.success) {
+    throw new ImportError("preferences.importInvalid");
+  }
+  return { entity: EXPORT_ALL, data: parsed.data } as Imported;
+};
+
+// Our own exports, csv or json (told apart by the content); all data is json
+// only.
 export const mrmetisImporter: IImporter = {
   source: APP_CODE,
   label: "MrMetis",
   accept: ".csv,.json",
   parse: (text) => {
-    const { entity, items } = text
-      .replace(/^\uFEFF/, "")
-      .trimStart()
-      .startsWith("{")
-      ? fromJson(text)
-      : fromCsv(text);
+    const json = text.replace(/^\uFEFF/, "").trimStart().startsWith("{")
+      ? readJson(text)
+      : undefined;
+    if (json?.entity === EXPORT_ALL) return allFromJson(json);
+    const { entity, items } = json ? fromJson(json) : fromCsv(text);
     const parsed = z.array(SCHEMAS[entity]).safeParse(items);
     if (
       !parsed.success ||

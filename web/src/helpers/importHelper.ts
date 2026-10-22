@@ -78,6 +78,8 @@ export const prepareImport = (
         skipped: imported.items.length - valid.length,
       };
     }
+    // a backup, its links are its own; only ever overwrites (see DataImport)
+    case "all":
     case "preferences":
       return { prepared: imported, skipped: 0 };
     case "accounts": {

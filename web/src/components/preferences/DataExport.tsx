@@ -1,18 +1,22 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useStore } from "react-redux";
 import { useTranslation } from "react-i18next";
+import { useWatch } from "react-hook-form";
 import { z } from "zod";
 import { AppState } from "store/store";
 import { Button, SelectBox } from "components/ui";
 import useAppForm from "hooks/useAppForm";
 import {
+  EXPORT_ALL,
   EXPORT_ENTITIES,
   EXPORT_FORMATS,
   exportData,
 } from "helpers/exportHelper";
 
+const entities = [...EXPORT_ENTITIES, EXPORT_ALL] as const;
+
 const schema = z.object({
-  entity: z.enum(EXPORT_ENTITIES),
+  entity: z.enum(entities),
   format: z.enum(EXPORT_FORMATS),
 });
 
@@ -21,10 +25,15 @@ const DataExport = () => {
   const { t } = useTranslation();
   // the data is read on export only, so changes don't re-render this
   const store = useStore<AppState>();
-  const { control, handleSubmit } = useAppForm(schema, {
+  const { control, handleSubmit, setValue } = useAppForm(schema, {
     entity: "statements",
     format: "csv",
   });
+  // all data is json only
+  const isAll = useWatch({ control, name: "entity" }) === EXPORT_ALL;
+  useEffect(() => {
+    if (isAll) setValue("format", "json");
+  }, [isAll, setValue]);
 
   const handleExport = handleSubmit(({ entity, format }) =>
     exportData(store.getState().data.userdata, entity, format)
@@ -39,7 +48,7 @@ const DataExport = () => {
           name="entity"
           control={control}
           label="preferences.exportEntity"
-          options={EXPORT_ENTITIES.map((en) => ({
+          options={entities.map((en) => ({
             value: en,
             label: t(`preferences.exportEntities.${en}`),
           }))}
@@ -48,10 +57,12 @@ const DataExport = () => {
           name="format"
           control={control}
           label="preferences.exportFormat"
-          options={EXPORT_FORMATS.map((f) => ({
-            value: f,
-            label: f.toUpperCase(),
-          }))}
+          options={EXPORT_FORMATS.filter((f) => !isAll || f === "json").map(
+            (f) => ({
+              value: f,
+              label: f.toUpperCase(),
+            })
+          )}
         />
       </div>
       <div>

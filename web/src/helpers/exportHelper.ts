@@ -19,6 +19,9 @@ export const EXPORT_ENTITIES = [
 export const EXPORT_FORMATS = ["csv", "json"] as const;
 export type ExportEntity = (typeof EXPORT_ENTITIES)[number];
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];
+// everything in one json file (a backup), including the closed months
+export const EXPORT_ALL = "all";
+export type ExportChoice = ExportEntity | typeof EXPORT_ALL;
 
 // How a column is written to a csv cell and read back: numbers and booleans as
 // text, nested values as json, budget types by name; plain text otherwise.
@@ -159,14 +162,38 @@ export const toJson = (userdata: IUserdata, entity: ExportEntity) =>
     2
   );
 
-const exportFileName = (entity: ExportEntity, format: ExportFormat) =>
+export const toJsonAll = (userdata: IUserdata) =>
+  JSON.stringify(
+    {
+      app: APP_CODE,
+      entity: EXPORT_ALL,
+      exportedAt: new Date().toISOString(),
+      data: {
+        accounts: userdata.accounts,
+        budgets: userdata.budgets,
+        statements: userdata.statements,
+        preferences: userdata.preferences,
+        closedMonths: userdata.closedMonths,
+      },
+    },
+    undefined,
+    2
+  );
+
+const exportFileName = (entity: ExportChoice, format: ExportFormat) =>
   `${APP_CODE}-${entity}-${moment().format(DATE_FORMAT)}.${format}`;
 
+// all data is json only, whatever `format` says
 export const exportData = (
   userdata: IUserdata,
-  entity: ExportEntity,
+  entity: ExportChoice,
   format: ExportFormat
 ) => {
+  if (entity === EXPORT_ALL) {
+    const blob = new Blob([toJsonAll(userdata)], { type: "application/json" });
+    downloadFile(blob, exportFileName(entity, "json"));
+    return;
+  }
   // the BOM makes Excel read the file as UTF-8 (e.g. Cyrillic names)
   const blob =
     format === "csv"

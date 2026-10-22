@@ -172,9 +172,11 @@ export const importData =
     dispatch(IMPORT_DATA({ ...prepared, overwrite }));
     dispatch(
       ADD_SUCCESS_TOAST(
-        prepared.entity === "preferences"
-          ? i18n.t("preferences.importedPreferences")
-          : i18n.t("preferences.imported", { count: prepared.items.length })
+        prepared.entity === "all"
+          ? i18n.t("preferences.importedAll")
+          : prepared.entity === "preferences"
+            ? i18n.t("preferences.importedPreferences")
+            : i18n.t("preferences.imported", { count: prepared.items.length })
       )
     );
     if (skipped) {
