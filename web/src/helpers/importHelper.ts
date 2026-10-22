@@ -9,21 +9,32 @@ import {
   IUserdata,
 } from "store/userdata/userdata.types";
 
-// Imported items are added, never overwrite: each one gets a new id. Links
-// within the file follow the new ids; links to other data (a statement's
-// account and budget, a budget's accounts) must exist in the current data,
-// items missing them are skipped. Statements are added to closed months and
-// budgets too (an import restores what was there), see IMPORT_DATA.
+// "add": imported items are added, never overwrite: each one gets a new id.
+// "overwrite": they replace every current item of their kind, ids as in the
+// file.
+export const IMPORT_MODES = ["add", "overwrite"] as const;
+export type ImportMode = (typeof IMPORT_MODES)[number];
+
+// Adding: links within the file follow the new ids. Either way, links to
+// other data (a statement's account and budget, a budget's accounts) must
+// exist in the current data, items missing them are skipped; overwriting
+// budgets, a parent must be in the file too. Statements are added to closed
+// months and budgets too (an import restores what was there), see IMPORT_DATA.
 export const prepareImport = (
   userdata: IUserdata,
-  imported: Imported
+  imported: Imported,
+  mode: ImportMode = "add"
 ): { prepared: Imported; skipped: number } => {
+  const overwrite = mode === "overwrite";
   const now = moment().format(DATE_TIME_FORMAT);
   const added = { dateCreated: now, dateModified: undefined };
   const accountIds = new Set(userdata.accounts.map((a) => a.id));
   const budgetIds = new Set(userdata.budgets.map((b) => b.id));
 
   const withNewIds = <T extends { id: number }>(items: T[], existing: T[]) => {
+    if (overwrite) {
+      return { ids: new Map(items.map((item) => [item.id, item.id])), items };
+    }
     const first = nextId(existing);
     const ids = new Map(items.map((item, i) => [item.id, first + i]));
     return {
@@ -52,11 +63,12 @@ export const prepareImport = (
           (!b.fromAccountId || accountIds.has(b.fromAccountId))
       );
       const { ids, items } = withNewIds<IBudget>(valid, userdata.budgets);
-      // a parent from the file follows its new id (none when it was skipped)
+      // a parent from the file follows its new id (none when it was skipped);
+      // overwriting, the current budgets are gone
       const parentId = (id?: number) => {
         if (!id) return id;
         if (inFile.has(id)) return ids.get(id);
-        return budgetIds.has(id) ? id : undefined;
+        return !overwrite && budgetIds.has(id) ? id : undefined;
       };
       return {
         prepared: {

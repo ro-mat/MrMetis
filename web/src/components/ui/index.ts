@@ -4,6 +4,7 @@ export { default as FileInput } from "./FileInput";
 export { default as AmountInput } from "./AmountInput";
 export { default as TextArea } from "./TextArea";
 export { default as Checkbox } from "./Checkbox";
+export { default as RadioGroup } from "./RadioGroup";
 export { default as DateInput } from "./DateInput";
 export { default as SelectBox } from "./SelectBox";
 export type { ISelectOption } from "./SelectBox";

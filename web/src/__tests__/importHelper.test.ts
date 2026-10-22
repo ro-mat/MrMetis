@@ -261,3 +261,44 @@ describe("prepareImport", () => {
     ]);
   });
 });
+
+describe("overwriting", () => {
+  it("keeps the file's ids and dates, skipping missing links", () => {
+    const data = userdata();
+    const items = [
+      { ...data.statements[0], id: 1 },
+      { ...data.statements[0], id: 7, accountId: 99 },
+    ];
+    const { prepared, skipped } = prepareImport(
+      data,
+      { entity: "statements", items },
+      "overwrite"
+    );
+    expect(skipped).toBe(1);
+    expect(prepared.items).toEqual([items[0]]);
+  });
+
+  it("drops a budget parent that isn't in the file", () => {
+    const data = userdata();
+    const { prepared } = prepareImport(
+      data,
+      { entity: "budgets", items: [data.budgets[1]] },
+      "overwrite"
+    );
+    expect(prepared.items).toEqual([
+      expect.objectContaining({ id: 3, parentId: undefined }),
+    ]);
+  });
+
+  it("replaces every current item of the kind", () => {
+    let s = reducer(undefined, SET_USERDATA(userdata()));
+    const account = { ...userdata().accounts[0], id: 5, name: "Card" };
+    s = reducer(
+      s,
+      IMPORT_DATA({ entity: "accounts", items: [account], overwrite: true })
+    );
+    expect(s.userdata.accounts).toEqual([account]);
+    // other kinds stay
+    expect(s.userdata.budgets).toHaveLength(2);
+  });
+});

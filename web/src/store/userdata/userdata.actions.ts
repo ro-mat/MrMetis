@@ -21,7 +21,7 @@ import { SET_ISDEMO } from "store/auth/auth.slice";
 import { ADD_ERROR_TOAST, ADD_SUCCESS_TOAST } from "store/ui/ui.slice";
 import i18n from "i18next";
 import { Imported } from "helpers/importers";
-import { prepareImport } from "helpers/importHelper";
+import { ImportMode, prepareImport } from "helpers/importHelper";
 import { recalculateClosedMonths } from "services/closedMonthsRecalculation";
 
 interface IUserdataResponse {
@@ -151,18 +151,25 @@ export const startDemo = (): TAppThunk => (dispatch) => {
   dispatch(SET_ISDEMO(true));
 };
 
-// Adds what a file holds (see prepareImport) and tells what happened.
+// Adds what a file holds, or puts it in place of the current items (see
+// prepareImport), and tells what happened.
 // Imported statements also change what is left after the closed months from
 // theirs on; when that can't be calculated (a broken formula) the stored left
 // stays and a toast says so.
 export const importData =
-  (imported: Imported): TAppThunk =>
+  (imported: Imported, mode: ImportMode = "add"): TAppThunk =>
   (dispatch, getState) => {
+    const overwrite = mode === "overwrite";
+    // overwriting, the removed statements' months change too
+    const removedDates = overwrite
+      ? getState().data.userdata.statements.map((s) => s.date)
+      : [];
     const { prepared, skipped } = prepareImport(
       getState().data.userdata,
-      imported
+      imported,
+      mode
     );
-    dispatch(IMPORT_DATA(prepared));
+    dispatch(IMPORT_DATA({ ...prepared, overwrite }));
     dispatch(
       ADD_SUCCESS_TOAST(
         prepared.entity === "preferences"
@@ -176,8 +183,12 @@ export const importData =
       );
     }
 
-    if (prepared.entity !== "statements" || !prepared.items.length) return;
-    const first = prepared.items.map((s) => s.date).sort()[0];
+    if (prepared.entity !== "statements") return;
+    const first = [
+      ...removedDates,
+      ...prepared.items.map((s) => s.date),
+    ].sort()[0];
+    if (!first) return;
     try {
       const left = recalculateClosedMonths(getState().data.userdata, first);
       if (left) dispatch(SET_LEFT_FROM_PREV_MONTH(left));

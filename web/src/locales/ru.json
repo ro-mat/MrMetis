@@ -473,6 +473,12 @@
     "import": "Импорт данных",
     "importSource": "Экспортировано из",
     "importFile": "Файл",
+    "importMode": "Импортированные данные",
+    "importModes": {
+      "add": "Добавить к текущим",
+      "overwrite": "Заменить текущие"
+    },
+    "importOverwriteConfirm": "Все текущие {{entity}} будут заменены данными из файла. Продолжить?",
     "importButton": "Импортировать",
     "imported_one": "Импортирован {{count}} элемент",
     "imported_few": "Импортировано {{count}} элемента",
