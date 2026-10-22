@@ -459,11 +459,21 @@
       "statements": "Statements",
       "budgets": "Budgets",
       "accounts": "Accounts",
-      "preferences": "Preferences"
+      "preferences": "Preferences",
+      "all": "All data (JSON only)"
     },
     "import": "Import data",
     "importSource": "Exported from",
     "importFile": "File",
+    "importMode": "Imported items",
+    "importModes": {
+      "add": "Add to current data",
+      "overwrite": "Overwrite current data"
+    },
+    "importOverwriteConfirm": "All your current {{entity}} will be replaced by the ones in the file. Continue?",
+    "importedAll": "All data imported",
+    "importAllOverwriteOnly": "A file with all data can only overwrite the current data. Choose \"Overwrite current data\".",
+    "importOverwriteAllConfirm": "All your current data (accounts, budgets, statements, preferences and closed months) will be replaced by the file. Continue?",
     "importButton": "Import",
     "imported_one": "{{count}} item imported",
     "imported_other": "{{count}} items imported",

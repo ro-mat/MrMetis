@@ -218,19 +218,33 @@ const userdataSlice = createSlice({
       state.savePending = true;
     },
 
-    // items from prepareImport (new ids, links checked)
-    IMPORT_DATA: (state, { payload }: IAction<Imported>) => {
-      if (payload.entity === "preferences") {
+    // items from prepareImport (links checked; new ids unless overwriting,
+    // when they replace the current items of their kind)
+    IMPORT_DATA: (
+      state,
+      { payload }: IAction<Imported & { overwrite?: boolean }>
+    ) => {
+      let removed: IStatement[] = [];
+      if (payload.entity === "all") {
+        // as stored when exported, closed sums and what is left included
+        state.userdata = {
+          ...payload.data,
+          preferences: withDefaults(payload.data.preferences),
+        };
+      } else if (payload.entity === "preferences") {
         state.userdata.preferences = withDefaults(payload.items[0]);
       } else {
         const list: IHaveMetadata[] = state.userdata[payload.entity];
+        const old = list.splice(0, payload.overwrite ? list.length : 0);
+        if (payload.entity === "statements") removed = old as IStatement[];
         list.push(...payload.items);
       }
       if (payload.entity === "statements") {
         // also to closed budgets, their stored sums follow (what is left
-        // after closed months: see importData)
+        // after closed months: see importData); the months of removed
+        // statements too
         payload.items.forEach((s) => closeIfSingleStatement(state, s));
-        recalculateClosed(state.userdata, payload.items);
+        recalculateClosed(state.userdata, [...removed, ...payload.items]);
       }
       state.savePending = true;
     },

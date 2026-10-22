@@ -461,6 +461,26 @@ describe("statements of closed budgets", () => {
     ]);
   });
 
+  it("overwriting statements recalculates the sums of closed budgets", () => {
+    let s = reducer(undefined, SET_USERDATA(data()));
+    s = reducer(s, CLOSE_BUDGET({ budgetId: 1, month: day(1) }));
+    s = reducer(
+      s,
+      IMPORT_DATA({
+        entity: "statements",
+        items: [statement(10, 1, MAIN, 4.5)],
+        overwrite: true,
+      })
+    );
+
+    expect(s.userdata.statements).toHaveLength(1);
+    expect(closedOf(s.userdata, 1)).toEqual([
+      { month: day(1), accountId: MAIN, actual: 4.5 },
+      { month: day(1), accountId: CARD, actual: 0 },
+      { month: day(1), accountId: 0, actual: 4.5 },
+    ]);
+  });
+
   it("loading legacy data migrates it and saves it", () => {
     const s = reducer(
       undefined,
