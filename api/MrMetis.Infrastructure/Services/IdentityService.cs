@@ -1,11 +1,8 @@
-using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
 using MrMetis.Core;
 using MrMetis.Core.Dtos;
 using MrMetis.Core.Entities;
@@ -20,6 +17,7 @@ public class IdentityService(
     MrMetisContext db,
     IOptions<JwtOptions> jwtOptions,
     IOptions<StorageOptions> storageOptions,
+    ITokenService tokenService,
     IPasswordHasher<User> passwordHasher,
     TimeProvider timeProvider) : IIdentityService
 {
@@ -81,7 +79,7 @@ public class IdentityService(
 
         await db.SaveChangesAsync(ct);
 
-        return AuthenticationResult.Succeeded(CreateToken(user), user.WrappedKey);
+        return AuthenticationResult.Succeeded(tokenService.CreateToken(user.Id, user.Email), user.WrappedKey);
     }
 
     public async Task<AuthenticationResult> LoginAsync(string email, string password, CancellationToken ct = default)
@@ -92,7 +90,7 @@ public class IdentityService(
             return AuthenticationResult.Failed("failedLogin");
         }
 
-        return AuthenticationResult.Succeeded(CreateToken(user), user.WrappedKey);
+        return AuthenticationResult.Succeeded(tokenService.CreateToken(user.Id, user.Email), user.WrappedKey);
     }
 
     private static bool IsValid(KeyMaterial keys) =>
@@ -130,26 +128,5 @@ public class IdentityService(
         }
 
         return true;
-    }
-
-    private string CreateToken(User user)
-    {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Secret));
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(
-            [
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(MrMetisClaims.UserId, user.Id.ToString())
-            ]),
-            Expires = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(_jwt.ExpirationMinutes),
-            SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256),
-            Issuer = _jwt.Issuer,
-            Audience = _jwt.Audience
-        };
-
-        return new JsonWebTokenHandler().CreateToken(tokenDescriptor);
     }
 }

@@ -205,7 +205,8 @@ public class IdentityServiceTests : DbTestBase
     }
 
     private IdentityService CreateService(StorageOptions storage) =>
-        new(Db, Options.Create(Jwt), Options.Create(storage), new PasswordHasher<User>(), TimeProvider.System);
+        new(Db, Options.Create(Jwt), Options.Create(storage), new TokenService(Options.Create(Jwt), TimeProvider.System),
+            new PasswordHasher<User>(), TimeProvider.System);
 
     private Task AddInvitationCode(string code = InvitationCode) =>
         SeedAsync(new InvitationCode { Code = code, IsActive = true, Created = DateTime.UtcNow.AddDays(-1) });

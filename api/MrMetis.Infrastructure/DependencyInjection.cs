@@ -43,6 +43,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+        services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IUserDataService, UserDataService>();
         services.AddScoped<DatabaseInitializer>();
