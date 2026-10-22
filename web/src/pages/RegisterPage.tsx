@@ -8,6 +8,7 @@ import RegisterForm from "components/register/RegisterForm";
 import LocalRegisterForm from "components/register/LocalRegisterForm";
 import AuthModeToggle from "components/login/AuthModeToggle";
 import useAuthMode from "hooks/useAuthMode";
+import usePageMeta from "hooks/usePageMeta";
 
 const RegisterPage = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -15,6 +16,7 @@ const RegisterPage = () => {
 
   const { err } = useSelector((state: AppState) => state.auth);
   const [mode, setMode] = useAuthMode();
+  usePageMeta(t("register.header"), t("meta.register"));
 
   useEffect(() => {
     dispatch(AUTH_ERROR(null));

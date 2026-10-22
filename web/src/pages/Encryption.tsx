@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import usePageMeta from "hooks/usePageMeta";
 
 const sourceUrl =
   "https://github.com/ro-mat/MrMetis/blob/main/web/src/services/encryptor.ts";
@@ -10,6 +11,7 @@ const stored = ["email", "salt", "authHash", "wrappedKey", "userdata"];
 
 const Encryption = () => {
   const { t } = useTranslation();
+  usePageMeta(t("encryption.header"), t("meta.encryption"));
 
   return (
     <div className="main encryption">

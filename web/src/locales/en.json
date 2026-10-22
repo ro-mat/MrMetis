@@ -612,5 +612,12 @@
     "from": "First month",
     "to": "Last month",
     "moveRange": "Move the range"
+  },
+  "meta": {
+    "index": "MrMetis is a private, open-source budget planner. Plan income, bills and savings months ahead and track every payment against the plan. End-to-end encrypted.",
+    "privacy": "MrMetis privacy policy: only your e-mail is stored readable. Your budget is encrypted in your browser before it leaves your device.",
+    "encryption": "How MrMetis encrypts your budget in the browser with PBKDF2, HKDF and AES-256-GCM, so the server stores your data but can't read it.",
+    "login": "Log in to MrMetis, the private, encrypted budget planner.",
+    "register": "Create a free MrMetis account or an on-device profile and start planning your budget months ahead."
   }
 }

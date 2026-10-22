@@ -64,6 +64,10 @@ const App: FunctionComponent = () => {
     });
   }, [currentLang, locale.firstDayOfWeek]);
 
+  useEffect(() => {
+    document.documentElement.lang = currentLang;
+  }, [currentLang]);
+
   const onIdle = () => {
     if (authenticated) {
       dispatch(logout());

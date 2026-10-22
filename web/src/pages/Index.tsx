@@ -24,6 +24,7 @@ import { CtaButton, TextInput } from "components/ui";
 import PlanningScreenshot from "styles/img/screenshot-planning.png";
 import BudgetEditScreenshot from "styles/img/screenshot-budget-edit.png";
 import QuickAddScreenshot from "styles/img/screenshot-quickadd.png";
+import usePageMeta from "hooks/usePageMeta";
 
 // key under landingPage.features
 const features: [string, IconDefinition][] = [
@@ -52,6 +53,7 @@ const Index = () => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  usePageMeta(undefined, t("meta.index"));
 
   const handleDemoClick = () => {
     dispatch(startDemo());

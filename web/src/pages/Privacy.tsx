@@ -1,8 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import usePageMeta from "hooks/usePageMeta";
 
 const Privacy = () => {
   const { t } = useTranslation();
+  usePageMeta(t("privacy.header"), t("meta.privacy"));
 
   return (
     <div className="main">

@@ -8,6 +8,7 @@ import LoginForm from "components/login/LoginForm";
 import LocalLoginForm from "components/login/LocalLoginForm";
 import AuthModeToggle from "components/login/AuthModeToggle";
 import useAuthMode from "hooks/useAuthMode";
+import usePageMeta from "hooks/usePageMeta";
 
 const LoginPage = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -15,6 +16,7 @@ const LoginPage = () => {
 
   const { err } = useSelector((state: AppState) => state.auth);
   const [mode, setMode] = useAuthMode();
+  usePageMeta(t("login.header"), t("meta.login"));
 
   useEffect(() => {
     dispatch(AUTH_ERROR(null));
