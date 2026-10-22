@@ -7,15 +7,28 @@ import {
   unwrapDataKey,
 } from "services/encryptor";
 import { clearKey, saveKey } from "services/keyStore";
+import {
+  addLocalUser,
+  deleteLocalUser,
+  getLocalUser,
+} from "services/localUsers";
+import { requestPersistentStorage } from "services/persistentStorage";
 import { TAppDispatch, TAppThunk } from "store/store";
 import {
   AUTH_ERROR,
   AUTH_FETCHING,
   SET_ISDEMO,
+  SET_LOCAL_USER,
   SET_TOKEN,
   SET_USER,
 } from "./auth.slice";
-import { IAuthResponse, ICredentials, IPrelogin, IUser } from "./auth.types";
+import {
+  IAuthResponse,
+  ICredentials,
+  ILocalCredentials,
+  IPrelogin,
+  IUser,
+} from "./auth.types";
 import { CLEAR_USERDATA } from "store/userdata/userdata.slice";
 import { clearDemoData } from "helpers/demoHelper";
 
@@ -29,17 +42,24 @@ const loginError = (err: any) => {
   return AUTH_ERROR(err?.data?.errors?.join(", ") ?? "failedLogin");
 };
 
+// Starting a session of one kind ends the others (server, on-device, demo).
+const endSessions = async (dispatch: TAppDispatch) => {
+  dispatch(CLEAR_USERDATA());
+  clearDemoData();
+  dispatch(SET_ISDEMO(false));
+  dispatch(SET_TOKEN(null));
+  dispatch(SET_LOCAL_USER(null));
+  dispatch(AUTH_FETCHING());
+  await clearKey();
+};
+
 // Shared by login and register: resolves to the token once the data key is stored.
 // Userdata is loaded by App once the user is set.
 const authenticate = async (
   dispatch: TAppDispatch,
   getToken: () => Promise<string>
 ) => {
-  dispatch(AUTH_FETCHING());
-  dispatch(CLEAR_USERDATA());
-  clearDemoData();
-  dispatch(SET_ISDEMO(false));
-  await clearKey();
+  await endSessions(dispatch);
 
   try {
     const token = await getToken();
@@ -115,9 +135,68 @@ export const attempt =
       });
   };
 
-export const logout = (): TAppThunk => (dispatch) => {
+// Like authenticate, for an on-device profile: the key never leaves the
+// browser and nothing is sent anywhere.
+const authenticateLocal = async (
+  dispatch: TAppDispatch,
+  name: string,
+  failedCode: string,
+  getKey: () => Promise<CryptoKey>,
+) => {
+  await endSessions(dispatch);
+
+  try {
+    await saveKey(await getKey());
+    dispatch(SET_LOCAL_USER(name.trim()));
+    requestPersistentStorage();
+  } catch (err) {
+    await clearKey();
+    const code = (err as Error | undefined)?.message;
+    if (code !== "localUserExists") {
+      console.error(err);
+    }
+    dispatch(AUTH_ERROR(code === "localUserExists" ? code : failedCode));
+  }
+};
+
+// a wrong password fails to unwrap the data key
+export const localLogin =
+  ({ name, password }: ILocalCredentials): TAppThunk =>
+  (dispatch) =>
+    authenticateLocal(dispatch, name, "failedLocalLogin", async () => {
+      const user = await getLocalUser(name);
+      if (!user) {
+        throw new Error("No such local user");
+      }
+      const { kek } = await deriveKeys(password, user.salt, user.iterations);
+      return unwrapDataKey(user.wrappedKey, kek);
+    });
+
+export const localRegister =
+  ({ name, password }: ILocalCredentials): TAppThunk =>
+  (dispatch) =>
+    authenticateLocal(dispatch, name, "failedUserCreate", async () => {
+      const salt = generateSalt();
+      const { kek } = await deriveKeys(password, salt, KDF_ITERATIONS);
+      const { wrappedKey, dataKey } = await createDataKey(kek);
+      await addLocalUser({
+        name,
+        salt,
+        iterations: KDF_ITERATIONS,
+        wrappedKey,
+      });
+      return dataKey;
+    });
+
+export const logout = (): TAppThunk => (dispatch, getState) => {
   dispatch(AUTH_FETCHING());
   clearKey();
+
+  if (getState().auth.isLocal) {
+    dispatch(SET_LOCAL_USER(null));
+    dispatch(CLEAR_USERDATA());
+    return;
+  }
 
   api
     .post("identity/logout")
@@ -128,3 +207,14 @@ export const logout = (): TAppThunk => (dispatch) => {
     })
     .catch((err) => dispatch(authError(err)));
 };
+
+// Removes the on-device profile and its data, then logs out.
+export const deleteLocalProfile =
+  (): TAppThunk =>
+  async (dispatch, getState): Promise<void> => {
+    const { isLocal, user } = getState().auth;
+    if (!isLocal || !user) return;
+
+    await deleteLocalUser(user);
+    dispatch(logout());
+  };

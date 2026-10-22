@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MrMetis.Api.Authentication;
 using MrMetis.Api.ExceptionHandling;
 using MrMetis.Core.Options;
 using OpenTelemetry;
@@ -18,6 +19,7 @@ public static class ServiceCollectionExtensions
         builder.AddJwtAuthentication();
         builder.AddTelemetry();
 
+        builder.Services.AddMemoryCache();
         builder.Services.AddProblemDetails();
         builder.Services.AddExceptionHandler<MrMetisExceptionHandler>();
         builder.Services.AddOpenApi();
@@ -32,7 +34,8 @@ public static class ServiceCollectionExtensions
         builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
             .WithOrigins(origins)
             .AllowAnyMethod()
-            .AllowAnyHeader()));
+            .AllowAnyHeader()
+            .WithExposedHeaders(TokenRefresh.HeaderName)));
 
         return builder;
     }

@@ -33,7 +33,9 @@ const Header = (): React.JSX.Element => {
 
   const navigate = useNavigate();
 
-  const { isDemo } = useSelector((state: AppState) => state.auth);
+  const { isDemo, isLocal, user } = useSelector(
+    (state: AppState) => state.auth,
+  );
   const authenticated = useSelector(selectIsAuthenticated);
   const hasSession = useSelector(selectHasSession);
   const { showLanguageInHeader } = useSelector(selectPreferences);
@@ -60,6 +62,20 @@ const Header = (): React.JSX.Element => {
   );
 
   const profileItems: IMenuItem[] = [
+    // which on-device profile is open; its data never leaves this browser
+    ...(isLocal
+      ? [
+          {
+            key: "localProfile",
+            disabled: true,
+            label: (
+              <span>
+                {user} · {t("nav.onThisDevice")}
+              </span>
+            ),
+          },
+        ]
+      : []),
     ...(storage
       ? [
           {
@@ -68,8 +84,9 @@ const Header = (): React.JSX.Element => {
             label: (
               <>
                 <span>
-                  {formatBytes(storage.usedBytes)} /{" "}
-                  {formatBytes(storage.limitBytes)}
+                  {formatBytes(storage.usedBytes)}
+                  {storage.limitBytes !== undefined &&
+                    ` / ${formatBytes(storage.limitBytes)}`}
                 </span>
                 {storageWarning && warningIcon}
               </>
@@ -77,6 +94,11 @@ const Header = (): React.JSX.Element => {
           },
         ]
       : []),
+    {
+      key: "dashboard",
+      label: t("nav.dashboard"),
+      onClick: () => navigate("/dashboard"),
+    },
     {
       key: "preferences",
       label: t("nav.preferences"),

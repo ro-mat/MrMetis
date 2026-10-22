@@ -7,18 +7,57 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Mr Metis. Personal finance tool. Encrypted. Private"
+      content="MrMetis is a private, open-source budget planner. Plan income, bills and savings months ahead and track every payment against the plan. End-to-end encrypted."
     />
+    <link rel="canonical" href="https://mrmetis.eu/" />
+
+    <!-- link previews (social networks, chat apps); crawlers for these don't run JavaScript -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MrMetis" />
+    <meta property="og:url" content="https://mrmetis.eu/" />
+    <meta property="og:title" content="MrMetis – private, encrypted budget planner" />
+    <meta
+      property="og:description"
+      content="Plan your money months ahead, and see where it actually went. Open source, encrypted in your browser."
+    />
+    <meta property="og:image" content="https://mrmetis.eu/og-image.png" />
+    <meta
+      property="og:image:alt"
+      content="Planning table: planned and actual amounts for each budget item, month by month"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- structured data for search engines; a data block, so the script-src CSP doesn't apply -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "MrMetis",
+        "url": "https://mrmetis.eu/",
+        "description": "A private, open-source budget planner. Plan income, bills, savings and transfers months ahead and track every payment against the plan. Data is encrypted in the browser.",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "image": "https://mrmetis.eu/og-image.png",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "sameAs": ["https://github.com/ro-mat/MrMetis"]
+      }
+    </script>
+
     <link rel="apple-touch-icon" href="/logo_icon.png" />
     <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
     -->
     <link rel="manifest" href="/manifest.json" />
-    <title>Mr Metis</title>
+    <title>MrMetis – private, encrypted budget planner</title>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>
+      You need to enable JavaScript to run this app. MrMetis is a private,
+      open-source budget planner: plan your money months ahead, and see where
+      it actually went.
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>
   </body>

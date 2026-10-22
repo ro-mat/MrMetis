@@ -15,6 +15,7 @@ import {
   faChartPie,
   faCircleCheck,
   faFileExport,
+  faHardDrive,
   faHourglassHalf,
   faLock,
   faWallet,
@@ -23,6 +24,7 @@ import { CtaButton, TextInput } from "components/ui";
 import PlanningScreenshot from "styles/img/screenshot-planning.png";
 import BudgetEditScreenshot from "styles/img/screenshot-budget-edit.png";
 import QuickAddScreenshot from "styles/img/screenshot-quickadd.png";
+import usePageMeta from "hooks/usePageMeta";
 
 // key under landingPage.features
 const features: [string, IconDefinition][] = [
@@ -39,7 +41,7 @@ const roadmap: [string, boolean][] = [
   ["firstRelease", true],
   ["smartAmounts", true],
   ["rebuiltApp", true],
-  ["closedBeta", true],
+  ["onDevice", true],
   ["productionLaunch", false],
   ["persistentData", false],
   ["selfHosting", false],
@@ -51,6 +53,7 @@ const Index = () => {
   const dispatch = useDispatch<TAppDispatch>();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  usePageMeta(undefined, t("meta.index"));
 
   const handleDemoClick = () => {
     dispatch(startDemo());
@@ -169,6 +172,18 @@ const Index = () => {
                 </div>
                 <h4>{t("landingPage.bulletPoints.noBank.header")}</h4>
                 <p>{t("landingPage.bulletPoints.noBank.text")}</p>
+              </div>
+              <div>
+                <div className="icon">
+                  <FontAwesomeIcon icon={faHardDrive} />
+                </div>
+                <h4>{t("landingPage.bulletPoints.onDevice.header")}</h4>
+                <p>{t("landingPage.bulletPoints.onDevice.text")}</p>
+                <p>
+                  <Link to="/register?mode=local">
+                    {t("landingPage.bulletPoints.onDevice.urlText")}
+                  </Link>
+                </p>
               </div>
             </div>
           </div>

@@ -14,6 +14,7 @@ import {
 import { IStorageUsage, IUserdataDto } from "./userdata.types";
 import { decrypt, encrypt } from "services/encryptor";
 import { loadKey } from "services/keyStore";
+import { loadLocalData, saveLocalData } from "services/localUsers";
 import { logout } from "store/auth/auth.actions";
 import { getDemoData, initDemoData, saveDemoData } from "helpers/demoHelper";
 import { SET_ISDEMO } from "store/auth/auth.slice";
@@ -28,11 +29,24 @@ interface IUserdataResponse {
   usage: IStorageUsage;
 }
 
-// Demo data lives in localStorage, real data on the server (encrypted).
+// Counted like the server does: the bytes of the encrypted data. There is no
+// limit, so the browser's quota for the site stands in for it.
+const localUsage = async (data: string | undefined): Promise<IStorageUsage> => {
+  const usedBytes = new TextEncoder().encode(data ?? "").length;
+  const limitBytes = await navigator.storage
+    ?.estimate?.()
+    .then((estimate) => estimate.quota)
+    .catch(() => undefined);
+  return { usedBytes, limitBytes };
+};
+
+// Demo data lives in localStorage, real data encrypted on the server or,
+// for an on-device profile, in this browser's IndexedDB.
 export const loadUserdata =
   (): TAppThunk =>
   async (dispatch, getState): Promise<void> => {
-    if (getState().auth.isDemo) {
+    const { isDemo, isLocal, user } = getState().auth;
+    if (isDemo) {
       dispatch(SET_USERDATA(getDemoData()));
       return;
     }
@@ -45,6 +59,18 @@ export const loadUserdata =
     }
 
     dispatch(FETCHING());
+    if (isLocal) {
+      try {
+        const stored = await loadLocalData(user!);
+        const data = await decrypt<IUserdataDto>(stored, key);
+        dispatch(SET_STORAGE(await localUsage(stored)));
+        dispatch(SET_USERDATA(data));
+      } catch (err) {
+        dispatch(ERROR(err as string));
+      }
+      return;
+    }
+
     await api
       .get<IUserdataResponse>("/userdata")
       .then(async (res) => {
@@ -82,10 +108,17 @@ export const saveUserData =
         if (!key) {
           throw new Error("No data key");
         }
-        const res = await api.post<IUserdataResponse>("/userdata", {
-          data: await encrypt(data, key),
-        });
-        dispatch(SET_STORAGE(res.data.usage));
+        const encrypted = await encrypt(data, key);
+        const { isLocal, user } = getState().auth;
+        if (isLocal) {
+          await saveLocalData(user!, encrypted);
+          dispatch(SET_STORAGE(await localUsage(encrypted)));
+        } else {
+          const res = await api.post<IUserdataResponse>("/userdata", {
+            data: encrypted,
+          });
+          dispatch(SET_STORAGE(res.data.usage));
+        }
 
         // the user was told the previous save failed, so tell them this one worked
         if (getState().data.saveFailed) {
@@ -101,6 +134,10 @@ export const saveUserData =
         if (code === "storageLimitExceeded") {
           dispatch(SAVE_FAILED());
           dispatch(ADD_ERROR_TOAST(i18n.t("errors.storageLimitExceeded")));
+        } else if ((err as DOMException)?.name === "QuotaExceededError") {
+          // the browser refuses to store more for this site
+          dispatch(SAVE_FAILED());
+          dispatch(ADD_ERROR_TOAST(i18n.t("errors.localStorageFull")));
         } else {
           dispatch(ERROR(err as string));
         }

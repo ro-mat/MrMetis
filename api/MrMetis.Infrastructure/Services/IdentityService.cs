@@ -1,11 +1,8 @@
-using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
 using MrMetis.Core;
 using MrMetis.Core.Dtos;
 using MrMetis.Core.Entities;
@@ -20,6 +17,8 @@ public class IdentityService(
     MrMetisContext db,
     IOptions<JwtOptions> jwtOptions,
     IOptions<StorageOptions> storageOptions,
+    IOptionsMonitor<FeatureOptions> featureOptions,
+    ITokenService tokenService,
     IPasswordHasher<User> passwordHasher,
     TimeProvider timeProvider) : IIdentityService
 {
@@ -35,17 +34,21 @@ public class IdentityService(
             : new PreloginResponse(user.KdfSalt, user.KdfIterations);
     }
 
-    public async Task<AuthenticationResult> RegisterAsync(string email, string password, string invitationCode, KeyMaterial keys, CancellationToken ct = default)
+    public async Task<AuthenticationResult> RegisterAsync(string email, string password, string? invitationCode, KeyMaterial keys, CancellationToken ct = default)
     {
         if (!IsValid(keys))
         {
             return AuthenticationResult.Failed("kdfInvalid");
         }
 
-        var code = await db.InvitationCodes.FirstOrDefaultAsync(x => x.Code == invitationCode, ct);
-        if (code is null)
+        InvitationCode? code = null;
+        if (featureOptions.CurrentValue.InvitationCode)
         {
-            return AuthenticationResult.Failed("codeInvalid");
+            code = await db.InvitationCodes.FirstOrDefaultAsync(x => x.Code == invitationCode, ct);
+            if (code is null)
+            {
+                return AuthenticationResult.Failed("codeInvalid");
+            }
         }
 
         if (await db.Users.AnyAsync(x => x.Email == email, ct))
@@ -76,12 +79,15 @@ public class IdentityService(
         db.Users.Add(user);
 
         // soft delete, the code can be used only once
-        code.IsActive = false;
-        code.Modified = now;
+        if (code is not null)
+        {
+            code.IsActive = false;
+            code.Modified = now;
+        }
 
         await db.SaveChangesAsync(ct);
 
-        return AuthenticationResult.Succeeded(CreateToken(user), user.WrappedKey);
+        return AuthenticationResult.Succeeded(tokenService.CreateToken(user.Id, user.Email), user.WrappedKey);
     }
 
     public async Task<AuthenticationResult> LoginAsync(string email, string password, CancellationToken ct = default)
@@ -92,7 +98,7 @@ public class IdentityService(
             return AuthenticationResult.Failed("failedLogin");
         }
 
-        return AuthenticationResult.Succeeded(CreateToken(user), user.WrappedKey);
+        return AuthenticationResult.Succeeded(tokenService.CreateToken(user.Id, user.Email), user.WrappedKey);
     }
 
     private static bool IsValid(KeyMaterial keys) =>
@@ -130,26 +136,5 @@ public class IdentityService(
         }
 
         return true;
-    }
-
-    private string CreateToken(User user)
-    {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Secret));
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(
-            [
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(MrMetisClaims.UserId, user.Id.ToString())
-            ]),
-            Expires = timeProvider.GetUtcNow().UtcDateTime.AddMinutes(_jwt.ExpirationMinutes),
-            SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256),
-            Issuer = _jwt.Issuer,
-            Audience = _jwt.Audience
-        };
-
-        return new JsonWebTokenHandler().CreateToken(tokenDescriptor);
     }
 }

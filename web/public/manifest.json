@@ -1,16 +1,17 @@
 {
   "short_name": "MrMetis",
-  "name": "MrMetis official site",
+  "name": "MrMetis – private, encrypted budget planner",
+  "description": "Plan your money months ahead, and see where it actually went.",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "62x61"
     },
     {
       "src": "logo_icon.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "304x305"
     }
   ],
   "start_url": ".",

@@ -26,6 +26,8 @@ public static class DependencyInjection
             .BindConfiguration(JwtOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
+        services.AddOptions<FeatureOptions>()
+            .BindConfiguration(FeatureOptions.SectionName);
         services.AddOptions<StorageOptions>()
             .BindConfiguration(StorageOptions.SectionName)
             .ValidateDataAnnotations()
@@ -43,6 +45,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+        services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IUserDataService, UserDataService>();
         services.AddScoped<DatabaseInitializer>();

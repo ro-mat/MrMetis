@@ -36,7 +36,7 @@ const QuickAdd = () => {
   const { t } = useTranslation();
 
   const [statement, setStatement] = useState<IStatement>(
-    createDefaultStatement
+    createDefaultStatement,
   );
   const [isActive, setIsActive] = useState<boolean>(false);
 
@@ -46,7 +46,7 @@ const QuickAdd = () => {
   const { isLocked } = useClosing();
 
   const { searchText, setSearchText, filteredSuggestions } =
-    useStatementSuggestions(statement.date, isActive);
+    useStatementSuggestions(statement.date, isActive, !!statement.budgetId);
   const {
     selectedId: selectedSuggestion,
     setSelectedId: setSelectedSuggestion,

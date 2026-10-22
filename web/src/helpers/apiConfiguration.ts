@@ -22,6 +22,10 @@ axiosInstance.interceptors.request.use((config) => {
 
 axiosInstance.interceptors.response.use(
   (response) => {
+    const refreshed = response.headers["x-refreshed-token"];
+    if (refreshed && localStorage.getItem("token")) {
+      localStorage.setItem("token", refreshed);
+    }
     return response;
   },
   (error) => {

@@ -13,6 +13,17 @@ const registerFormDefault = {
   invitationCode: "",
 };
 
+const localLoginFormDefault = {
+  name: "",
+  password: "",
+};
+
+const localRegisterFormDefault = {
+  name: "",
+  password: "",
+  passwordRepeat: "",
+};
+
 const budgetAddOrEditFormDefault = {
   id: 0,
   dateCreated: moment().format(DATE_FORMAT),
@@ -45,6 +56,8 @@ const accountAddOrEditFormDefault = {
 export {
   loginFormDefault,
   registerFormDefault,
+  localLoginFormDefault,
+  localRegisterFormDefault,
   budgetAddOrEditFormDefault,
   statementAddOrEditFormDefault,
   accountAddOrEditFormDefault,

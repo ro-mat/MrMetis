@@ -1,4 +1,5 @@
 using Microsoft.Extensions.FileProviders;
+using MrMetis.Api.Authentication;
 using MrMetis.Infrastructure;
 
 namespace MrMetis.Api.Extensions;
@@ -34,6 +35,7 @@ public static class WebApplicationExtensions
         app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseTokenRefresh();
 
         if (app.Environment.IsDevelopment())
         {

@@ -29,12 +29,17 @@ const ON_FOCUS_COUNT = 5;
 
 // Budgets are ranked by what is left of them in the month of `date`.
 // Nothing is calculated while not `enabled`.
-const useStatementSuggestions = (date: MomentInput, enabled: boolean) => {
+// `hasBudget`: a budget is already chosen, so none are offered on focus.
+const useStatementSuggestions = (
+  date: MomentInput,
+  enabled: boolean,
+  hasBudget: boolean,
+) => {
   const { t } = useTranslation();
   const { budgets } = useBudget();
   const { accounts, getById: getAccountById } = useAccount();
   const closedMonths = useSelector(
-    (state: AppState) => state.data.userdata.closedMonths
+    (state: AppState) => state.data.userdata.closedMonths,
   );
   const { formatAmount, formatDate, parseAmount, parseDate } = useLocale();
 
@@ -69,14 +74,14 @@ const useStatementSuggestions = (date: MomentInput, enabled: boolean) => {
         budgetInfo,
         getAccountById,
         t,
-        formatAmount
+        formatAmount,
       ),
-    [budgets, budgetInfo, getAccountById, t, formatAmount]
+    [budgets, budgetInfo, getAccountById, t, formatAmount],
   );
 
   const dateSuggestions = useMemo(
     () => getDateSuggestions(t, formatDate),
-    [t, formatDate]
+    [t, formatDate],
   );
 
   const suggestionList = useMemo(() => {
@@ -88,12 +93,13 @@ const useStatementSuggestions = (date: MomentInput, enabled: boolean) => {
   }, [dateSuggestions, budgetSuggestions, accounts, t]);
 
   // Order: matching named suggestions, then amount, date and comment.
-  // Nothing typed: the open budgets with the most left.
+  // Nothing typed: the open budgets with the most left, unless one is chosen.
   // Several words with an amount or a date: the named suggestions matching
   // the other words, each with the amount and date, then those other words
   // as a comment (or the amount and date alone).
   const filteredSuggestions = useMemo(() => {
     if (searchText.length === 0) {
+      if (hasBudget) return [];
       return budgetSuggestions
         .filter((s) => {
           const info = budgetInfo.get(s.obj.budgetId);
@@ -104,7 +110,7 @@ const useStatementSuggestions = (date: MomentInput, enabled: boolean) => {
 
     const matching = (text: string) =>
       suggestionList.filter((b) =>
-        b.searchText.includes(text.toLocaleLowerCase())
+        b.searchText.includes(text.toLocaleLowerCase()),
       );
     const comment: ISuggestion = {
       id: "c",
@@ -117,7 +123,7 @@ const useStatementSuggestions = (date: MomentInput, enabled: boolean) => {
       searchText,
       dateSuggestions,
       parseAmount,
-      parseDate
+      parseDate,
     );
     if (parts) {
       const { rest, amount, date } = parts;
@@ -150,7 +156,7 @@ const useStatementSuggestions = (date: MomentInput, enabled: boolean) => {
               searchText: "",
               obj: { ...extras, comment: rest },
             }
-          : { id: "x", text: extrasText, searchText: "", obj: extras }
+          : { id: "x", text: extrasText, searchText: "", obj: extras },
       );
       list.push(comment);
       return list;
@@ -183,6 +189,7 @@ const useStatementSuggestions = (date: MomentInput, enabled: boolean) => {
     return list;
   }, [
     searchText,
+    hasBudget,
     suggestionList,
     dateSuggestions,
     budgetSuggestions,
