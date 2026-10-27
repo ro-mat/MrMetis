@@ -438,7 +438,7 @@
     "language": "Language",
     "showLanguageInHeader": "Show language in header",
     "browserLanguage": "Browser language",
-    "theme": "Theme (coming soon)",
+    "theme": "Theme",
     "themes": {
       "auto": "Auto (as the system)",
       "light": "Light",

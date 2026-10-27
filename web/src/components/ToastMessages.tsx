@@ -15,9 +15,9 @@ const ToastMessages: FC = () => {
           case "success": {
             toast.success(t.message, {
               style: {
-                backgroundColor: "#d4edda",
-                borderColor: "#c3e6cb",
-                color: "#155724",
+                backgroundColor: "var(--toast-success-bg)",
+                borderColor: "var(--toast-success-border)",
+                color: "var(--toast-success-text)",
               },
             });
             break;
@@ -25,9 +25,9 @@ const ToastMessages: FC = () => {
           case "error":
             toast.error(t.message, {
               style: {
-                backgroundColor: "#f8d7da",
-                borderColor: "#f5c6cb",
-                color: "#721c24",
+                backgroundColor: "var(--toast-error-bg)",
+                borderColor: "var(--toast-error-border)",
+                color: "var(--toast-error-text)",
               },
             });
             break;

@@ -35,14 +35,16 @@ import { useTranslation } from "react-i18next";
 import moment from "moment";
 import { selectPreferences } from "store/userdata/userdata.selectors";
 import useLocale from "hooks/useLocale";
+import { applyTheme, storeTheme } from "helpers/themeHelper";
 
 const App: FunctionComponent = () => {
   const dispatch = useDispatch<TAppDispatch>();
 
-  const { savePending } = useSelector((state: AppState) => state.data);
+  const { savePending, loaded } = useSelector((state: AppState) => state.data);
   const { isDemo } = useSelector((state: AppState) => state.auth);
   const authenticated = useSelector(selectIsAuthenticated);
-  const { language, idleTimeoutMinutes } = useSelector(selectPreferences);
+  const { language, idleTimeoutMinutes, theme } =
+    useSelector(selectPreferences);
   const { locale } = useLocale();
   const { i18n } = useTranslation();
 
@@ -52,6 +54,13 @@ const App: FunctionComponent = () => {
       i18n.changeLanguage(language);
     }
   }, [language, i18n]);
+
+  // until the preferences load, the theme stored on this device stays (index.tsx)
+  useEffect(() => {
+    if (!loaded) return;
+    applyTheme(theme);
+    storeTheme(theme);
+  }, [loaded, theme]);
 
   // week starts (moment's startOf("week") and weekday order) follow the preference
   const currentLang = i18n.resolvedLanguage ?? i18n.language;

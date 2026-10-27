@@ -445,7 +445,7 @@
     "language": "Язык",
     "showLanguageInHeader": "Показывать выбор языка в шапке",
     "browserLanguage": "Язык браузера",
-    "theme": "Тема (скоро)",
+    "theme": "Тема",
     "themes": {
       "auto": "Авто (как в системе)",
       "light": "Светлая",

@@ -13,7 +13,7 @@ table {
   z-index: 0;
   border-collapse: separate;
   border-spacing: 0;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
 
   &:has(.statement-cell.selected) {
     z-index: 1;
@@ -29,7 +29,7 @@ table {
 
   // opaque, so sticky rows and the sticky first column hide what scrolls under them
   tr {
-    background-color: white;
+    background-color: var(--surface);
 
     &.sticky {
       position: sticky;
@@ -42,7 +42,7 @@ table {
     }
 
     &.highlight {
-      background-color: #e6e6e6;
+      background-color: var(--row-highlight);
     }
   }
 
@@ -52,8 +52,8 @@ table {
   }
 
   td {
-    border-left: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
+    border-left: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
 
     &:first-child {
       border-left: none;
@@ -101,20 +101,20 @@ table {
 
     // month separator; the next month's .bl draws it, so .br adds nothing
     &.bl {
-      border-left: 1px solid black;
+      border-left: 1px solid var(--border-strong);
     }
 
     // the first month only borders the name column, so no separator there
     &:first-child + .bl {
-      border-left-color: #ccc;
+      border-left-color: var(--border);
     }
 
     &.r {
-      background-color: #f17665;
+      background-color: var(--cell-bad);
     }
 
     &.g {
-      background-color: #71c471;
+      background-color: var(--cell-good);
     }
 
     $i: 0;
@@ -122,7 +122,7 @@ table {
       &.gp-#{$i} {
         background: linear-gradient(
             to right,
-            #{"#71c471 #{$i}%"},
+            #{"var(--cell-good) #{$i}%"},
             #{"transparent #{$i}%"}
           )
           no-repeat;
@@ -131,7 +131,7 @@ table {
       &.rp-#{$i} {
         background: linear-gradient(
             to right,
-            #{"#f17665 #{$i}%"},
+            #{"var(--cell-bad) #{$i}%"},
             #{"transparent #{$i}%"}
           )
           no-repeat;
@@ -142,7 +142,7 @@ table {
   }
 
   th {
-    background-color: #f6f6f6;
+    background-color: var(--surface-hover);
     text-align: center;
 
     // no borders between header cells, just a line under the header
@@ -152,7 +152,7 @@ table {
     }
 
     &.current-month {
-      background-color: $primary-color-highlight;
+      background-color: var(--highlight-bg);
     }
 
     // close / reopen a month: small, faint until hovered once closed
@@ -179,7 +179,7 @@ table {
   }
 
   thead tr:last-child th {
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid var(--border);
   }
 
   thead {
@@ -235,9 +235,9 @@ th.closed {
   // the space left next to its cell
   width: max-content;
 
-  background-color: $primary-color;
+  background-color: var(--brand-bg);
 
-  box-shadow: 3px 3px 5px 0px;
+  box-shadow: 3px 3px 5px 0px var(--shadow);
 
   .preview-toolbar {
     display: flex;
@@ -305,7 +305,7 @@ th.closed {
       position: sticky;
       top: 0;
       z-index: 1;
-      background-color: $primary-color;
+      background-color: var(--brand-bg);
       font-weight: bold;
     }
   }
@@ -320,6 +320,6 @@ th.closed {
 
 // message shown in place of an empty page's table
 .no-data {
-  color: #666;
+  color: var(--text-muted);
   font-style: italic;
 }

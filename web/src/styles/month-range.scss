@@ -1,4 +1,5 @@
 @use "variables" as *;
+@use "theme" as *;
 
 // Month range timeline (Planning, Charts): months scroll sideways, the
 // selected range is a band with draggable ends
@@ -163,10 +164,12 @@
   }
 }
 
-body.dark .month-range {
-  --mr-text: #f0efec;
-  --mr-muted: #b0afa6;
-  --mr-line: #5a5a54;
-  --mr-band: rgb(23 126 137 / 50%); // $primary-color-dark
-  --mr-band-border: #{$primary-color};
+.month-range {
+  @include when-dark {
+    --mr-text: #f0efec;
+    --mr-muted: #b0afa6;
+    --mr-line: #5a5a54;
+    --mr-band: rgb(23 126 137 / 50%); // $primary-color-dark
+    --mr-band-border: #{$primary-color};
+  }
 }

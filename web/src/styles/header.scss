@@ -9,7 +9,7 @@ header {
   // (main's 1em padding + side panel + 1em gap + content's 1em margin)
   padding: 0 1em 0 calc(#{$side-panel-width} + 3em);
   gap: 2em;
-  background-color: $primary-color;
+  background-color: var(--brand-bg);
 
   .logo {
     display: block;
@@ -41,7 +41,7 @@ header {
 
   .profile .menu-trigger {
     font-size: 1.8em;
-    color: $primary-color-dark;
+    color: var(--accent);
   }
 
   .profile-icon {
@@ -57,10 +57,10 @@ header {
     display: inline-flex;
     font-size: 0.5em;
     border-radius: 50%;
-    background-color: white;
+    background-color: var(--surface);
   }
 
   .storage-warning {
-    color: #d9342b;
+    color: var(--warning);
   }
 }

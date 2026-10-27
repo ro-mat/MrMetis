@@ -7,8 +7,8 @@
   height: 100vh;
   width: 600px;
   z-index: 1000;
-  outline: 1px solid black;
-  background-color: white;
+  outline: 1px solid var(--border-strong);
+  background-color: var(--surface);
 
   &.show {
     left: 0;
@@ -20,7 +20,7 @@
     bottom: 20px;
     background-color: $primary-color-dark;
     padding: 1em;
-    border: 1px solid black;
+    border: 1px solid var(--border-strong);
     cursor: pointer;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;

@@ -30,7 +30,7 @@ main {
 
       a {
         display: block;
-        color: #333;
+        color: var(--text);
         font-size: 14px;
         font-weight: bold;
         text-decoration: none;
@@ -39,7 +39,7 @@ main {
 
         &.selected,
         &:hover {
-          background-color: $primary-color;
+          background-color: var(--brand-bg);
         }
       }
     }
@@ -59,11 +59,11 @@ main {
     h4,
     h5,
     h6 {
-      color: $primary-color-dark;
+      color: var(--accent);
     }
 
     p {
-      color: #333;
+      color: var(--text);
       font-size: 16px;
       line-height: 1.5;
     }

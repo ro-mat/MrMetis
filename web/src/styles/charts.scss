@@ -1,3 +1,5 @@
+@use "theme" as *;
+
 // Chart colors: the categorical slots go in this order, never cycled
 // (see components/charts/chartStyle.ts).
 .charts {
@@ -17,24 +19,24 @@
   --chart-grid: #e1e0d9;
   --chart-axis: #c3c2b7;
   --chart-forecast: #f4f3ef;
-}
 
-body.dark .charts {
-  --series-1: #3987e5;
-  --series-2: #d95926;
-  --series-3: #199e70;
-  --series-4: #c98500;
-  --series-5: #d55181;
-  --series-6: #008300;
-  --series-7: #9085e9;
-  --series-8: #e66767;
-  --chart-other: #6b6a65;
-  --chart-surface: #333;
-  --chart-text: #f0efec;
-  --chart-muted: #b0afa6;
-  --chart-grid: #45453f;
-  --chart-axis: #5a5a54;
-  --chart-forecast: #3b3b37;
+  @include when-dark {
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+    --chart-other: #6b6a65;
+    --chart-surface: var(--bg);
+    --chart-text: #f0efec;
+    --chart-muted: #b0afa6;
+    --chart-grid: #45453f;
+    --chart-axis: #5a5a54;
+    --chart-forecast: #3b3b37;
+  }
 }
 
 .chart-filter {
@@ -92,7 +94,7 @@ body.dark .charts {
   border-radius: 4px;
   padding: 0.4em 0.6em;
   font-size: 0.85em;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 6px var(--shadow);
 
   .chart-tooltip-label {
     font-weight: bold;

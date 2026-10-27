@@ -2,11 +2,11 @@
   // whether the browser may evict an on-device profile's data
   .storage-status {
     &.protected {
-      color: #2e9d4b;
+      color: var(--success);
     }
 
     &.not-protected {
-      color: red;
+      color: var(--error);
     }
   }
 
@@ -36,7 +36,7 @@
     flex: 0 0 auto;
     min-width: 16em;
     padding-left: 2em;
-    border-left: 1px solid #ccc;
+    border-left: 1px solid var(--border);
     // stays in view while scrolling through the settings
     position: sticky;
     top: 1em;
@@ -53,7 +53,7 @@
       min-width: 0;
       padding: 1em 0 0;
       border-left: none;
-      border-top: 1px solid #ccc;
+      border-top: 1px solid var(--border);
     }
   }
 
