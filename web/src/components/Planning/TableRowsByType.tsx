@@ -6,7 +6,6 @@ import {
   IBudget,
 } from "store/userdata/userdata.types";
 import TableRow from "./TableRow";
-import { useTranslation } from "react-i18next";
 import { BudgetPairArray } from "services/budgetPairArray";
 import { Moment } from "moment";
 import useBudget from "hooks/useBudget";
@@ -33,7 +32,6 @@ const TableRowsByType = ({
   highlight = false,
   accountId,
 }: ITableRowsByTypeProps) => {
-  const { t } = useTranslation();
   const { budgets } = useBudget();
 
   const filteredBudgets = useMemo(

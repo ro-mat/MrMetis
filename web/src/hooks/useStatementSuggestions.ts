@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import moment, { MomentInput } from "moment";
 import { AppState } from "store/store";
+import { IStatement } from "store/userdata/userdata.types";
 import useBudget from "./useBudget";
 import useAccount from "./useAccount";
 import useLocale from "./useLocale";
@@ -17,11 +18,17 @@ import {
 import { isMonthClosed, plannedAccounts } from "services/budgetClosing";
 import { roundTo } from "helpers/numberHelper";
 
+// fields a suggestion fills in; a date as typed or picked, not formatted yet
+export type ISuggestionData = Omit<Partial<IStatement>, "date"> & {
+  date?: MomentInput;
+  defaultAmount?: number;
+};
+
 export interface ISuggestion {
   id: string;
   text: string;
   searchText: string;
-  obj: any;
+  obj: ISuggestionData;
 }
 
 // budgets offered before anything is typed
@@ -102,7 +109,7 @@ const useStatementSuggestions = (
       if (hasBudget) return [];
       return budgetSuggestions
         .filter((s) => {
-          const info = budgetInfo.get(s.obj.budgetId);
+          const info = budgetInfo.get(s.obj.budgetId!);
           return info && !info.isClosed && info.left > 0;
         })
         .slice(0, ON_FOCUS_COUNT);

@@ -32,14 +32,20 @@ import {
 import { CLEAR_USERDATA } from "store/userdata/userdata.slice";
 import { clearDemoData } from "helpers/demoHelper";
 
-const authError = (err: any) => AUTH_ERROR(err?.data?.errors?.join(", "));
+// the server's error codes, from a rejected request's response
+const errorCodes = (err: unknown) =>
+  (err as { data?: { errors?: string[] } } | undefined)?.data?.errors;
+
+const authError = (err: unknown) =>
+  AUTH_ERROR(errorCodes(err)?.join(", ") ?? null);
 
 // crypto failures have no server error code
-const loginError = (err: any) => {
-  if (!err?.data?.errors) {
+const loginError = (err: unknown) => {
+  const errors = errorCodes(err);
+  if (!errors) {
     console.error(err);
   }
-  return AUTH_ERROR(err?.data?.errors?.join(", ") ?? "failedLogin");
+  return AUTH_ERROR(errors?.join(", ") ?? "failedLogin");
 };
 
 // Starting a session of one kind ends the others (server, on-device, demo).

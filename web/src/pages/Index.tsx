@@ -20,7 +20,7 @@ import {
   faLock,
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
-import { CtaButton, TextInput } from "components/ui";
+import { CtaButton } from "components/ui";
 import PlanningScreenshot from "styles/img/screenshot-planning.png";
 import BudgetEditScreenshot from "styles/img/screenshot-budget-edit.png";
 import QuickAddScreenshot from "styles/img/screenshot-quickadd.png";

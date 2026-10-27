@@ -1,4 +1,3 @@
-import React, { FunctionComponent } from "react";
 import "./locales/i18n";
 import "styles/global.scss";
 import App from "./App";
@@ -8,16 +7,14 @@ import { store } from "store/store";
 import ErrorBoundary from "components/ErrorBoundary";
 import { applyStoredTheme } from "helpers/themeHelper";
 
-const Root: FunctionComponent = () => (
+applyStoredTheme();
+
+const container = document.getElementById("root");
+createRoot(container!).render(
   <Provider store={store}>
     <ErrorBoundary>
       <App />
     </ErrorBoundary>
-  </Provider>
+  </Provider>,
 );
-
-applyStoredTheme();
-
-const container = document.getElementById("root");
-createRoot(container!).render(<Root />);
 

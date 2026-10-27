@@ -45,7 +45,7 @@ describe("encryptor", () => {
 
   it.each([{ something: "here", other: "there", and: 83 }, null, {}])(
     "should encrypt and decrypt correctly",
-    async (obj: any) => {
+    async (obj) => {
       const { dataKey } = await newDataKey();
 
       const encrypted = await encrypt(obj, dataKey);

@@ -253,7 +253,7 @@ describe("budgetCalculator", () => {
       isClosed: false,
       result: 20,
     },
-  ])("getEstimation should return correct estimation", (params: any) => {
+  ])("getEstimation should return correct estimation", (params) => {
     const estimation = getEstimation(
       params.month,
       params.planned,
@@ -282,7 +282,7 @@ describe("budgetCalculator", () => {
     },
   ])(
     "calculateForNextMonth pairs from previous month should return correct amount",
-    (params: any) => {
+    (params) => {
       const { budgets, accounts, statements } = getDemoData();
       const prevMontMoment = moment().add(-1, "M");
       const budgetPairs = buildBudgetPairsForMonth(
@@ -319,7 +319,7 @@ describe("budgetCalculator", () => {
     },
   ])(
     "calculateForNextMonth pairs from current month should return correct amount",
-    (params: any) => {
+    (params) => {
       const { budgets, accounts, statements } = getDemoData();
       const prevMontMoment = moment().add(-1, "M");
       const budgetPairsFromPrevMonth = buildBudgetPairsForMonth(
@@ -381,7 +381,7 @@ describe("budgetCalculator", () => {
     expect(amount).toBe(params.result);
   });
 
-  it.each([
+  it.each<{ token: AmountToken; result: number }>([
     {
       token: { kind: "budget", budgetId: 15, prevMonth: true },
       result: 250,
@@ -686,7 +686,7 @@ describe("budgetCalculator", () => {
       },
       result: -170,
     },
-  ])("calculate with data should return correct result", (params: any) => {
+  ])("calculate with data should return correct result", (params) => {
     const { budgets, accounts, statements } = getDemoData();
     const currentMonth = moment();
     const prevMonth = moment().add(-1, "M");
