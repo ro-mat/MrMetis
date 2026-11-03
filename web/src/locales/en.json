@@ -374,7 +374,13 @@
         },
         "productionLaunch": {
           "header": "Production launch",
+          "when": "October 2026",
           "text": "A public production site, separate from the demo."
+        },
+        "persistentData": {
+          "header": "Persistent local data option",
+          "when": "October 2026",
+          "text": "Choose to keep your data saved localy between sessions."
         },
         "selfHosting": {
           "header": "Self-hosting option",

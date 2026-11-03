@@ -43,6 +43,7 @@ const roadmap: [string, boolean][] = [
   ["rebuiltApp", true],
   ["onDevice", true],
   ["productionLaunch", true],
+  ["persistentData", true],
   ["selfHosting", false],
   ["sharedAccount", false],
   ["bankImport", false],
