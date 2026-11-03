@@ -5,10 +5,11 @@ using MrMetis.Core.Entities;
 using MrMetis.Core.Exceptions;
 using MrMetis.Core.Interfaces;
 using MrMetis.Infrastructure.Contexts;
+using MrMetis.Infrastructure.Telemetry;
 
 namespace MrMetis.Infrastructure.Services;
 
-public class UserDataService(MrMetisContext db, TimeProvider timeProvider) : IUserDataService
+public class UserDataService(MrMetisContext db, MrMetisMetrics metrics, TimeProvider timeProvider) : IUserDataService
 {
     public async Task<UserDataDto> GetAsync(int userId, CancellationToken ct = default)
     {
@@ -23,12 +24,14 @@ public class UserDataService(MrMetisContext db, TimeProvider timeProvider) : IUs
         var usage = Usage(model.Data, userData.User);
         if (usage.UsedBytes > usage.LimitBytes)
         {
+            metrics.DataSave("storageLimitExceeded", usage.UsedBytes);
             throw new MrMetisException("storageLimitExceeded");
         }
 
         userData.Data = model.Data;
         userData.Modified = timeProvider.GetUtcNow().UtcDateTime;
         await db.SaveChangesAsync(ct);
+        metrics.DataSave(MrMetisMetrics.Success, usage.UsedBytes);
 
         // the client has the data already, sending it back is a waste
         return new UserDataDto(null, usage);

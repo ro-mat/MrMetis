@@ -1,0 +1,71 @@
+using System.Collections.Concurrent;
+using System.Diagnostics.Metrics;
+
+namespace MrMetis.Infrastructure.Telemetry;
+
+/// <summary>
+/// Business counters of the app, exported over OTLP together with the built-in ASP.NET Core metrics
+/// </summary>
+public sealed class MrMetisMetrics
+{
+    public const string MeterName = "MrMetis";
+
+    public const string Success = "success";
+
+    private readonly ResultCounter _registrations = new(Success, "emailExists", "codeInvalid", "kdfInvalid");
+    private readonly ResultCounter _logins = new(Success, "failed");
+    private readonly ResultCounter _dataSaves = new(Success, "storageLimitExceeded");
+    private readonly Histogram<long> _dataSize;
+
+    public MrMetisMetrics(IMeterFactory meterFactory)
+    {
+        Meter = meterFactory.Create(MeterName);
+
+        Meter.CreateObservableCounter("mrmetis.registrations", _registrations.Observe, "{registration}",
+            "Registration attempts by result, the error code when failed");
+        Meter.CreateObservableCounter("mrmetis.logins", _logins.Observe, "{login}",
+            "Login attempts by result");
+        Meter.CreateObservableCounter("mrmetis.data.saves", _dataSaves.Observe, "{save}",
+            "Saves of the encrypted user data by result");
+        _dataSize = Meter.CreateHistogram<long>("mrmetis.data.size", "By",
+            "Size of the saved encrypted user data");
+    }
+
+    /// <summary>
+    /// For gauges of other services, see <see cref="UserStatsCollector"/>
+    /// </summary>
+    public Meter Meter { get; }
+
+    public void Registration(string result) => _registrations.Add(result);
+
+    public void Login(bool success) => _logins.Add(success ? Success : "failed");
+
+    public void DataSave(string result, long bytes)
+    {
+        _dataSaves.Add(result);
+        _dataSize.Record(bytes, new KeyValuePair<string, object?>("result", result));
+    }
+
+    /// <summary>
+    /// Totals per result, all known results reported from the first export on even when still zero:
+    /// Prometheus' increase() can't see the first sample of a new series, so the first registration or login
+    /// after a deploy would otherwise not be counted
+    /// </summary>
+    private sealed class ResultCounter
+    {
+        private readonly ConcurrentDictionary<string, long> _totals = new();
+
+        public ResultCounter(params string[] knownResults)
+        {
+            foreach (var result in knownResults)
+            {
+                _totals[result] = 0;
+            }
+        }
+
+        public void Add(string result) => _totals.AddOrUpdate(result, 1, (_, total) => total + 1);
+
+        public IEnumerable<Measurement<long>> Observe() =>
+            _totals.Select(x => new Measurement<long>(x.Value, new KeyValuePair<string, object?>("result", x.Key)));
+    }
+}
