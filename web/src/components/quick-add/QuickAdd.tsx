@@ -64,8 +64,11 @@ const QuickAdd = () => {
   // or along with the budget); picking another budget replaces a filled amount.
   // Changes nothing, so it also previews a suggestion.
   const mergeSuggestion = (old: IStatement, id: string) => {
-    const { defaultAmount, ...data } = suggestionData(id);
+    const { defaultAmount, date, ...data } = suggestionData(id);
     const next: IStatement = { ...old, ...data };
+    if (date !== undefined) {
+      next.date = moment(date).format(DATE_FORMAT);
+    }
     let prefilled = prefilledAmount;
     if (data.amount !== undefined) {
       prefilled = undefined;

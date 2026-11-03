@@ -135,7 +135,6 @@ const PreferencesForm = ({ children }: { children?: ReactNode }) => {
                   label: t("preferences.minutes", { count: m }),
                 }))}
               />
-              {/* saved only; the dark styles come later */}
               <SelectBox
                 name="theme"
                 control={control}

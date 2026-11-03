@@ -5,7 +5,7 @@ footer {
   justify-content: center;
   align-items: center;
   height: 40px;
-  background-color: $primary-color;
+  background-color: var(--brand-bg);
 
   p {
     color: #fff;

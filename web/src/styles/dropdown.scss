@@ -6,8 +6,8 @@
   top: 100%;
   width: 100%;
   z-index: 100;
-  background-color: white;
-  border: 1px solid black;
+  background-color: var(--surface);
+  border: 1px solid var(--border-strong);
 
   & > div {
     cursor: pointer;
@@ -30,7 +30,7 @@
     margin-bottom: 0;
     padding-right: 2.2em; // room for the arrow
     cursor: pointer;
-    background-color: #fff;
+    background-color: var(--surface);
   }
 
   &.open input {
@@ -44,8 +44,8 @@
     right: 0.9em;
     width: 0.45em;
     height: 0.45em;
-    border-right: 2px solid #555;
-    border-bottom: 2px solid #555;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
     transform: translateY(-75%) rotate(45deg);
     transition: transform 0.2s ease;
     pointer-events: none;
@@ -89,8 +89,8 @@
     flex-direction: column;
     min-width: max-content;
     padding: 0.3em 0;
-    background-color: white;
-    border: 1px solid black;
+    background-color: var(--surface);
+    border: 1px solid var(--border-strong);
 
     &.right {
       left: auto;
@@ -106,12 +106,12 @@
 
       &.separated {
         margin-top: 0.3em;
-        border-top: 1px solid #ccc;
+        border-top: 1px solid var(--border);
       }
     }
 
     button:hover {
-      background-color: $primary-color;
+      background-color: var(--brand-bg);
     }
 
     // information row, not clickable
@@ -120,7 +120,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 1em;
-      color: #666;
+      color: var(--text-muted);
       cursor: default;
     }
   }

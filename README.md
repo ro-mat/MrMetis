@@ -111,8 +111,8 @@ To keep your budget, register an account, or choose **On this device** on the Re
 - [x] **Smart amounts** (January 2024): a new calculation engine. Amounts built from other items, type totals and weekdays, and budget items across several accounts.
 - [x] **Rebuilt app** (October 2026): reworked forms, backend and layout, and updated in-browser encryption.
 - [x] **On-device profiles** (October 2026): use MrMetis without an account. Password-protected profiles stay encrypted in your browser, several per device, and never touch the server.
-- [ ] **Production launch**: a public production site, separate from the demo.
-- [ ] **Persistent data option**: choose to keep your data saved between sessions.
+- [x] **Production launch** (October 2026): a public production site, separate from the demo.
+- [x] **Persistent data option** (October 2026): choose to keep your data saved localy between sessions.
 - [ ] **Self-hosting option**: run MrMetis on your own server.
 - [ ] **Shared account**: share a budget with a partner or your household.
 - [ ] **Bank data import**: import statements from your bank's export files. Still no bank login.

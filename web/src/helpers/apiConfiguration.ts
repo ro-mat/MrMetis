@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { clearKey } from "services/keyStore";
 
-const headers: any = {
+const headers: Record<string, string> = {
   "Content-Type": "application/json",
 };
 
@@ -38,7 +38,6 @@ axiosInstance.interceptors.response.use(
       // Unauthorized
       localStorage.removeItem("token");
       clearKey().finally(() => (window.location.href = "/login"));
-    } else {
     }
 
     return Promise.reject(error.response);

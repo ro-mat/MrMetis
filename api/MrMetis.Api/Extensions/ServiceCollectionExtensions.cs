@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using MrMetis.Api.Authentication;
 using MrMetis.Api.ExceptionHandling;
 using MrMetis.Core.Options;
+using MrMetis.Infrastructure.Telemetry;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -71,7 +72,8 @@ public static class ServiceCollectionExtensions
 
     /// <summary>
     /// Sends traces, metrics and logs over OTLP. Endpoint, service name and resource attributes come from
-    /// the OTEL_* environment variables; without OTEL_EXPORTER_OTLP_ENDPOINT (local development) nothing is sent.
+    /// the OTEL_* environment variables; without OTEL_EXPORTER_OTLP_ENDPOINT (local development) nothing is sent
+    /// and the user stats aren't counted.
     /// </summary>
     public static WebApplicationBuilder AddTelemetry(this WebApplicationBuilder builder)
     {
@@ -79,6 +81,8 @@ public static class ServiceCollectionExtensions
         {
             return builder;
         }
+
+        builder.Services.AddHostedService<UserStatsCollector>();
 
         builder.Services.AddOpenTelemetry()
             .WithTracing(tracing => tracing
@@ -89,7 +93,8 @@ public static class ServiceCollectionExtensions
             .WithMetrics(metrics => metrics
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
-                .AddRuntimeInstrumentation())
+                .AddRuntimeInstrumentation()
+                .AddMeter(MrMetisMetrics.MeterName))
             .WithLogging()
             .UseOtlpExporter();
 

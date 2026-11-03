@@ -10,6 +10,7 @@ using MrMetis.Core.Interfaces;
 using MrMetis.Core.Options;
 using MrMetis.Core.Responses;
 using MrMetis.Infrastructure.Contexts;
+using MrMetis.Infrastructure.Telemetry;
 
 namespace MrMetis.Infrastructure.Services;
 
@@ -20,6 +21,7 @@ public class IdentityService(
     IOptionsMonitor<FeatureOptions> featureOptions,
     ITokenService tokenService,
     IPasswordHasher<User> passwordHasher,
+    MrMetisMetrics metrics,
     TimeProvider timeProvider) : IIdentityService
 {
     private readonly JwtOptions _jwt = jwtOptions.Value;
@@ -35,6 +37,26 @@ public class IdentityService(
     }
 
     public async Task<AuthenticationResult> RegisterAsync(string email, string password, string? invitationCode, KeyMaterial keys, CancellationToken ct = default)
+    {
+        var result = await RegisterUserAsync(email, password, invitationCode, keys, ct);
+        metrics.Registration(result.Success ? MrMetisMetrics.Success : result.Errors[0]);
+        return result;
+    }
+
+    public async Task<AuthenticationResult> LoginAsync(string email, string password, CancellationToken ct = default)
+    {
+        var user = await db.Users.FirstOrDefaultAsync(x => x.Email == email, ct);
+        if (user is null || !await VerifyPasswordAsync(user, password, ct))
+        {
+            metrics.Login(success: false);
+            return AuthenticationResult.Failed("failedLogin");
+        }
+
+        metrics.Login(success: true);
+        return AuthenticationResult.Succeeded(tokenService.CreateToken(user.Id, user.Email), user.WrappedKey);
+    }
+
+    private async Task<AuthenticationResult> RegisterUserAsync(string email, string password, string? invitationCode, KeyMaterial keys, CancellationToken ct)
     {
         if (!IsValid(keys))
         {
@@ -86,17 +108,6 @@ public class IdentityService(
         }
 
         await db.SaveChangesAsync(ct);
-
-        return AuthenticationResult.Succeeded(tokenService.CreateToken(user.Id, user.Email), user.WrappedKey);
-    }
-
-    public async Task<AuthenticationResult> LoginAsync(string email, string password, CancellationToken ct = default)
-    {
-        var user = await db.Users.FirstOrDefaultAsync(x => x.Email == email, ct);
-        if (user is null || !await VerifyPasswordAsync(user, password, ct))
-        {
-            return AuthenticationResult.Failed("failedLogin");
-        }
 
         return AuthenticationResult.Succeeded(tokenService.CreateToken(user.Id, user.Email), user.WrappedKey);
     }

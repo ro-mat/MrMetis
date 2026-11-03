@@ -12,8 +12,10 @@ $control-height: $control-line-height + 2 * $control-padding + 2px;
 
 @mixin form-control {
   padding: $control-padding;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: 5px;
+  background-color: var(--surface);
+  color: var(--fg);
   font-size: 16px;
   line-height: $control-line-height;
 }
@@ -27,13 +29,14 @@ $control-height: $control-line-height + 2 * $control-padding + 2px;
   width: $control-height;
   height: $control-height;
   padding: 0;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: 5px;
-  background-color: #fff;
+  background-color: var(--surface);
+  color: var(--fg);
   font-size: 16px;
 
   &:not(:disabled):hover {
-    background-color: #f6f6f6;
+    background-color: var(--surface-hover);
   }
 }
 
@@ -46,9 +49,9 @@ $control-height: $control-line-height + 2 * $control-padding + 2px;
   width: max-content;
   max-width: 20em;
   padding: 0.5em 0.8em;
-  border: 1px solid black;
-  background-color: white;
-  color: #333;
+  border: 1px solid var(--border-strong);
+  background-color: var(--surface);
+  color: var(--text);
   font-weight: normal;
   white-space: normal;
 }

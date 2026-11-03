@@ -9,6 +9,7 @@ using MrMetis.Core.Options;
 using MrMetis.Infrastructure.Contexts;
 using MrMetis.Infrastructure.Extensions;
 using MrMetis.Infrastructure.Services;
+using MrMetis.Infrastructure.Telemetry;
 
 namespace MrMetis.Infrastructure;
 
@@ -34,6 +35,8 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddSingleton(TimeProvider.System);
+        services.AddMetrics();
+        services.AddSingleton<MrMetisMetrics>();
 
         var enableSensitiveDataLogging = builder.Environment.IsDevelopment();
         services.AddDbContext<MrMetisContext>((sp, options) =>

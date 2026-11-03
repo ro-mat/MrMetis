@@ -176,6 +176,39 @@ public class IdentityServiceTests : DbTestBase
     }
 
     [Test]
+    public async Task Register_ShouldCountResults()
+    {
+        await AddInvitationCode();
+
+        await _service.RegisterAsync(Email, Password, InvitationCode, Keys);
+        await _service.RegisterAsync(Email, Password, InvitationCode, Keys);
+
+        // results that never happened are reported too, as zero
+        Assert.That(CounterTotals("mrmetis.registrations"), Is.EquivalentTo(new Dictionary<string, long>
+        {
+            ["success"] = 1,
+            ["codeInvalid"] = 1,
+            ["emailExists"] = 0,
+            ["kdfInvalid"] = 0
+        }));
+    }
+
+    [Test]
+    public async Task Login_ShouldCountResults()
+    {
+        await AddUser();
+
+        await _service.LoginAsync(Email, Password);
+        await _service.LoginAsync(Email, "bad");
+
+        Assert.That(CounterTotals("mrmetis.logins"), Is.EquivalentTo(new Dictionary<string, long>
+        {
+            ["success"] = 1,
+            ["failed"] = 1
+        }));
+    }
+
+    [Test]
     public async Task Prelogin_KnownUser_ShouldReturnStoredKdf()
     {
         await AddInvitationCode();
@@ -221,7 +254,7 @@ public class IdentityServiceTests : DbTestBase
     private IdentityService CreateService(StorageOptions storage, bool invitationCode = true) =>
         new(Db, Options.Create(Jwt), Options.Create(storage), new TestOptionsMonitor<FeatureOptions>(new FeatureOptions { InvitationCode = invitationCode }),
             new TokenService(Options.Create(Jwt), TimeProvider.System),
-            new PasswordHasher<User>(), TimeProvider.System);
+            new PasswordHasher<User>(), Metrics, TimeProvider.System);
 
     private Task AddInvitationCode(string code = InvitationCode) =>
         SeedAsync(new InvitationCode { Code = code, IsActive = true, Created = DateTime.UtcNow.AddDays(-1) });

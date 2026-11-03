@@ -82,7 +82,6 @@ export interface IPreferences {
   showLanguageInHeader: boolean;
   currency: ICurrencyPreferences;
   idleTimeoutMinutes: number;
-  // not applied yet
   theme: Theme;
 }
 
