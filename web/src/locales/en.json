@@ -532,7 +532,8 @@
   },
   "footer": {
     "encryption": "Encryption",
-    "privacy": "Privacy"
+    "privacy": "Privacy",
+    "buyMeCoffee": "Buy me a coffee"
   },
   "encryption": {
     "header": "How your data is encrypted",
