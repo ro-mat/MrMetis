@@ -25,3 +25,6 @@ app.MapHealthChecks("/health");
 app.MapSpaFallback();
 
 app.Run();
+
+// for WebApplicationFactory in the tests
+public partial class Program;

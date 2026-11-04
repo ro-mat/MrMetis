@@ -34,6 +34,8 @@ public static class WebApplicationExtensions
 
         app.UseCors();
         app.UseAuthentication();
+        // after authentication, so limits per user can see who it is
+        app.UseRateLimiter();
         app.UseAuthorization();
         app.UseTokenRefresh();
 

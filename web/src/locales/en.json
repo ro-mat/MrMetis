@@ -279,6 +279,7 @@
     "recoveryFailed": "The email or recovery key is wrong",
     "recoveryInvalid": "The recovery key could not be created",
     "failedRecoveryKey": "Failed to create the recovery key",
+    "tooManyRequests": "Too many attempts. Wait a few minutes and try again.",
     "passwordsDiffer": "Passwords do not match"
   },
   "landingPage": {

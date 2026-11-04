@@ -15,16 +15,16 @@ public static class IdentityEndpoints
         var group = app.MapGroup("/api/identity").WithTags("Identity");
 
         group.MapGet("/me", Me).RequireAuthorization();
-        group.MapPost("/prelogin", Prelogin);
-        group.MapPost("/register", Register);
-        group.MapPost("/login", Login);
+        group.MapPost("/prelogin", Prelogin).RequireRateLimiting(RateLimitPolicies.Prelogin);
+        group.MapPost("/register", Register).RequireRateLimiting(RateLimitPolicies.Credentials);
+        group.MapPost("/login", Login).RequireRateLimiting(RateLimitPolicies.Credentials);
         group.MapPost("/logout", Logout);
         group.MapGet("/keys", Keys).RequireAuthorization();
-        group.MapPost("/password", ChangePassword).RequireAuthorization();
+        group.MapPost("/password", ChangePassword).RequireAuthorization().RequireRateLimiting(RateLimitPolicies.Account);
         group.MapGet("/recovery", GetRecoveryStatus).RequireAuthorization();
-        group.MapPost("/recovery", SetRecovery).RequireAuthorization();
-        group.MapPost("/recover/start", StartRecovery);
-        group.MapPost("/recover", Recover);
+        group.MapPost("/recovery", SetRecovery).RequireAuthorization().RequireRateLimiting(RateLimitPolicies.Account);
+        group.MapPost("/recover/start", StartRecovery).RequireRateLimiting(RateLimitPolicies.Credentials);
+        group.MapPost("/recover", Recover).RequireRateLimiting(RateLimitPolicies.Credentials);
 
         return app;
     }

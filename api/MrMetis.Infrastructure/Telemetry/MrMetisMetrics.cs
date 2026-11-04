@@ -17,6 +17,7 @@ public sealed class MrMetisMetrics
     private readonly ResultCounter _passwordChanges = new(Success, "failedLogin", "kdfInvalid");
     private readonly ResultCounter _recoverySets = new(Success, "failedLogin", "recoveryInvalid");
     private readonly ResultCounter _recoveries = new(Success, "recoveryFailed", "kdfInvalid");
+    private readonly ResultCounter _rateLimited = new("policy", ["credentials", "prelogin", "account"]);
     private readonly ResultCounter _dataSaves = new(Success, "storageLimitExceeded");
     private readonly Histogram<long> _dataSize;
 
@@ -34,6 +35,8 @@ public sealed class MrMetisMetrics
             "Recovery key creations and replacements by result, the error code when failed");
         Meter.CreateObservableCounter("mrmetis.recoveries", _recoveries.Observe, "{recovery}",
             "Recovery attempts (lookups of the wrapped key and password resets) by result, the error code when failed");
+        Meter.CreateObservableCounter("mrmetis.rate_limited", _rateLimited.Observe, "{request}",
+            "Requests refused for too many attempts, by rate limit policy");
         Meter.CreateObservableCounter("mrmetis.data.saves", _dataSaves.Observe, "{save}",
             "Saves of the encrypted user data by result");
         _dataSize = Meter.CreateHistogram<long>("mrmetis.data.size", "By",
@@ -55,6 +58,8 @@ public sealed class MrMetisMetrics
 
     public void Recovery(string result) => _recoveries.Add(result);
 
+    public void RateLimited(string policy) => _rateLimited.Add(policy);
+
     public void DataSave(string result, long bytes)
     {
         _dataSaves.Add(result);
@@ -69,9 +74,15 @@ public sealed class MrMetisMetrics
     private sealed class ResultCounter
     {
         private readonly ConcurrentDictionary<string, long> _totals = new();
+        private readonly string _tag;
 
-        public ResultCounter(params string[] knownResults)
+        public ResultCounter(params string[] knownResults) : this("result", knownResults)
         {
+        }
+
+        public ResultCounter(string tag, string[] knownResults)
+        {
+            _tag = tag;
             foreach (var result in knownResults)
             {
                 _totals[result] = 0;
@@ -81,6 +92,6 @@ public sealed class MrMetisMetrics
         public void Add(string result) => _totals.AddOrUpdate(result, 1, (_, total) => total + 1);
 
         public IEnumerable<Measurement<long>> Observe() =>
-            _totals.Select(x => new Measurement<long>(x.Value, new KeyValuePair<string, object?>("result", x.Key)));
+            _totals.Select(x => new Measurement<long>(x.Value, new KeyValuePair<string, object?>(_tag, x.Key)));
     }
 }
