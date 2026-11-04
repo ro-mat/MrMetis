@@ -125,4 +125,6 @@ Missing something? [Request a feature](https://github.com/ro-mat/MrMetis/issues)
 
 Found a bug or missing something? [Open an issue](https://github.com/ro-mat/MrMetis/issues). Ideas and pull requests are welcome.
 
+Like MrMetis? [Buy me a coffee](https://buymeacoffee.com/mrmetis) ☕
+
 Developers: see [DEVELOPMENT.md](DEVELOPMENT.md) for local setup, QA, production and releases, and database migrations.

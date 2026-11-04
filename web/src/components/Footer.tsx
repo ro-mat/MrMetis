@@ -16,8 +16,14 @@ const Footer = () => {
           GitHub
         </a>{" "}
         <Link to="/encryption">{t("footer.encryption")}</Link>{" "}
-        <Link to="/privacy">{t("footer.privacy")}</Link> MrMetis{" "}
-        {new Date().getFullYear()} &copy;
+        <Link to="/privacy">{t("footer.privacy")}</Link>{" "}
+        <a
+          href="https://buymeacoffee.com/mrmetis"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t("footer.buyMeCoffee")}
+        </a>
       </div>
     </footer>
   );
