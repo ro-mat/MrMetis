@@ -4,6 +4,7 @@ import {
   deriveKeys,
   encrypt,
   generateSalt,
+  rewrapDataKey,
   unwrapDataKey,
 } from "services/encryptor";
 
@@ -41,6 +42,30 @@ describe("encryptor", () => {
 
     const otherKek = (await deriveKeys("other", SALT, ITERATIONS)).kek;
     await expect(unwrapDataKey(wrappedKey, otherKek)).rejects.toThrow();
+  });
+
+  it("should rewrap the same data key for a new password", async () => {
+    const { wrappedKey, dataKey } = await newDataKey();
+    const encrypted = await encrypt({ a: 1 }, dataKey);
+    const oldKek = (await deriveKeys("password", SALT, ITERATIONS)).kek;
+    const newSalt = generateSalt();
+    const newKek = (await deriveKeys("new password", newSalt, ITERATIONS)).kek;
+
+    const rewrapped = await rewrapDataKey(wrappedKey, oldKek, newKek);
+
+    expect(rewrapped).not.toBe(wrappedKey);
+    const unwrapped = await unwrapDataKey(rewrapped, newKek);
+    expect(unwrapped.extractable).toBe(false);
+    expect(await decrypt(encrypted, unwrapped)).toEqual({ a: 1 });
+    await expect(unwrapDataKey(rewrapped, oldKek)).rejects.toThrow();
+  });
+
+  it("should refuse to rewrap with a wrong old password", async () => {
+    const { wrappedKey } = await newDataKey();
+    const wrongKek = (await deriveKeys("other", SALT, ITERATIONS)).kek;
+    const newKek = (await deriveKeys("new password", SALT, ITERATIONS)).kek;
+
+    await expect(rewrapDataKey(wrappedKey, wrongKek, newKek)).rejects.toThrow();
   });
 
   it.each([{ something: "here", other: "there", and: 83 }, null, {}])(

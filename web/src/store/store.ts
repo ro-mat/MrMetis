@@ -19,7 +19,7 @@ const rootReducer = combineReducers({
 
 export type AppState = ReturnType<typeof rootReducer>;
 export type TAppDispatch = typeof store.dispatch;
-export type TAppThunk = ThunkAction<void, AppState, undefined, Action<string>>;
+export type TAppThunk<R = void> = ThunkAction<R, AppState, undefined, Action<string>>;
 
 export const store = configureStore({
   reducer: rootReducer,

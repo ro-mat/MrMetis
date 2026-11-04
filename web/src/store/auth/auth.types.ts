@@ -32,3 +32,13 @@ export interface IAuthResponse {
   token: string;
   wrappedKey: string;
 }
+
+// Key derivation settings and the wrapped data key, see api/MrMetis.Core/Dtos/KeyMaterial.cs
+export interface IKeyMaterial extends IPrelogin {
+  wrappedKey: string;
+}
+
+export interface IChangePassword {
+  currentPassword: string;
+  newPassword: string;
+}

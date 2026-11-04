@@ -14,6 +14,7 @@ public sealed class MrMetisMetrics
 
     private readonly ResultCounter _registrations = new(Success, "emailExists", "codeInvalid", "kdfInvalid");
     private readonly ResultCounter _logins = new(Success, "failed");
+    private readonly ResultCounter _passwordChanges = new(Success, "failedLogin", "kdfInvalid");
     private readonly ResultCounter _dataSaves = new(Success, "storageLimitExceeded");
     private readonly Histogram<long> _dataSize;
 
@@ -25,6 +26,8 @@ public sealed class MrMetisMetrics
             "Registration attempts by result, the error code when failed");
         Meter.CreateObservableCounter("mrmetis.logins", _logins.Observe, "{login}",
             "Login attempts by result");
+        Meter.CreateObservableCounter("mrmetis.password.changes", _passwordChanges.Observe, "{change}",
+            "Password change attempts by result, the error code when failed");
         Meter.CreateObservableCounter("mrmetis.data.saves", _dataSaves.Observe, "{save}",
             "Saves of the encrypted user data by result");
         _dataSize = Meter.CreateHistogram<long>("mrmetis.data.size", "By",
@@ -39,6 +42,8 @@ public sealed class MrMetisMetrics
     public void Registration(string result) => _registrations.Add(result);
 
     public void Login(bool success) => _logins.Add(success ? Success : "failed");
+
+    public void PasswordChange(string result) => _passwordChanges.Add(result);
 
     public void DataSave(string result, long bytes)
     {

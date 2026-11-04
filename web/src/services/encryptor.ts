@@ -115,6 +115,16 @@ export const unwrapDataKey = async (
   );
 };
 
+const wrapDataKey = async (extractable: CryptoKey, kek: CryptoKey) => {
+  const iv = randomBytes(IV_BYTES);
+  const ct = await subtle().wrapKey("raw", extractable, kek, {
+    name: "AES-GCM",
+    iv,
+    additionalData: utf8.encode(KEY_AAD),
+  });
+  return seal(iv, ct);
+};
+
 // Returns the wrapped key for the server and a non-extractable copy for this browser.
 export const createDataKey = async (kek: CryptoKey) => {
   const extractable = await subtle().generateKey(
@@ -122,15 +132,30 @@ export const createDataKey = async (kek: CryptoKey) => {
     true,
     ["encrypt", "decrypt"]
   );
-  const iv = randomBytes(IV_BYTES);
-  const ct = await subtle().wrapKey("raw", extractable, kek, {
-    name: "AES-GCM",
-    iv,
-    additionalData: utf8.encode(KEY_AAD),
-  });
-  const wrappedKey = seal(iv, ct);
+  const wrappedKey = await wrapDataKey(extractable, kek);
 
   return { wrappedKey, dataKey: await unwrapDataKey(wrappedKey, kek) };
+};
+
+// For a password change: the same data key wrapped with the new password's kek, so the data
+// needs no re-encryption. The extractable copy exists only inside this function.
+// Throws if `oldKek` is wrong.
+export const rewrapDataKey = async (
+  wrappedKey: string,
+  oldKek: CryptoKey,
+  newKek: CryptoKey
+): Promise<string> => {
+  const { iv, ct } = open(wrappedKey);
+  const extractable = await subtle().unwrapKey(
+    "raw",
+    ct,
+    oldKek,
+    { name: "AES-GCM", iv, additionalData: utf8.encode(KEY_AAD) },
+    { name: "AES-GCM", length: 256 },
+    true,
+    ["encrypt", "decrypt"]
+  );
+  return wrapDataKey(extractable, newKek);
 };
 
 export const encrypt = async (

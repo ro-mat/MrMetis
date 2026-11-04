@@ -19,6 +19,8 @@ public static class IdentityEndpoints
         group.MapPost("/register", Register);
         group.MapPost("/login", Login);
         group.MapPost("/logout", Logout);
+        group.MapGet("/keys", Keys).RequireAuthorization();
+        group.MapPost("/password", ChangePassword).RequireAuthorization();
 
         return app;
     }
@@ -45,6 +47,27 @@ public static class IdentityEndpoints
     {
         var result = await identityService.LoginAsync(request.Email, request.Password, ct);
         return ToResponse(result);
+    }
+
+    private static async Task<Results<Ok<KeyMaterial>, UnauthorizedHttpResult>> Keys(
+        ClaimsPrincipal user, IIdentityService identityService, CancellationToken ct) =>
+        user.GetUserId() is { } userId && await identityService.GetKeysAsync(userId, ct) is { } keys
+            ? TypedResults.Ok(keys)
+            : TypedResults.Unauthorized();
+
+    private static async Task<Results<Ok, BadRequest<AuthFailedResponse>, UnauthorizedHttpResult>> ChangePassword(
+        ChangePasswordRequest request, ClaimsPrincipal user, IIdentityService identityService, CancellationToken ct)
+    {
+        if (user.GetUserId() is not { } userId)
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        var keys = new KeyMaterial(request.Salt, request.Iterations, request.WrappedKey);
+        var result = await identityService.ChangePasswordAsync(userId, request.CurrentPassword, request.NewPassword, keys, ct);
+        return result.Success
+            ? TypedResults.Ok()
+            : TypedResults.BadRequest(new AuthFailedResponse(result.Errors));
     }
 
     // tokens are stateless, the client drops its token

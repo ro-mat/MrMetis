@@ -17,8 +17,10 @@ public class IdentityServiceTests : DbTestBase
     private const string InvitationCode = "code";
 
     private const string Password = "password";
+    private const string NewPassword = "new password";
 
     private static readonly KeyMaterial Keys = new(Convert.ToBase64String(new byte[Kdf.SaltBytes]), Kdf.MinIterations, "wrapped");
+    private static readonly KeyMaterial NewKeys = new(Convert.ToBase64String(Enumerable.Repeat((byte)1, Kdf.SaltBytes).ToArray()), Kdf.MinIterations + 1, "rewrapped");
 
     private static readonly JwtOptions Jwt = new()
     {
@@ -230,6 +232,84 @@ public class IdentityServiceTests : DbTestBase
         Assert.That((await _service.PreloginAsync("other@email.com")).Salt, Is.Not.EqualTo(result.Salt));
     }
 
+    [Test]
+    public async Task GetKeys_ShouldReturnStoredKeyMaterial()
+    {
+        var userId = await AddUser();
+
+        Assert.That(await _service.GetKeysAsync(userId), Is.EqualTo(Keys));
+        Assert.That(await _service.GetKeysAsync(userId + 1), Is.Null);
+    }
+
+    [Test]
+    public async Task ChangePassword_WithCorrectPassword_ShouldReplacePasswordAndKeys()
+    {
+        var userId = await AddUser();
+
+        var result = await _service.ChangePasswordAsync(userId, Password, NewPassword, NewKeys);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(await _service.GetKeysAsync(userId), Is.EqualTo(NewKeys));
+        AssertFailed(await _service.LoginAsync(Email, Password), "failedLogin");
+        var login = await _service.LoginAsync(Email, NewPassword);
+        Assert.That(login.Success, Is.True);
+        Assert.That(login.WrappedKey, Is.EqualTo(NewKeys.WrappedKey));
+
+        await using var db = CreateContext();
+        var user = await db.Users.SingleAsync();
+        Assert.That(user.Modified, Is.GreaterThan(user.Created));
+    }
+
+    [Test]
+    public async Task ChangePassword_WithBadPassword_ShouldLeaveUserUnchanged()
+    {
+        var userId = await AddUser();
+
+        var result = await _service.ChangePasswordAsync(userId, "bad", NewPassword, NewKeys);
+
+        AssertFailed(result, "failedLogin");
+        Assert.That(await _service.GetKeysAsync(userId), Is.EqualTo(Keys));
+        Assert.That((await _service.LoginAsync(Email, Password)).Success, Is.True);
+    }
+
+    [Test]
+    public async Task ChangePassword_UnknownUser_ShouldReturnError()
+    {
+        var result = await _service.ChangePasswordAsync(42, Password, NewPassword, NewKeys);
+
+        AssertFailed(result, "failedLogin");
+    }
+
+    [TestCase("AAAA", Kdf.MinIterations, "wrapped")]
+    [TestCase("AAAAAAAAAAAAAAAAAAAAAA==", Kdf.MinIterations - 1, "wrapped")]
+    [TestCase("AAAAAAAAAAAAAAAAAAAAAA==", Kdf.MinIterations, "")]
+    public async Task ChangePassword_WithBadKeyMaterial_ShouldLeaveUserUnchanged(string salt, int iterations, string wrappedKey)
+    {
+        var userId = await AddUser();
+
+        var result = await _service.ChangePasswordAsync(userId, Password, NewPassword, new KeyMaterial(salt, iterations, wrappedKey));
+
+        AssertFailed(result, "kdfInvalid");
+        Assert.That(await _service.GetKeysAsync(userId), Is.EqualTo(Keys));
+        Assert.That((await _service.LoginAsync(Email, Password)).Success, Is.True);
+    }
+
+    [Test]
+    public async Task ChangePassword_ShouldCountResults()
+    {
+        var userId = await AddUser();
+
+        await _service.ChangePasswordAsync(userId, "bad", NewPassword, NewKeys);
+        await _service.ChangePasswordAsync(userId, Password, NewPassword, NewKeys);
+
+        Assert.That(CounterTotals("mrmetis.password.changes"), Is.EquivalentTo(new Dictionary<string, long>
+        {
+            ["success"] = 1,
+            ["failedLogin"] = 1,
+            ["kdfInvalid"] = 0
+        }));
+    }
+
     private static void AssertCreatedNow(bool isActive, DateTime created, DateTime? modified)
     {
         Assert.That(isActive, Is.True);
@@ -244,11 +324,15 @@ public class IdentityServiceTests : DbTestBase
         Assert.That(errors, Is.EqualTo(new[] { error }));
     }
 
-    private async Task AddUser()
+    private static void AssertFailed(AuthenticationResult result, string error) =>
+        AssertFailed(result.Success, result.Token, result.Errors, error);
+
+    private async Task<int> AddUser()
     {
         await AddInvitationCode();
         await _service.RegisterAsync(Email, Password, InvitationCode, Keys);
         Db.ChangeTracker.Clear();
+        return await Db.Users.Select(u => u.Id).SingleAsync();
     }
 
     private IdentityService CreateService(StorageOptions storage, bool invitationCode = true) =>

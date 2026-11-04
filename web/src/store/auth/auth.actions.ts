@@ -4,6 +4,7 @@ import {
   deriveKeys,
   generateSalt,
   KDF_ITERATIONS,
+  rewrapDataKey,
   unwrapDataKey,
 } from "services/encryptor";
 import { clearKey, saveKey } from "services/keyStore";
@@ -11,6 +12,7 @@ import {
   addLocalUser,
   deleteLocalUser,
   getLocalUser,
+  updateLocalUser,
 } from "services/localUsers";
 import { requestPersistentStorage } from "services/persistentStorage";
 import { TAppDispatch, TAppThunk } from "store/store";
@@ -24,7 +26,9 @@ import {
 } from "./auth.slice";
 import {
   IAuthResponse,
+  IChangePassword,
   ICredentials,
+  IKeyMaterial,
   ILocalCredentials,
   IPrelogin,
   IUser,
@@ -213,6 +217,75 @@ export const logout = (): TAppThunk => (dispatch, getState) => {
     })
     .catch((err) => dispatch(authError(err)));
 };
+
+// The current password's kek fails to unwrap the data key when it's wrong.
+const rewrap = async (
+  keys: IKeyMaterial,
+  { currentPassword, newPassword }: IChangePassword,
+) => {
+  const { authKey: currentAuthKey, kek: currentKek } = await deriveKeys(
+    currentPassword,
+    keys.salt,
+    keys.iterations,
+  );
+  const salt = generateSalt();
+  const { authKey, kek } = await deriveKeys(newPassword, salt, KDF_ITERATIONS);
+
+  let wrappedKey: string;
+  try {
+    wrappedKey = await rewrapDataKey(keys.wrappedKey, currentKek, kek);
+  } catch {
+    throw new Error("wrongCurrentPassword");
+  }
+
+  return {
+    currentAuthKey,
+    authKey,
+    keys: { salt, iterations: KDF_ITERATIONS, wrappedKey },
+  };
+};
+
+// Changes the password of the account or on-device profile. The data key stays the same, so the
+// data and this session's stored key are untouched. Resolves to an error code, or null when done.
+export const changePassword =
+  (passwords: IChangePassword): TAppThunk<Promise<string | null>> =>
+  async (_dispatch, getState) => {
+    const { isLocal, user } = getState().auth;
+    if (!user) return "userNotFound";
+
+    try {
+      if (isLocal) {
+        const local = await getLocalUser(user);
+        if (!local) return "userNotFound";
+        const { keys } = await rewrap(local, passwords);
+        await updateLocalUser({ ...local, ...keys });
+        return null;
+      }
+
+      const { data: current } = await api.get<IKeyMaterial>("identity/keys");
+      const { currentAuthKey, authKey, keys } = await rewrap(
+        current,
+        passwords,
+      );
+      await api.post("identity/password", {
+        currentPassword: currentAuthKey,
+        newPassword: authKey,
+        ...keys,
+      });
+      return null;
+    } catch (err) {
+      if ((err as Error | undefined)?.message === "wrongCurrentPassword") {
+        return "wrongCurrentPassword";
+      }
+      const code = errorCodes(err)?.[0];
+      if (!code) {
+        console.error(err);
+      }
+      return code === "failedLogin"
+        ? "wrongCurrentPassword"
+        : (code ?? "failedPasswordChange");
+    }
+  };
 
 // Removes the on-device profile and its data, then logs out.
 export const deleteLocalProfile =

@@ -45,6 +45,12 @@ export const addLocalUser = async (user: ILocalUser) => {
   }
 };
 
+// replaces the key derivation settings and wrapped key, e.g. after a password change
+export const updateLocalUser = (user: ILocalUser) =>
+  run<void>(config, USERS, "readwrite", (tx) =>
+    tx.objectStore(USERS).put({ ...user, name: user.name.trim() }, id(user.name)),
+  );
+
 export const loadLocalData = (name: string) =>
   run<string | undefined>(config, DATA, "readonly", (tx) =>
     tx.objectStore(DATA).get(id(name)),

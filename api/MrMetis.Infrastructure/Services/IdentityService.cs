@@ -56,6 +56,43 @@ public class IdentityService(
         return AuthenticationResult.Succeeded(tokenService.CreateToken(user.Id, user.Email), user.WrappedKey);
     }
 
+    public async Task<KeyMaterial?> GetKeysAsync(int userId, CancellationToken ct = default) =>
+        await db.Users
+            .Where(x => x.Id == userId)
+            .Select(x => new KeyMaterial(x.KdfSalt, x.KdfIterations, x.WrappedKey))
+            .FirstOrDefaultAsync(ct);
+
+    public async Task<AuthenticationResult> ChangePasswordAsync(int userId, string currentPassword, string newPassword, KeyMaterial keys, CancellationToken ct = default)
+    {
+        var result = await ChangeUserPasswordAsync(userId, currentPassword, newPassword, keys, ct);
+        metrics.PasswordChange(result.Success ? MrMetisMetrics.Success : result.Errors[0]);
+        return result;
+    }
+
+    private async Task<AuthenticationResult> ChangeUserPasswordAsync(int userId, string currentPassword, string newPassword, KeyMaterial keys, CancellationToken ct)
+    {
+        if (!IsValid(keys))
+        {
+            return AuthenticationResult.Failed("kdfInvalid");
+        }
+
+        var user = await db.Users.FirstOrDefaultAsync(x => x.Id == userId, ct);
+        if (user is null || !await VerifyPasswordAsync(user, currentPassword, ct))
+        {
+            return AuthenticationResult.Failed("failedLogin");
+        }
+
+        // the data key stays the same, only how it is wrapped changes, so the user data needs no re-encryption
+        user.Password = passwordHasher.HashPassword(user, newPassword);
+        user.KdfSalt = keys.Salt;
+        user.KdfIterations = keys.Iterations;
+        user.WrappedKey = keys.WrappedKey;
+        user.Modified = timeProvider.GetUtcNow().UtcDateTime;
+        await db.SaveChangesAsync(ct);
+
+        return AuthenticationResult.Succeeded();
+    }
+
     private async Task<AuthenticationResult> RegisterUserAsync(string email, string password, string? invitationCode, KeyMaterial keys, CancellationToken ct)
     {
         if (!IsValid(keys))

@@ -7,6 +7,7 @@ import userdataReducer, {
 } from "store/userdata/userdata.slice";
 import uiReducer from "store/ui/ui.slice";
 import {
+  changePassword,
   deleteLocalProfile,
   localLogin,
   localRegister,
@@ -56,6 +57,9 @@ vi.mock("services/localUsers", () => {
     getLocalUser: vi.fn(async (name: string) => db.users.get(id(name))),
     addLocalUser: vi.fn(async (user: { name: string }) => {
       if (db.users.has(id(user.name))) throw new Error("localUserExists");
+      db.users.set(id(user.name), user);
+    }),
+    updateLocalUser: vi.fn(async (user: { name: string }) => {
       db.users.set(id(user.name), user);
     }),
     loadLocalData: vi.fn(async (name: string) => db.data.get(id(name))),
@@ -216,6 +220,47 @@ describe("on-device profiles", () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  it("changes the password and keeps the data", async () => {
+    const store = createStore();
+    await store.dispatch(localRegister(alice));
+    await store.dispatch(loadUserdata());
+    await addAccount(store, "Cash");
+    const encrypted = db.data.get("alice");
+
+    const newPassword = "alice-new-password";
+    expect(
+      await store.dispatch(
+        changePassword({ currentPassword: alice.password, newPassword }),
+      ),
+    ).toBeNull();
+    // the data key is the same, so the data isn't re-encrypted
+    expect(db.data.get("alice")).toBe(encrypted);
+    store.dispatch(logout());
+
+    await store.dispatch(localLogin(alice));
+    expect(store.getState().auth.err).toBe("failedLocalLogin");
+
+    await store.dispatch(localLogin({ ...alice, password: newPassword }));
+    await store.dispatch(loadUserdata());
+    expect(accountNames(store)).toEqual(["Cash"]);
+  });
+
+  it("refuses a password change with a wrong current password", async () => {
+    const store = createStore();
+    await store.dispatch(localRegister(alice));
+    const before = db.users.get("alice");
+
+    expect(
+      await store.dispatch(
+        changePassword({
+          currentPassword: "wrong-password",
+          newPassword: "alice-new-password",
+        }),
+      ),
+    ).toBe("wrongCurrentPassword");
+    expect(db.users.get("alice")).toBe(before);
   });
 
   it("deletes the profile and its data", async () => {
