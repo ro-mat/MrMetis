@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
     {
         builder.AddCorsPolicy();
         builder.AddJwtAuthentication();
+        builder.AddRateLimits();
         builder.AddTelemetry();
 
         builder.Services.AddMemoryCache();

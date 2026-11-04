@@ -5,6 +5,8 @@ import { useSelector } from "react-redux";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { AppState } from "store/store";
 import ErrorBoundary from "components/ErrorBoundary";
+import RecoveryKeyDialog from "components/recovery/RecoveryKeyDialog";
+import RecoveryReminder from "components/recovery/RecoveryReminder";
 
 // `section` is the path prefix that marks the link as selected.
 const navItems = [
@@ -48,10 +50,12 @@ const SideNavLayout = () => {
       </div>
       <div className="content" ref={contentRef}>
         {isDemo && <DemoTopBar />}
+        <RecoveryReminder />
         <ErrorBoundary resetKey={location.pathname}>
           <Outlet />
         </ErrorBoundary>
       </div>
+      <RecoveryKeyDialog />
     </main>
   );
 };

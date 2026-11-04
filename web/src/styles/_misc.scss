@@ -13,6 +13,18 @@
   color: #000;
 }
 
+#recovery-reminder {
+  background-color: var(--highlight-bg);
+  padding: 0.5em 1em;
+  border: 1px solid var(--border-strong);
+  color: #000;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  justify-content: space-between;
+  align-items: center;
+}
+
 #planning-subnav {
   display: flex;
   gap: 1em;

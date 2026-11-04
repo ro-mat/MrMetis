@@ -73,6 +73,8 @@ One-time setup:
 - `MSSQL_SA_PASSWORD`, `DB_APP_PASSWORD`: SQL Server passwords. They need upper case, lower case and digits, and must not contain `;` or `'`, for example `openssl rand -base64 32 | tr -d '/+='`
 - `JWT_SECRET`: at least 32 characters, for example `openssl rand -hex 32`
 
+Login, registration, recovery, password change and recovery key creation are rate limited in memory (`RateLimiting` in `appsettings.json`, defaults in `RateLimitOptions`). QA and production take the client's IP from Cloudflare's `CF-Connecting-IP` header (`RateLimiting:ClientIpHeader`), because behind cloudflared and Traefik every request arrives from the same proxy address. Only set that header where all traffic comes through Cloudflare; anywhere else clients could send any IP they like in it.
+
 On the first start the API creates the database (`mrmetis-qa`, or `mrmetis` in production) and its login, and migrations run on every start. To change `DB_APP_PASSWORD` later, change the login's password in SQL Server too. Invitation codes are not seeded outside Development; add one on the server (for production, use `/srv/apps/mrmetis-prod` and `-d mrmetis`):
 
 ```sh

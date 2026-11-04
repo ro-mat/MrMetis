@@ -6,13 +6,20 @@ import PreferencesForm from "components/preferences/PreferencesForm";
 import DataExport from "components/preferences/DataExport";
 import DataImport from "components/preferences/DataImport";
 import LocalProfile from "components/preferences/LocalProfile";
-import { selectIsLocal } from "store/auth/auth.selectors";
+import ChangePassword from "components/preferences/ChangePassword";
+import RecoveryKey from "components/preferences/RecoveryKey";
+import {
+  selectIsAuthenticated,
+  selectIsLocal,
+} from "store/auth/auth.selectors";
 
 // The form waits for the stored preferences, so it doesn't show the defaults
 // (e.g. the browser's country) first.
 const Preferences = () => {
   const loaded = useSelector((state: AppState) => state.data.loaded);
   const isLocal = useSelector(selectIsLocal);
+  // not in the demo, it has no password
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
   return (
     <div className="preferences">
@@ -21,6 +28,8 @@ const Preferences = () => {
         <PreferencesForm>
           <DataExport />
           <DataImport />
+          {isAuthenticated && <ChangePassword />}
+          {isAuthenticated && !isLocal && <RecoveryKey />}
           {isLocal && <LocalProfile />}
         </PreferencesForm>
       )}

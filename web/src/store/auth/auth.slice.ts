@@ -16,6 +16,8 @@ const initialState: IAuthState = {
   user: localUser,
   isDemo: !!localStorage.getItem(DemoDataKey),
   isLocal: !!localUser,
+  shownRecoveryKey: null,
+  recoveryReminder: false,
 };
 
 const authSlice = createSlice({
@@ -51,6 +53,12 @@ const authSlice = createSlice({
     SET_ISDEMO: (state, action: IAction<boolean>) => {
       state.isDemo = action.payload;
     },
+    SHOW_RECOVERY_KEY: (state, action: IAction<string | null>) => {
+      state.shownRecoveryKey = action.payload;
+    },
+    SET_RECOVERY_REMINDER: (state, action: IAction<boolean>) => {
+      state.recoveryReminder = action.payload;
+    },
     SET_LOCAL_USER: (state, action: IAction<string | null>) => {
       state.isFetching = false;
       state.err = null;
@@ -74,6 +82,8 @@ export const {
   SET_USER,
   SET_ISDEMO,
   SET_LOCAL_USER,
+  SHOW_RECOVERY_KEY,
+  SET_RECOVERY_REMINDER,
 } = authSlice.actions;
 
 export default authSlice.reducer;

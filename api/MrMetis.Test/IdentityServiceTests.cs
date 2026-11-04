@@ -6,6 +6,7 @@ using MrMetis.Core;
 using MrMetis.Core.Dtos;
 using MrMetis.Core.Entities;
 using MrMetis.Core.Options;
+using MrMetis.Core.Requests;
 using MrMetis.Core.Responses;
 using MrMetis.Infrastructure.Services;
 
@@ -17,8 +18,12 @@ public class IdentityServiceTests : DbTestBase
     private const string InvitationCode = "code";
 
     private const string Password = "password";
+    private const string NewPassword = "new password";
 
     private static readonly KeyMaterial Keys = new(Convert.ToBase64String(new byte[Kdf.SaltBytes]), Kdf.MinIterations, "wrapped");
+    private static readonly RecoveryMaterial Recovery = new("recovery auth", "recovery wrapped");
+    private static readonly RecoveryMaterial NewRecovery = new("new recovery auth", "new recovery wrapped");
+    private static readonly KeyMaterial NewKeys = new(Convert.ToBase64String(Enumerable.Repeat((byte)1, Kdf.SaltBytes).ToArray()), Kdf.MinIterations + 1, "rewrapped");
 
     private static readonly JwtOptions Jwt = new()
     {
@@ -230,6 +235,234 @@ public class IdentityServiceTests : DbTestBase
         Assert.That((await _service.PreloginAsync("other@email.com")).Salt, Is.Not.EqualTo(result.Salt));
     }
 
+    [Test]
+    public async Task GetKeys_ShouldReturnStoredKeyMaterial()
+    {
+        var userId = await AddUser();
+
+        Assert.That(await _service.GetKeysAsync(userId), Is.EqualTo(Keys));
+        Assert.That(await _service.GetKeysAsync(userId + 1), Is.Null);
+    }
+
+    [Test]
+    public async Task ChangePassword_WithCorrectPassword_ShouldReplacePasswordAndKeys()
+    {
+        var userId = await AddUser();
+
+        var result = await _service.ChangePasswordAsync(userId, Password, NewPassword, NewKeys);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(await _service.GetKeysAsync(userId), Is.EqualTo(NewKeys));
+        AssertFailed(await _service.LoginAsync(Email, Password), "failedLogin");
+        var login = await _service.LoginAsync(Email, NewPassword);
+        Assert.That(login.Success, Is.True);
+        Assert.That(login.WrappedKey, Is.EqualTo(NewKeys.WrappedKey));
+
+        await using var db = CreateContext();
+        var user = await db.Users.SingleAsync();
+        Assert.That(user.Modified, Is.GreaterThan(user.Created));
+    }
+
+    [Test]
+    public async Task ChangePassword_WithBadPassword_ShouldLeaveUserUnchanged()
+    {
+        var userId = await AddUser();
+
+        var result = await _service.ChangePasswordAsync(userId, "bad", NewPassword, NewKeys);
+
+        AssertFailed(result, "failedLogin");
+        Assert.That(await _service.GetKeysAsync(userId), Is.EqualTo(Keys));
+        Assert.That((await _service.LoginAsync(Email, Password)).Success, Is.True);
+    }
+
+    [Test]
+    public async Task ChangePassword_UnknownUser_ShouldReturnError()
+    {
+        var result = await _service.ChangePasswordAsync(42, Password, NewPassword, NewKeys);
+
+        AssertFailed(result, "failedLogin");
+    }
+
+    [TestCase("AAAA", Kdf.MinIterations, "wrapped")]
+    [TestCase("AAAAAAAAAAAAAAAAAAAAAA==", Kdf.MinIterations - 1, "wrapped")]
+    [TestCase("AAAAAAAAAAAAAAAAAAAAAA==", Kdf.MinIterations, "")]
+    public async Task ChangePassword_WithBadKeyMaterial_ShouldLeaveUserUnchanged(string salt, int iterations, string wrappedKey)
+    {
+        var userId = await AddUser();
+
+        var result = await _service.ChangePasswordAsync(userId, Password, NewPassword, new KeyMaterial(salt, iterations, wrappedKey));
+
+        AssertFailed(result, "kdfInvalid");
+        Assert.That(await _service.GetKeysAsync(userId), Is.EqualTo(Keys));
+        Assert.That((await _service.LoginAsync(Email, Password)).Success, Is.True);
+    }
+
+    [Test]
+    public async Task ChangePassword_ShouldCountResults()
+    {
+        var userId = await AddUser();
+
+        await _service.ChangePasswordAsync(userId, "bad", NewPassword, NewKeys);
+        await _service.ChangePasswordAsync(userId, Password, NewPassword, NewKeys);
+
+        Assert.That(CounterTotals("mrmetis.password.changes"), Is.EquivalentTo(new Dictionary<string, long>
+        {
+            ["success"] = 1,
+            ["failedLogin"] = 1,
+            ["kdfInvalid"] = 0
+        }));
+    }
+
+    [Test]
+    public async Task Register_WithRecovery_ShouldStoreRecoveryKey()
+    {
+        await AddInvitationCode();
+
+        var result = await _service.RegisterAsync(Email, Password, InvitationCode, Keys, Recovery);
+
+        Assert.That(result.HasRecoveryKey, Is.True);
+        await using var db = CreateContext();
+        var user = await db.Users.SingleAsync();
+        Assert.That(user.RecoveryAuthHash, Is.Not.Null.And.Not.EqualTo(Recovery.AuthKey));
+        Assert.That(user.RecoveryWrappedKey, Is.EqualTo(Recovery.WrappedKey));
+        Assert.That(user.RecoveryCreated, Is.EqualTo(user.Created));
+        Assert.That((await _service.LoginAsync(Email, Password)).HasRecoveryKey, Is.True);
+    }
+
+    [Test]
+    public async Task Register_WithoutRecovery_ShouldHaveNoRecoveryKey()
+    {
+        var userId = await AddUser();
+
+        Assert.That((await _service.LoginAsync(Email, Password)).HasRecoveryKey, Is.False);
+        Assert.That(await _service.GetRecoveryStatusAsync(userId), Is.EqualTo(new RecoveryStatus(null)));
+        Assert.That(await _service.StartRecoveryAsync(Email, Recovery.AuthKey), Is.Null);
+    }
+
+    [Test]
+    public async Task Register_WithBadRecovery_ShouldReturnError()
+    {
+        await AddInvitationCode();
+
+        var result = await _service.RegisterAsync(Email, Password, InvitationCode, Keys, new RecoveryMaterial("", "wrapped"));
+
+        AssertFailed(result, "kdfInvalid");
+    }
+
+    [Test]
+    public async Task SetRecovery_WithCorrectPassword_ShouldReplaceRecoveryKey()
+    {
+        var userId = await AddUser(Recovery);
+
+        var result = await _service.SetRecoveryAsync(userId, Password, NewRecovery);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That((await _service.GetRecoveryStatusAsync(userId)).Created, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromMinutes(1)));
+        Assert.That(await _service.StartRecoveryAsync(Email, Recovery.AuthKey), Is.Null);
+        Assert.That(await _service.StartRecoveryAsync(Email, NewRecovery.AuthKey), Is.EqualTo(NewRecovery.WrappedKey));
+    }
+
+    [Test]
+    public async Task SetRecovery_WithBadPassword_ShouldLeaveRecoveryKey()
+    {
+        var userId = await AddUser(Recovery);
+
+        var result = await _service.SetRecoveryAsync(userId, "bad", NewRecovery);
+
+        AssertFailed(result, "failedLogin");
+        Assert.That(await _service.StartRecoveryAsync(Email, Recovery.AuthKey), Is.EqualTo(Recovery.WrappedKey));
+    }
+
+    [Test]
+    public async Task SetRecovery_WithBadRecovery_ShouldReturnError()
+    {
+        var userId = await AddUser();
+
+        AssertFailed(await _service.SetRecoveryAsync(userId, Password, new RecoveryMaterial("auth", " ")), "recoveryInvalid");
+        AssertFailed(await _service.SetRecoveryAsync(userId, Password, null!), "recoveryInvalid");
+    }
+
+    [Test]
+    public async Task StartRecovery_ShouldReturnWrappedKeyForCorrectKeyOnly()
+    {
+        await AddUser(Recovery);
+
+        Assert.That(await _service.StartRecoveryAsync(Email, Recovery.AuthKey), Is.EqualTo(Recovery.WrappedKey));
+        Assert.That(await _service.StartRecoveryAsync(Email, "bad"), Is.Null);
+        Assert.That(await _service.StartRecoveryAsync("nobody@email.com", Recovery.AuthKey), Is.Null);
+    }
+
+    [Test]
+    public async Task Recover_WithCorrectKey_ShouldReplacePasswordAndRotateRecoveryKey()
+    {
+        var userId = await AddUser(Recovery);
+
+        var result = await _service.RecoverAsync(RecoverRequestFor(Recovery.AuthKey));
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Token, Is.Not.Empty);
+        Assert.That(result.WrappedKey, Is.EqualTo(NewKeys.WrappedKey));
+        Assert.That(result.HasRecoveryKey, Is.True);
+        Assert.That(await _service.GetKeysAsync(userId), Is.EqualTo(NewKeys));
+        AssertFailed(await _service.LoginAsync(Email, Password), "failedLogin");
+        Assert.That((await _service.LoginAsync(Email, NewPassword)).Success, Is.True);
+        // the used key is replaced
+        Assert.That(await _service.StartRecoveryAsync(Email, Recovery.AuthKey), Is.Null);
+        Assert.That(await _service.StartRecoveryAsync(Email, NewRecovery.AuthKey), Is.EqualTo(NewRecovery.WrappedKey));
+    }
+
+    [TestCase("bad", Email)]
+    [TestCase("recovery auth", "nobody@email.com")]
+    public async Task Recover_WithBadKeyOrEmail_ShouldLeaveUserUnchanged(string recoveryKey, string email)
+    {
+        var userId = await AddUser(Recovery);
+
+        var result = await _service.RecoverAsync(RecoverRequestFor(recoveryKey) with { Email = email });
+
+        AssertFailed(result, "recoveryFailed");
+        Assert.That(await _service.GetKeysAsync(userId), Is.EqualTo(Keys));
+        Assert.That((await _service.LoginAsync(Email, Password)).Success, Is.True);
+        Assert.That(await _service.StartRecoveryAsync(Email, Recovery.AuthKey), Is.EqualTo(Recovery.WrappedKey));
+    }
+
+    [Test]
+    public async Task Recover_WithBadKeyMaterial_ShouldLeaveUserUnchanged()
+    {
+        var userId = await AddUser(Recovery);
+
+        AssertFailed(await _service.RecoverAsync(RecoverRequestFor(Recovery.AuthKey) with { Iterations = Kdf.MinIterations - 1 }), "kdfInvalid");
+        AssertFailed(await _service.RecoverAsync(RecoverRequestFor(Recovery.AuthKey) with { NewRecovery = null! }), "kdfInvalid");
+        Assert.That(await _service.GetKeysAsync(userId), Is.EqualTo(Keys));
+        Assert.That(await _service.StartRecoveryAsync(Email, Recovery.AuthKey), Is.EqualTo(Recovery.WrappedKey));
+    }
+
+    [Test]
+    public async Task Recovery_ShouldCountResults()
+    {
+        var userId = await AddUser(Recovery);
+
+        await _service.SetRecoveryAsync(userId, "bad", NewRecovery);
+        await _service.SetRecoveryAsync(userId, Password, Recovery);
+        await _service.StartRecoveryAsync(Email, "bad");
+        await _service.RecoverAsync(RecoverRequestFor(Recovery.AuthKey));
+
+        Assert.That(CounterTotals("mrmetis.recovery.sets"), Is.EquivalentTo(new Dictionary<string, long>
+        {
+            ["success"] = 1,
+            ["failedLogin"] = 1,
+            ["recoveryInvalid"] = 0
+        }));
+        Assert.That(CounterTotals("mrmetis.recoveries"), Is.EquivalentTo(new Dictionary<string, long>
+        {
+            ["success"] = 1,
+            ["recoveryFailed"] = 1,
+            ["kdfInvalid"] = 0
+        }));
+    }
+
+    private static RecoverRequest RecoverRequestFor(string recoveryKey) =>
+        new(Email, recoveryKey, NewPassword, NewKeys.Salt, NewKeys.Iterations, NewKeys.WrappedKey, NewRecovery);
+
     private static void AssertCreatedNow(bool isActive, DateTime created, DateTime? modified)
     {
         Assert.That(isActive, Is.True);
@@ -244,11 +477,15 @@ public class IdentityServiceTests : DbTestBase
         Assert.That(errors, Is.EqualTo(new[] { error }));
     }
 
-    private async Task AddUser()
+    private static void AssertFailed(AuthenticationResult result, string error) =>
+        AssertFailed(result.Success, result.Token, result.Errors, error);
+
+    private async Task<int> AddUser(RecoveryMaterial? recovery = null)
     {
         await AddInvitationCode();
-        await _service.RegisterAsync(Email, Password, InvitationCode, Keys);
+        await _service.RegisterAsync(Email, Password, InvitationCode, Keys, recovery);
         Db.ChangeTracker.Clear();
+        return await Db.Users.Select(u => u.Id).SingleAsync();
     }
 
     private IdentityService CreateService(StorageOptions storage, bool invitationCode = true) =>

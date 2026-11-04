@@ -2,8 +2,12 @@ import api from "../../helpers/apiConfiguration";
 import {
   createDataKey,
   deriveKeys,
+  deriveRecoveryKeys,
+  generateRecoveryKey,
   generateSalt,
   KDF_ITERATIONS,
+  parseRecoveryKey,
+  rewrapDataKey,
   unwrapDataKey,
 } from "services/encryptor";
 import { clearKey, saveKey } from "services/keyStore";
@@ -11,6 +15,7 @@ import {
   addLocalUser,
   deleteLocalUser,
   getLocalUser,
+  updateLocalUser,
 } from "services/localUsers";
 import { requestPersistentStorage } from "services/persistentStorage";
 import { TAppDispatch, TAppThunk } from "store/store";
@@ -19,14 +24,20 @@ import {
   AUTH_FETCHING,
   SET_ISDEMO,
   SET_LOCAL_USER,
+  SET_RECOVERY_REMINDER,
   SET_TOKEN,
   SET_USER,
+  SHOW_RECOVERY_KEY,
 } from "./auth.slice";
 import {
   IAuthResponse,
+  IChangePassword,
   ICredentials,
+  IKeyMaterial,
   ILocalCredentials,
   IPrelogin,
+  IRecover,
+  IRecoveryStatus,
   IUser,
 } from "./auth.types";
 import { CLEAR_USERDATA } from "store/userdata/userdata.slice";
@@ -39,13 +50,16 @@ const errorCodes = (err: unknown) =>
 const authError = (err: unknown) =>
   AUTH_ERROR(errorCodes(err)?.join(", ") ?? null);
 
+// a failure of our own, read like the server's
+const codeError = (code: string) => ({ data: { errors: [code] } });
+
 // crypto failures have no server error code
-const loginError = (err: unknown) => {
+const loginError = (err: unknown, failedCode = "failedLogin") => {
   const errors = errorCodes(err);
   if (!errors) {
     console.error(err);
   }
-  return AUTH_ERROR(errors?.join(", ") ?? "failedLogin");
+  return AUTH_ERROR(errors?.join(", ") ?? failedCode);
 };
 
 // Starting a session of one kind ends the others (server, on-device, demo).
@@ -55,6 +69,8 @@ const endSessions = async (dispatch: TAppDispatch) => {
   dispatch(SET_ISDEMO(false));
   dispatch(SET_TOKEN(null));
   dispatch(SET_LOCAL_USER(null));
+  dispatch(SHOW_RECOVERY_KEY(null));
+  dispatch(SET_RECOVERY_REMINDER(false));
   dispatch(AUTH_FETCHING());
   await clearKey();
 };
@@ -63,7 +79,8 @@ const endSessions = async (dispatch: TAppDispatch) => {
 // Userdata is loaded by App once the user is set.
 const authenticate = async (
   dispatch: TAppDispatch,
-  getToken: () => Promise<string>
+  getToken: () => Promise<string>,
+  failedCode?: string
 ) => {
   await endSessions(dispatch);
 
@@ -72,8 +89,17 @@ const authenticate = async (
     dispatch(attempt(token));
   } catch (err) {
     await clearKey();
-    dispatch(loginError(err));
+    dispatch(SHOW_RECOVERY_KEY(null));
+    dispatch(loginError(err, failedCode));
   }
+};
+
+// A new recovery key, and the keys derived from it: the auth key for the server and the kek
+// that wraps the data key.
+const newRecoveryKey = async () => {
+  const recoveryKey = generateRecoveryKey();
+  const keys = await deriveRecoveryKeys(parseRecoveryKey(recoveryKey)!);
+  return { recoveryKey, ...keys };
 };
 
 export const login =
@@ -95,6 +121,7 @@ export const login =
       });
 
       await saveKey(await unwrapDataKey(data.wrappedKey, kek));
+      dispatch(SET_RECOVERY_REMINDER(!data.hasRecoveryKey));
       return data.token;
     });
 
@@ -108,7 +135,11 @@ export const register =
         salt,
         KDF_ITERATIONS
       );
-      const { wrappedKey, dataKey } = await createDataKey(kek);
+      const recovery = await newRecoveryKey();
+      const { wrappedKey, recoveryWrappedKey, dataKey } = await createDataKey(
+        kek,
+        recovery.kek
+      );
 
       const { data } = await api.post<IAuthResponse>("identity/register", {
         email,
@@ -117,11 +148,62 @@ export const register =
         salt,
         iterations: KDF_ITERATIONS,
         wrappedKey,
+        recovery: { authKey: recovery.authKey, wrappedKey: recoveryWrappedKey },
       });
 
       await saveKey(dataKey);
+      dispatch(SHOW_RECOVERY_KEY(recovery.recoveryKey));
       return data.token;
     });
+
+// Sets a new password with the recovery key and logs in. The used key is replaced by a new one,
+// shown once logged in.
+export const recover =
+  ({ email, recoveryKey, newPassword }: IRecover): TAppThunk =>
+  (dispatch) =>
+    authenticate(
+      dispatch,
+      async () => {
+        const recoveryBytes = parseRecoveryKey(recoveryKey);
+        if (!recoveryBytes) {
+          throw codeError("recoveryKeyInvalid");
+        }
+        const current = await deriveRecoveryKeys(recoveryBytes);
+        const { data: start } = await api.post<{ wrappedKey: string }>(
+          "identity/recover/start",
+          { email, recoveryKey: current.authKey }
+        );
+        const dataKey = await unwrapDataKey(start.wrappedKey, current.kek);
+
+        const salt = generateSalt();
+        const { authKey, kek } = await deriveKeys(
+          newPassword,
+          salt,
+          KDF_ITERATIONS
+        );
+        const next = await newRecoveryKey();
+        const rewrap = (newKek: CryptoKey) =>
+          rewrapDataKey(start.wrappedKey, current.kek, newKek);
+
+        const { data } = await api.post<IAuthResponse>("identity/recover", {
+          email,
+          recoveryKey: current.authKey,
+          newPassword: authKey,
+          salt,
+          iterations: KDF_ITERATIONS,
+          wrappedKey: await rewrap(kek),
+          newRecovery: {
+            authKey: next.authKey,
+            wrappedKey: await rewrap(next.kek),
+          },
+        });
+
+        await saveKey(dataKey);
+        dispatch(SHOW_RECOVERY_KEY(next.recoveryKey));
+        return data.token;
+      },
+      "recoveryFailed"
+    );
 
 export const attempt =
   (token?: string | null): TAppThunk =>
@@ -197,6 +279,8 @@ export const localRegister =
 export const logout = (): TAppThunk => (dispatch, getState) => {
   dispatch(AUTH_FETCHING());
   clearKey();
+  dispatch(SHOW_RECOVERY_KEY(null));
+  dispatch(SET_RECOVERY_REMINDER(false));
 
   if (getState().auth.isLocal) {
     dispatch(SET_LOCAL_USER(null));
@@ -213,6 +297,121 @@ export const logout = (): TAppThunk => (dispatch, getState) => {
     })
     .catch((err) => dispatch(authError(err)));
 };
+
+// The current password's kek fails to unwrap the data key when it's wrong.
+const rewrap = async (
+  keys: IKeyMaterial,
+  { currentPassword, newPassword }: IChangePassword,
+) => {
+  const { authKey: currentAuthKey, kek: currentKek } = await deriveKeys(
+    currentPassword,
+    keys.salt,
+    keys.iterations,
+  );
+  const salt = generateSalt();
+  const { authKey, kek } = await deriveKeys(newPassword, salt, KDF_ITERATIONS);
+
+  let wrappedKey: string;
+  try {
+    wrappedKey = await rewrapDataKey(keys.wrappedKey, currentKek, kek);
+  } catch {
+    throw new Error("wrongCurrentPassword");
+  }
+
+  return {
+    currentAuthKey,
+    authKey,
+    keys: { salt, iterations: KDF_ITERATIONS, wrappedKey },
+  };
+};
+
+// Changes the password of the account or on-device profile. The data key stays the same, so the
+// data and this session's stored key are untouched. Resolves to an error code, or null when done.
+export const changePassword =
+  (passwords: IChangePassword): TAppThunk<Promise<string | null>> =>
+  async (_dispatch, getState) => {
+    const { isLocal, user } = getState().auth;
+    if (!user) return "userNotFound";
+
+    try {
+      if (isLocal) {
+        const local = await getLocalUser(user);
+        if (!local) return "userNotFound";
+        const { keys } = await rewrap(local, passwords);
+        await updateLocalUser({ ...local, ...keys });
+        return null;
+      }
+
+      const { data: current } = await api.get<IKeyMaterial>("identity/keys");
+      const { currentAuthKey, authKey, keys } = await rewrap(
+        current,
+        passwords,
+      );
+      await api.post("identity/password", {
+        currentPassword: currentAuthKey,
+        newPassword: authKey,
+        ...keys,
+      });
+      return null;
+    } catch (err) {
+      if ((err as Error | undefined)?.message === "wrongCurrentPassword") {
+        return "wrongCurrentPassword";
+      }
+      const code = errorCodes(err)?.[0];
+      if (!code) {
+        console.error(err);
+      }
+      return code === "failedLogin"
+        ? "wrongCurrentPassword"
+        : (code ?? "failedPasswordChange");
+    }
+  };
+
+export const getRecoveryStatus = async () =>
+  (await api.get<IRecoveryStatus>("identity/recovery")).data;
+
+// Creates a recovery key for the account, replacing the previous one, and shows it.
+// Resolves to an error code, or null when done.
+export const setRecoveryKey =
+  (currentPassword: string): TAppThunk<Promise<string | null>> =>
+  async (dispatch) => {
+    try {
+      const keys = (await api.get<IKeyMaterial>("identity/keys")).data;
+      const { authKey, kek } = await deriveKeys(
+        currentPassword,
+        keys.salt,
+        keys.iterations
+      );
+      const recovery = await newRecoveryKey();
+
+      let recoveryWrappedKey: string;
+      try {
+        recoveryWrappedKey = await rewrapDataKey(
+          keys.wrappedKey,
+          kek,
+          recovery.kek
+        );
+      } catch {
+        return "wrongCurrentPassword";
+      }
+
+      await api.post("identity/recovery", {
+        currentPassword: authKey,
+        recovery: { authKey: recovery.authKey, wrappedKey: recoveryWrappedKey },
+      });
+      dispatch(SET_RECOVERY_REMINDER(false));
+      dispatch(SHOW_RECOVERY_KEY(recovery.recoveryKey));
+      return null;
+    } catch (err) {
+      const code = errorCodes(err)?.[0];
+      if (!code) {
+        console.error(err);
+      }
+      return code === "failedLogin"
+        ? "wrongCurrentPassword"
+        : (code ?? "failedRecoveryKey");
+    }
+  };
 
 // Removes the on-device profile and its data, then logs out.
 export const deleteLocalProfile =
