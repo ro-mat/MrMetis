@@ -5,9 +5,24 @@ const sourceUrl =
   "https://github.com/ro-mat/MrMetis/blob/main/web/src/services/encryptor.ts";
 
 // key under encryption.steps, in the order they happen
-const steps = ["password", "split", "auth", "dataKey", "save", "login"];
+const steps = [
+  "password",
+  "split",
+  "auth",
+  "dataKey",
+  "recovery",
+  "save",
+  "login",
+];
 // key under encryption.stored
-const stored = ["email", "salt", "authHash", "wrappedKey", "userdata"];
+const stored = [
+  "email",
+  "salt",
+  "authHash",
+  "wrappedKey",
+  "recoveryKey",
+  "userdata",
+];
 
 const Encryption = () => {
   const { t } = useTranslation();

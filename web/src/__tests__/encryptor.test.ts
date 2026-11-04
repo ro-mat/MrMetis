@@ -3,7 +3,10 @@ import {
   decrypt,
   deriveKeys,
   encrypt,
+  deriveRecoveryKeys,
+  generateRecoveryKey,
   generateSalt,
+  parseRecoveryKey,
   rewrapDataKey,
   unwrapDataKey,
 } from "services/encryptor";
@@ -66,6 +69,68 @@ describe("encryptor", () => {
     const newKek = (await deriveKeys("new password", SALT, ITERATIONS)).kek;
 
     await expect(rewrapDataKey(wrappedKey, wrongKek, newKek)).rejects.toThrow();
+  });
+
+  it("should generate recovery keys of 26 base32 characters in groups", () => {
+    const key = generateRecoveryKey();
+
+    expect(key).toMatch(/^([A-Z2-7]{4}-){6}[A-Z2-7]{2}$/);
+    expect(generateRecoveryKey()).not.toBe(key);
+    expect(parseRecoveryKey(key)).toHaveLength(16);
+  });
+
+  it("should parse a recovery key however it was typed", () => {
+    // 16 bytes 0..15 in base32
+    const key = "AAAQ-EAYE-AUDA-OCAJ-BIFQ-YDIO-B4";
+    const bytes = Uint8Array.from({ length: 16 }, (_, i) => i);
+
+    expect(parseRecoveryKey(key)).toEqual(bytes);
+    expect(parseRecoveryKey(" aaaq eaye audaocaj-bifq-ydio-b4 ")).toEqual(
+      bytes
+    );
+    // digits that look like letters of the alphabet
+    expect(parseRecoveryKey("AAAQ-EAYE-AUDA-0CAJ-81FQ-YD1O-B4")).toEqual(
+      bytes
+    );
+  });
+
+  it.each([
+    "",
+    "AAAQ-EAYE-AUDA-OCAJ-BIFQ-YDIO-B",
+    "AAAQ-EAYE-AUDA-OCAJ-BIFQ-YDIO-B4A",
+    "AAAQ-EAYE-AUDA-OCAJ-BIFQ-YDIO-B!",
+    // the unused bits of the last character are set
+    "AAAQ-EAYE-AUDA-OCAJ-BIFQ-YDIO-B5",
+  ])("should refuse %j as a recovery key", (key) => {
+    expect(parseRecoveryKey(key)).toBeNull();
+  });
+
+  it("should unwrap the same data key with the recovery key", async () => {
+    const recoveryKey = parseRecoveryKey(generateRecoveryKey())!;
+    const recovery = await deriveRecoveryKeys(recoveryKey);
+    const { kek } = await deriveKeys("password", SALT, ITERATIONS);
+    const { wrappedKey, recoveryWrappedKey, dataKey } = await createDataKey(
+      kek,
+      recovery.kek
+    );
+    const encrypted = await encrypt({ a: 1 }, dataKey);
+
+    expect(recovery.authKey).toMatch(/^[0-9a-f]{64}$/);
+    expect((await deriveRecoveryKeys(recoveryKey)).authKey).toBe(
+      recovery.authKey
+    );
+    expect(recoveryWrappedKey).not.toBe(wrappedKey);
+    const unwrapped = await unwrapDataKey(recoveryWrappedKey!, recovery.kek);
+    expect(await decrypt(encrypted, unwrapped)).toEqual({ a: 1 });
+
+    const other = await deriveRecoveryKeys(
+      parseRecoveryKey(generateRecoveryKey())!
+    );
+    await expect(unwrapDataKey(recoveryWrappedKey!, other.kek)).rejects.toThrow();
+  });
+
+  it("should not wrap for recovery without a recovery kek", async () => {
+    expect((await newDataKey()).recoveryWrappedKey).toBeUndefined();
   });
 
   it.each([{ something: "here", other: "there", and: 83 }, null, {}])(

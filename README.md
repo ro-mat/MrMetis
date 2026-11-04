@@ -95,6 +95,7 @@ How it works:
 
 - Your budget is encrypted in the browser with **AES-256-GCM** before it is saved. The key comes from your password and never leaves your device.
 - The server stores only your email address in readable form. Everything else is ciphertext.
+- Forgot your password? The **recovery key** you save when you register (or later in Preferences) lets you set a new one without losing your data. We can't reset it for you.
 - Or keep the server out of it entirely: a profile **on this device** is stored, encrypted, only in your browser.
 - No bank connections, no ads, no selling or sharing of data.
 - The code is open ([GPL-3.0](LICENSE.txt)), so you can check all of this yourself. The full walkthrough is on the [How your data is encrypted](https://mrmetis-qa.romkats.eu/encryption) page.
@@ -113,6 +114,7 @@ To keep your budget, register an account, or choose **On this device** on the Re
 - [x] **On-device profiles** (October 2026): use MrMetis without an account. Password-protected profiles stay encrypted in your browser, several per device, and never touch the server.
 - [x] **Production launch** (October 2026): a public production site, separate from the demo.
 - [x] **Persistent data option** (October 2026): choose to keep your data saved localy between sessions.
+- [x] **Password change and recovery** (November 2026): change your password in Preferences, and set a new one with your recovery key if you forget it. Your data stays encrypted end to end.
 - [ ] **Self-hosting option**: run MrMetis on your own server.
 - [ ] **Shared account**: share a budget with a partner or your household.
 - [ ] **Bank data import**: import statements from your bank's export files. Still no bank login.

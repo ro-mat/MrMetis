@@ -9,6 +9,10 @@ export interface IAuthState extends IUser, IBaseState {
   isDemo: boolean;
   // on-device profile: no server, `user` is the profile name
   isLocal: boolean;
+  // a new recovery key to show once; only ever in memory
+  shownRecoveryKey: string | null;
+  // the account has no recovery key, reminded of after login
+  recoveryReminder: boolean;
 }
 
 export interface ICredentials {
@@ -31,6 +35,18 @@ export interface IPrelogin {
 export interface IAuthResponse {
   token: string;
   wrappedKey: string;
+  hasRecoveryKey: boolean;
+}
+
+export interface IRecover {
+  email: string;
+  recoveryKey: string;
+  newPassword: string;
+}
+
+export interface IRecoveryStatus {
+  // ISO date the current recovery key was created, null when there is none
+  created: string | null;
 }
 
 // Key derivation settings and the wrapped data key, see api/MrMetis.Core/Dtos/KeyMaterial.cs

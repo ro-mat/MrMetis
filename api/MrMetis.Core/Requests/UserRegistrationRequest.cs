@@ -1,3 +1,5 @@
+using MrMetis.Core.Dtos;
+
 namespace MrMetis.Core.Requests;
 
 public record UserRegistrationRequest(
@@ -6,4 +8,5 @@ public record UserRegistrationRequest(
     string? InvitationCode,
     string Salt,
     int Iterations,
-    string WrappedKey);
+    string WrappedKey,
+    RecoveryMaterial? Recovery = null);

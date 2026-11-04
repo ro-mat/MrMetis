@@ -21,6 +21,10 @@ public static class IdentityEndpoints
         group.MapPost("/logout", Logout);
         group.MapGet("/keys", Keys).RequireAuthorization();
         group.MapPost("/password", ChangePassword).RequireAuthorization();
+        group.MapGet("/recovery", GetRecoveryStatus).RequireAuthorization();
+        group.MapPost("/recovery", SetRecovery).RequireAuthorization();
+        group.MapPost("/recover/start", StartRecovery);
+        group.MapPost("/recover", Recover);
 
         return app;
     }
@@ -38,7 +42,7 @@ public static class IdentityEndpoints
         UserRegistrationRequest request, IIdentityService identityService, CancellationToken ct)
     {
         var keys = new KeyMaterial(request.Salt, request.Iterations, request.WrappedKey);
-        var result = await identityService.RegisterAsync(request.Email, request.Password, request.InvitationCode, keys, ct);
+        var result = await identityService.RegisterAsync(request.Email, request.Password, request.InvitationCode, keys, request.Recovery, ct);
         return ToResponse(result);
     }
 
@@ -70,11 +74,41 @@ public static class IdentityEndpoints
             : TypedResults.BadRequest(new AuthFailedResponse(result.Errors));
     }
 
+    private static async Task<Results<Ok<RecoveryStatus>, UnauthorizedHttpResult>> GetRecoveryStatus(
+        ClaimsPrincipal user, IIdentityService identityService, CancellationToken ct) =>
+        user.GetUserId() is { } userId
+            ? TypedResults.Ok(await identityService.GetRecoveryStatusAsync(userId, ct))
+            : TypedResults.Unauthorized();
+
+    private static async Task<Results<Ok, BadRequest<AuthFailedResponse>, UnauthorizedHttpResult>> SetRecovery(
+        SetRecoveryRequest request, ClaimsPrincipal user, IIdentityService identityService, CancellationToken ct)
+    {
+        if (user.GetUserId() is not { } userId)
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        var result = await identityService.SetRecoveryAsync(userId, request.CurrentPassword, request.Recovery, ct);
+        return result.Success
+            ? TypedResults.Ok()
+            : TypedResults.BadRequest(new AuthFailedResponse(result.Errors));
+    }
+
+    private static async Task<Results<Ok<RecoveryStartResponse>, BadRequest<AuthFailedResponse>>> StartRecovery(
+        RecoveryStartRequest request, IIdentityService identityService, CancellationToken ct) =>
+        await identityService.StartRecoveryAsync(request.Email, request.RecoveryKey, ct) is { } wrappedKey
+            ? TypedResults.Ok(new RecoveryStartResponse(wrappedKey))
+            : TypedResults.BadRequest(new AuthFailedResponse(["recoveryFailed"]));
+
+    private static async Task<Results<Ok<AuthSuccessResponse>, BadRequest<AuthFailedResponse>>> Recover(
+        RecoverRequest request, IIdentityService identityService, CancellationToken ct) =>
+        ToResponse(await identityService.RecoverAsync(request, ct));
+
     // tokens are stateless, the client drops its token
     private static Ok Logout() => TypedResults.Ok();
 
     private static Results<Ok<AuthSuccessResponse>, BadRequest<AuthFailedResponse>> ToResponse(AuthenticationResult result) =>
         result is { Success: true, Token: { } token, WrappedKey: { } wrappedKey }
-            ? TypedResults.Ok(new AuthSuccessResponse(token, wrappedKey))
+            ? TypedResults.Ok(new AuthSuccessResponse(token, wrappedKey, result.HasRecoveryKey))
             : TypedResults.BadRequest(new AuthFailedResponse(result.Errors));
 }

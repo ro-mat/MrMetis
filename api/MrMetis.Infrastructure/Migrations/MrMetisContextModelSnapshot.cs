@@ -81,6 +81,15 @@ namespace MrMetis.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RecoveryAuthHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RecoveryCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RecoveryWrappedKey")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<long>("StorageLimitBytes")
                         .HasColumnType("bigint");
 

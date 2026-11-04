@@ -47,6 +47,7 @@
     "loggingIn": "Logging in...",
     "email": "Email",
     "password": "Password",
+    "forgotPassword": "Forgot password?",
     "modeAccount": "Account",
     "modeLocal": "On this device",
     "profile": "Profile name",
@@ -273,6 +274,11 @@
     "wrongCurrentPassword": "The current password is wrong",
     "passwordSame": "The new password is the same as the current one",
     "failedPasswordChange": "Failed to change the password",
+    "recoveryKeyEmpty": "Recovery key cannot be empty",
+    "recoveryKeyInvalid": "This is not a valid recovery key. Check it for typos.",
+    "recoveryFailed": "The email or recovery key is wrong",
+    "recoveryInvalid": "The recovery key could not be created",
+    "failedRecoveryKey": "Failed to create the recovery key",
     "passwordsDiffer": "Passwords do not match"
   },
   "landingPage": {
@@ -496,6 +502,14 @@
     "changePasswordButton": "Change password",
     "changingPassword": "Changing password...",
     "passwordChanged": "Password changed",
+    "recoveryKey": "Recovery key",
+    "recoveryKeyText": "If you forget your password, the recovery key lets you set a new one without losing your data. Creating a new key replaces the previous one.",
+    "recoveryKeyCreated": "Your current recovery key was created on {{date}}.",
+    "recoveryKeyNone": "You don't have a recovery key yet. Without one, a forgotten password means your data is lost.",
+    "createRecoveryKey": "Create recovery key",
+    "replaceRecoveryKey": "Replace recovery key",
+    "creatingRecoveryKey": "Creating key...",
+    "replaceRecoveryConfirm": "Create a new recovery key? Your current recovery key will stop working.",
     "localProfile": "Profile on this device",
     "localProfileText": "The profile “{{name}}” and its data are stored only in this browser.",
     "deleteProfile": "Delete profile",
@@ -540,6 +554,10 @@
         "header": "A random key for your data",
         "text": "When you register, your browser creates a random 256-bit data key. It is encrypted (wrapped) with the second key from step 2, and only that wrapped copy is stored on the server."
       },
+      "recovery": {
+        "header": "A second copy for recovery",
+        "text": "Your browser also creates a random 128-bit recovery key, which you save yourself. HKDF splits it in two, like the master key: one key proves you have it, the other wraps the same data key once more. With it you can set a new password without losing your data."
+      },
       "save": {
         "header": "Every save is encrypted",
         "text": "Before your budget is sent, it is encrypted with the data key using AES-256-GCM and a fresh random value each time. GCM also detects if anyone has changed the stored data."
@@ -569,6 +587,10 @@
         "what": "Data key",
         "how": "Encrypted with a key only your browser can make"
       },
+      "recoveryKey": {
+        "what": "Recovery key",
+        "how": "Hashed like the login key, plus the data key wrapped with it; the recovery key itself is not stored"
+      },
       "userdata": {
         "what": "Accounts, budgets and statements",
         "how": "Encrypted with AES-256-GCM"
@@ -578,7 +600,7 @@
     "meaning": {
       "cantRead": "We can't read your budget, and nobody with access to our server can either.",
       "leak": "If our database ever leaked, it would contain your e-mail and encrypted data, but not your budget.",
-      "forgotten": "We can't reset your password for you: without it, your data can't be decrypted. Choose a password you will remember, and export your data from time to time.",
+      "forgotten": "We can't reset your password for you: only your password or your recovery key can decrypt your data. Keep the recovery key somewhere safe, and export your data from time to time.",
       "device": "Anyone using your browser while you are logged in can see your data, as with any app. You are logged out automatically after some time without activity.",
       "demo": "Demo data is not encrypted. It is not sent anywhere and stays only in your browser."
     },
@@ -636,7 +658,34 @@
     "to": "Last month",
     "moveRange": "Move the range"
   },
+  "recover": {
+    "header": "Reset password",
+    "note": "Enter the recovery key you saved when you created your account or in Preferences. Your data stays as it is.",
+    "recoveryKey": "Recovery key",
+    "recover": "Set new password",
+    "recovering": "Setting new password...",
+    "noKey": "Without the recovery key the password can't be reset, as your data is encrypted with it.",
+    "backToLogin": "Back to login"
+  },
+  "recoveryKey": {
+    "header": "Save your recovery key",
+    "text": "If you forget your password, this key is the only way to get back into your account. Your data is encrypted, so we can't reset your password for you.",
+    "copy": "Copy",
+    "copied": "Recovery key copied",
+    "copyFailed": "Could not copy, select the key and copy it yourself",
+    "download": "Download as file",
+    "warning": "Keep it somewhere safe outside this browser, e.g. in a password manager or on paper. Anyone with this key and your e-mail can set a new password. It is shown only now.",
+    "saved": "I have saved my recovery key",
+    "done": "Done",
+    "skip": "Skip",
+    "skipConfirm": "Without the recovery key, a forgotten password means your data is lost. You can create a new key later in Preferences. Close anyway?",
+    "reminder": "You don't have a recovery key. Without one, a forgotten password means your data is lost.",
+    "setUp": "Set up",
+    "later": "Later",
+    "fileText": "MrMetis recovery key\n\nAccount: {{email}}\nRecovery key: {{key}}\n\nIf you forget your password, set a new one at {{url}} with this key. Keep it private: anyone with it and your e-mail can set a new password.\n"
+  },
   "meta": {
+    "recover": "Reset your MrMetis password with your recovery key.",
     "index": "MrMetis is a private, open-source budget planner. Plan income, bills and savings months ahead and track every payment against the plan. End-to-end encrypted.",
     "privacy": "MrMetis privacy policy: only your e-mail is stored readable. Your budget is encrypted in your browser before it leaves your device.",
     "encryption": "How MrMetis encrypts your budget in the browser with PBKDF2, HKDF and AES-256-GCM, so the server stores your data but can't read it.",

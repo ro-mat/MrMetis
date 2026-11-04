@@ -9,6 +9,7 @@ import LocalLoginForm from "components/login/LocalLoginForm";
 import AuthModeToggle from "components/login/AuthModeToggle";
 import useAuthMode from "hooks/useAuthMode";
 import usePageMeta from "hooks/usePageMeta";
+import { Link } from "react-router-dom";
 
 const LoginPage = () => {
   const dispatch = useDispatch<TAppDispatch>();
@@ -27,7 +28,16 @@ const LoginPage = () => {
       <h2>{t("login.header")}</h2>
       <AuthModeToggle mode={mode} onChange={setMode} />
       {err && <div className="error">{t(`errors.${err}`)}</div>}
-      {mode === "local" ? <LocalLoginForm /> : <LoginForm />}
+      {mode === "local" ? (
+        <LocalLoginForm />
+      ) : (
+        <>
+          <LoginForm />
+          <p className="note">
+            <Link to="/recover">{t("login.forgotPassword")}</Link>
+          </p>
+        </>
+      )}
     </div>
   );
 };

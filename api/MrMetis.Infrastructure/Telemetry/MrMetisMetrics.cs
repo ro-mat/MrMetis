@@ -15,6 +15,8 @@ public sealed class MrMetisMetrics
     private readonly ResultCounter _registrations = new(Success, "emailExists", "codeInvalid", "kdfInvalid");
     private readonly ResultCounter _logins = new(Success, "failed");
     private readonly ResultCounter _passwordChanges = new(Success, "failedLogin", "kdfInvalid");
+    private readonly ResultCounter _recoverySets = new(Success, "failedLogin", "recoveryInvalid");
+    private readonly ResultCounter _recoveries = new(Success, "recoveryFailed", "kdfInvalid");
     private readonly ResultCounter _dataSaves = new(Success, "storageLimitExceeded");
     private readonly Histogram<long> _dataSize;
 
@@ -28,6 +30,10 @@ public sealed class MrMetisMetrics
             "Login attempts by result");
         Meter.CreateObservableCounter("mrmetis.password.changes", _passwordChanges.Observe, "{change}",
             "Password change attempts by result, the error code when failed");
+        Meter.CreateObservableCounter("mrmetis.recovery.sets", _recoverySets.Observe, "{set}",
+            "Recovery key creations and replacements by result, the error code when failed");
+        Meter.CreateObservableCounter("mrmetis.recoveries", _recoveries.Observe, "{recovery}",
+            "Recovery attempts (lookups of the wrapped key and password resets) by result, the error code when failed");
         Meter.CreateObservableCounter("mrmetis.data.saves", _dataSaves.Observe, "{save}",
             "Saves of the encrypted user data by result");
         _dataSize = Meter.CreateHistogram<long>("mrmetis.data.size", "By",
@@ -44,6 +50,10 @@ public sealed class MrMetisMetrics
     public void Login(bool success) => _logins.Add(success ? Success : "failed");
 
     public void PasswordChange(string result) => _passwordChanges.Add(result);
+
+    public void RecoverySet(string result) => _recoverySets.Add(result);
+
+    public void Recovery(string result) => _recoveries.Add(result);
 
     public void DataSave(string result, long bytes)
     {

@@ -9,6 +9,7 @@ import BudgetPage from "pages/BudgetPage";
 import AccountsPage from "pages/AccountsPage";
 import { attempt, logout } from "store/auth/auth.actions";
 import RegisterPage from "pages/RegisterPage";
+import RecoverPage from "pages/RecoverPage";
 import { loadUserdata, saveUserData } from "store/userdata/userdata.actions";
 import { fetchUi } from "store/ui/ui.actions";
 import SideNavLayout from "components/Layouts/SideNavLayout";
@@ -171,6 +172,7 @@ const App: FunctionComponent = () => {
             <Route element={<UnAuthenticated />}>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/recover" element={<RecoverPage />} />
             </Route>
           </Routes>
         </div>

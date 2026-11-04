@@ -7,6 +7,7 @@ import DataExport from "components/preferences/DataExport";
 import DataImport from "components/preferences/DataImport";
 import LocalProfile from "components/preferences/LocalProfile";
 import ChangePassword from "components/preferences/ChangePassword";
+import RecoveryKey from "components/preferences/RecoveryKey";
 import {
   selectIsAuthenticated,
   selectIsLocal,
@@ -28,6 +29,7 @@ const Preferences = () => {
           <DataExport />
           <DataImport />
           {isAuthenticated && <ChangePassword />}
+          {isAuthenticated && !isLocal && <RecoveryKey />}
           {isLocal && <LocalProfile />}
         </PreferencesForm>
       )}
